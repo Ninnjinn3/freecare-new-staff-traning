@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>フリーケア新人研修アプリ — 最終仕様書</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700;900&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            color: #1a1a1a;
+            background: #f5f5f5;
+            line-height: 1.8;
+            font-size: 14px;
+        }
+
+        .document {
+            max-width: 800px;
+            margin: 40px auto;
+            background: #fff;
+            padding: 60px 70px;
+            box-shadow: 0 2px 20px rgba(0, 0, 0, 0.08);
+            border-radius: 4px;
+        }
+
+        /* Cover */
+        .cover {
+            text-align: center;
+            padding: 80px 0 60px;
+            border-bottom: 3px solid #2d8a4e;
+            margin-bottom: 50px;
+        }
+
+        .cover-label {
+            font-size: 12px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            margin-bottom: 20px;
+        }
+
+        .cover h1 {
+            font-size: 28px;
+            font-weight: 900;
+            color: #1a1a1a;
+            margin-bottom: 8px;
+        }
+
+        .cover-subtitle {
+            font-size: 18px;
+            color: #2d8a4e;
+            font-weight: 700;
+            margin-bottom: 30px;
+        }
+
+        .cover-meta {
+            font-size: 13px;
+            color: #666;
+            line-height: 2;
+        }
+
+        .cover-meta strong {
+            color: #333;
+        }
+
+        /* Sections */
+        h2 {
+            font-size: 20px;
+            font-weight: 900;
+            color: #fff;
+            background: #2d8a4e;
+            padding: 10px 20px;
+            border-radius: 4px;
+            margin: 40px 0 20px;
+        }
+
+        h3 {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2d8a4e;
+            border-left: 4px solid #2d8a4e;
+            padding-left: 12px;
+            margin: 30px 0 15px;
+        }
+
+        h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #333;
+            margin: 20px 0 10px;
+        }
+
+        p {
+            margin-bottom: 12px;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0 25px;
+            font-size: 13px;
+        }
+
+        th {
+            background: #f0f7f2;
+            color: #2d8a4e;
+            font-weight: 700;
+            text-align: left;
+            padding: 10px 12px;
+            border: 1px solid #d0e0d5;
+            white-space: nowrap;
+        }
+
+        td {
+            padding: 9px 12px;
+            border: 1px solid #e0e0e0;
+            vertical-align: top;
+        }
+
+        tr:nth-child(even) td {
+            background: #fafafa;
+        }
+
+        /* Status badges */
+        .done {
+            color: #fff;
+            background: #2d8a4e;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .todo {
+            color: #fff;
+            background: #e68a00;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .tbd {
+            color: #fff;
+            background: #888;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        /* Lists */
+        ul,
+        ol {
+            margin: 10px 0 15px 24px;
+        }
+
+        li {
+            margin-bottom: 6px;
+        }
+
+        /* Diagram box */
+        .diagram {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 20px;
+            margin: 15px 0 25px;
+            font-family: monospace;
+            font-size: 13px;
+            white-space: pre;
+            line-height: 1.6;
+            overflow-x: auto;
+        }
+
+        /* Code/JSON */
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 16px 20px;
+            border-radius: 6px;
+            font-family: 'Consolas', monospace;
+            font-size: 12px;
+            margin: 15px 0 25px;
+            overflow-x: auto;
+            white-space: pre;
+            line-height: 1.5;
+        }
+
+        .code-block .key {
+            color: #9cdcfe;
+        }
+
+        .code-block .str {
+            color: #ce9178;
+        }
+
+        .code-block .num {
+            color: #b5cea8;
+        }
+
+        /* Info boxes */
+        .note {
+            background: #e8f5e9;
+            border-left: 4px solid #2d8a4e;
+            padding: 12px 16px;
+            margin: 15px 0;
+            border-radius: 0 4px 4px 0;
+            font-size: 13px;
+        }
+
+        .warning {
+            background: #fff8e1;
+            border-left: 4px solid #e68a00;
+            padding: 12px 16px;
+            margin: 15px 0;
+            border-radius: 0 4px 4px 0;
+            font-size: 13px;
+        }
+
+        /* File tree */
+        .file-tree {
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 16px 20px;
+            font-family: monospace;
+            font-size: 13px;
+            line-height: 1.8;
+            margin: 15px 0 25px;
+        }
+
+        .file-tree .folder {
+            color: #2d8a4e;
+            font-weight: 700;
+        }
+
+        .file-tree .file {
+            color: #333;
+        }
+
+        .file-tree .comment {
+            color: #888;
+        }
+
+        /* Progress bar */
+        .progress-section {
+            margin: 20px 0;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .progress-bar {
+            height: 24px;
+            background: #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+        }
+
+        .progress-fill.green {
+            background: #2d8a4e;
+        }
+
+        .progress-fill.orange {
+            background: #e68a00;
+        }
+
+        /* Page break for print */
+        .page-break {
+            page-break-before: always;
+        }
+
+        /* Footer */
+        .doc-footer {
+            text-align: center;
+            font-size: 11px;
+            color: #999;
+            margin-top: 60px;
+            padding-top: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                background: #fff;
+            }
+
+            .document {
+                box-shadow: none;
+                margin: 0;
+                padding: 40px 50px;
+                max-width: none;
+            }
+
+            h2 {
+                break-after: avoid;
+            }
+
+            table {
+                break-inside: avoid;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="document">
+
+        <!-- ===== Cover ===== -->
+        <div class="cover">
+            <div class="cover-label">System Specification Document</div>
+            <h1>フリーケア新人研修アプリ</h1>
+            <div class="cover-subtitle">最終仕様書</div>
+            <div class="cover-meta">
+                <strong>プロジェクト名:</strong> フリーケアプログラム（介護新人研修システム）<br>
+                <strong>クライアント:</strong> 株式会社フリーケア<br>
+                <strong>作成日:</strong> 2026年2月19日<br>
+                <strong>バージョン:</strong> 1.0
+            </div>
+        </div>
+
+        <!-- ===== 1. 概要 ===== -->
+        <h2>1. プロジェクト概要</h2>
+
+        <h3>1-1. 目的</h3>
+        <p>介護施設の新人スタッフが、日々の業務で気付いたことや仮説・振り返りをアプリに入力し、AIが即座に◯☓判定とフィードバックを返す研修システム。Duolingo風のゲーミフィケーションUIで、段階的な学習（STEP1→4）と月次100点評価により、新人の成長を可視化・管理する。
+        </p>
+
+        <h3>1-2. 対象ユーザー</h3>
+        <table>
+            <tr>
+                <th>ロール</th>
+                <th>対象者</th>
+                <th>用途</th>
+            </tr>
+            <tr>
+                <td>新人研修利用者</td>
+                <td>介護新人スタッフ（数十〜百名）</td>
+                <td>日々の記録入力、AI判定確認、月次評価確認</td>
+            </tr>
+            <tr>
+                <td>管理者</td>
+                <td>事業所のリーダー・管理職</td>
+                <td>スタッフ進捗管理、アラート確認</td>
+            </tr>
+            <tr>
+                <td>運営本部</td>
+                <td>本社経営陣</td>
+                <td>全拠点の合格率・STEP分布・KPI確認</td>
+            </tr>
+        </table>
+
+        <h3>1-3. 利用端末</h3>
+        <p><strong>iPad（ブラウザ）</strong>を主要端末として最適化。PC・スマホからもアクセス可能。年配の方も使うため、大きなボタン・高コントラスト・大きな文字サイズで設計。</p>
+
+        <!-- ===== 2. ビジネスルール ===== -->
+        <h2>2. 研修の流れ（ビジネスルール）</h2>
+
+        <h3>2-1. 4段階のSTEP構成</h3>
+        <div class="diagram">STEP1 気付き → STEP2 仮説思考 → STEP3 振り返り → STEP4 症例報告
+            (合格で解放) (合格で解放) (合格で解放) (修了)</div>
+
+        <table>
+            <tr>
+                <th>STEP</th>
+                <th>名称</th>
+                <th>内容</th>
+                <th>対象</th>
+            </tr>
+            <tr>
+                <td>STEP1</td>
+                <td>気付き（アセスメント）</td>
+                <td>日々の観察記録 → AI◯☓判定</td>
+                <td>区分6 / 介護5の利用者</td>
+            </tr>
+            <tr>
+                <td>STEP2</td>
+                <td>仮説思考</td>
+                <td>変化→なぜ？×3段掘下げ→支援計画</td>
+                <td>区分5 / 介護4の利用者</td>
+            </tr>
+            <tr>
+                <td>STEP3</td>
+                <td>振り返り</td>
+                <td>支援→予測→結果→判断</td>
+                <td>区分4 / 介護3の利用者</td>
+            </tr>
+            <tr>
+                <td>STEP4</td>
+                <td>症例報告</td>
+                <td>全STEP統合の発表</td>
+                <td>他事業利用者</td>
+            </tr>
+        </table>
+
+        <h3>2-2. 月次サイクル（毎月繰り返し）</h3>
+        <table>
+            <tr>
+                <th>期間</th>
+                <th>フェーズ</th>
+                <th>内容</th>
+            </tr>
+            <tr>
+                <td>前月26日〜当月10日</td>
+                <td>入力期間</td>
+                <td>スタッフが日々の記録を入力</td>
+            </tr>
+            <tr>
+                <td>当月11日〜17日</td>
+                <td>評価期間</td>
+                <td>AI＋管理者が月次100点評価を実施</td>
+            </tr>
+            <tr>
+                <td>当月18日〜25日</td>
+                <td>FB期間</td>
+                <td>評価結果をフィードバック</td>
+            </tr>
+        </table>
+
+        <h3>2-3. 勤務形態別の最低記載日数</h3>
+        <table>
+            <tr>
+                <th>勤務形態</th>
+                <th>最低日数/月</th>
+            </tr>
+            <tr>
+                <td>日勤</td>
+                <td>6日</td>
+            </tr>
+            <tr>
+                <td>夜勤専従・週2回夜勤</td>
+                <td>2日</td>
+            </tr>
+            <tr>
+                <td>週1回夜勤</td>
+                <td>3日</td>
+            </tr>
+        </table>
+
+        <h3>2-4. 合否判定ルール</h3>
+        <ul>
+            <li><strong>初回:</strong> 80点以上で合格 → 次のSTEPへ進級</li>
+            <li><strong>2回目以降:</strong> 2回連続100点で合格</li>
+            <li><strong>8ヶ月同一STEP滞在:</strong> 人事評価2点減点（以降も繰返し適用）</li>
+        </ul>
+
+        <h3>2-5. 動画課題</h3>
+        <p>各STEPに動画課題①②③があり、<strong>視聴＋テスト100点＋報告書提出</strong>の3つ全完了で合格。動画課題が未合格の場合、そのSTEPは月次評価の採点対象外。</p>
+
+        <!-- ===== 3. 機能一覧 ===== -->
+        <div class="page-break"></div>
+        <h2>3. 機能一覧</h2>
+
+        <h3>3-1. 新人研修利用者向け</h3>
+        <table>
+            <tr>
+                <th>#</th>
+                <th>機能</th>
+                <th>説明</th>
+                <th>状態</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>ロール選択</td>
+                <td>新人/管理者/運営本部から選択</td>
+                <td><span class="done">✅ 完了</span></td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>ログイン</td>
+                <td>職員ID＋パスワード認証</td>
+                <td><span class="done">✅ 完了</span></td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>ホーム画面</td>
+                <td>対象者・期限・進捗・STEP解放状況</td>
+                <td><span class="done">✅ 完了</span></td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>STEP1 気付き入力</td>
+                <td>テキスト入力 → AI◯☓判定＋コメント</td>
+                <td><span class="done">✅ 完了</span></td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>STEP2 仮説思考入力</td>
+                <td>仮説3〜5個＋なぜ×3段＋支援＋優先順位</td>
+                <td><span class="done">✅ 完了</span></td>
+            </tr>
+            <tr>
+                <td>6</td>
+                <td>STEP3 振り返り入力</td>
+                <td>6項目入力 → AIフィードバック</td>
+                <td><span class="done">✅ 完了</span></td>
+            </tr>
+            <tr>
+                <td>7</td>
+                <td>STEP4 症例報告</td>
+                <td>統合レポート＋発表管理</td>
+                <td><span class="done">✅ 完了</span></td>
+            </tr>
+            <tr>
+                <td>8</td>
+                <td>◯☓結果画面</td>
+                <td>Duolingo風アニメーション表示</td>
+                <td><span class="done">✅ 完了</span></td>
+            </tr>
+            <tr>
+                <td>9</td>
+                <td>月次評価表示</td>
+                <td>100点スコア＋6観点内訳＋レベル判定</td>
+                <td><span class="done">✅ 完了</span></td>
+            </tr>
+            <tr>
+                <td>10</td>
+                <td>記録履歴</td>
+                <td>STEP別フィルタ付き一覧</td>
+                <td><span class="done">✅ 完了</span></td>
+            </tr>
+            <tr>
+                <td>11</td>
+                <td>動画課題管理</td>
+                <td>ステータス一覧</td>
+                <td><span class="done">✅ 完了</span></td>
+            </tr>
+            <tr>
+                <td>12</td>
+                <td>期限アラート</td>
+                <td>残日数表示＋緊急色分け</td>
+                <td><span class="done">✅ 完了</span></td>
+            </tr>
+            <tr>
+                <td>13</td>
+                <td>AI判定（Gemini連携）</td>
+                <td>ルールベース → Gemini APIに差替え</td>
+                <td><span class="todo">🔜 Phase 3</span></td>
+            </tr>
+            <tr>
+                <td>14</td>
+                <td>アセスメント/フェイスシート</td>
+                <td>対象者の基本情報入力フォーム</td>
+                <td><span class="todo">🔜 Phase 2</span></td>
+            </tr>
+        </table>
+
+        <h3>3-2. 管理者向け</h3>
+        <table>
+            <tr>
+                <th>#</th>
+                <th>機能</th>
+                <th>説明</th>
+                <th>状態</th>
+            </tr>
+            <tr>
+                <td>15</td>
+                <td>スタッフ進捗一覧</td>
+                <td>全スタッフのSTEP・月次スコア一覧表</td>
+                <td><span class="todo">🔜 Phase 3</span></td>
+            </tr>
+            <tr>
+                <td>16</td>
+                <td>アラート表示</td>
+                <td>提出不足・6ヶ月滞在・動画未達のアラート</td>
+                <td><span class="todo">🔜 Phase 3</span></td>
+            </tr>
+            <tr>
+                <td>17</td>
+                <td>スタッフ管理</td>
+                <td>追加・編集・対象者割当</td>
+                <td><span class="todo">🔜 Phase 3</span></td>
+            </tr>
+            <tr>
+                <td>18</td>
+                <td>月次評価確認・承認</td>
+                <td>AI評価＋管理者スコアの入力</td>
+                <td><span class="todo">🔜 Phase 3</span></td>
+            </tr>
+        </table>
+
+        <h3>3-3. 運営本部向け</h3>
+        <table>
+            <tr>
+                <th>#</th>
+                <th>機能</th>
+                <th>説明</th>
+                <th>状態</th>
+            </tr>
+            <tr>
+                <td>19</td>
+                <td>全拠点KPI</td>
+                <td>合格率・平均スコア・STEP分布</td>
+                <td><span class="todo">🔜 Phase 3</span></td>
+            </tr>
+            <tr>
+                <td>20</td>
+                <td>拠点別比較</td>
+                <td>棒グラフ・表での比較</td>
+                <td><span class="todo">🔜 Phase 3</span></td>
+            </tr>
+            <tr>
+                <td>21</td>
+                <td>6ヶ月滞在者一覧</td>
+                <td>全社のアラート対象者リスト</td>
+                <td><span class="todo">🔜 Phase 3</span></td>
+            </tr>
+        </table>
+
+        <!-- ===== 4. AI採点 ===== -->
+        <h2>4. AI採点の仕組み</h2>
+
+        <h3>4-1. 現在（Phase 1）：ルールベース判定</h3>
+        <p>入力テキストをキーワード＋文字数でチェックし、5項目×20点＝100点中60点以上で◯と判定。</p>
+        <table>
+            <tr>
+                <th>チェック項目</th>
+                <th>判定方法</th>
+                <th>配点</th>
+            </tr>
+            <tr>
+                <td>文字数</td>
+                <td>30文字以上あるか</td>
+                <td>20点</td>
+            </tr>
+            <tr>
+                <td>日時・時間帯</td>
+                <td>「朝」「9時」等のキーワードが含まれるか</td>
+                <td>20点</td>
+            </tr>
+            <tr>
+                <td>場所・場面</td>
+                <td>「フロア」「居室」等が含まれるか</td>
+                <td>20点</td>
+            </tr>
+            <tr>
+                <td>変化・比較</td>
+                <td>「いつもは」「普段は」等による比較構造があるか</td>
+                <td>20点</td>
+            </tr>
+            <tr>
+                <td>本人の反応</td>
+                <td>「表情」「言った」等の具体的反応が含まれるか</td>
+                <td>20点</td>
+            </tr>
+        </table>
+
+        <div class="note">Phase 1のルールベース判定はプロトタイプ用です。本番ではGemini AIに完全に置き換わります。</div>
+
+        <h3>4-2. 本番（Phase 3）：Gemini AI 6観点100点評価</h3>
+        <table>
+            <tr>
+                <th>#</th>
+                <th>観点</th>
+                <th>配点</th>
+                <th>評価内容</th>
+            </tr>
+            <tr>
+                <td>①</td>
+                <td>気づいた変化の明確さ</td>
+                <td>15点</td>
+                <td>日時・状況・本人の言動が的確に記録されているか</td>
+            </tr>
+            <tr>
+                <td>②</td>
+                <td>要因の多層的分析</td>
+                <td>20点</td>
+                <td>3つ以上の仮説で「なぜ？」を3段階以上掘り下げているか</td>
+            </tr>
+            <tr>
+                <td>③</td>
+                <td>要因の関連性と優先順位</td>
+                <td>15点</td>
+                <td>根拠に基づいた優先順位付けができているか</td>
+            </tr>
+            <tr>
+                <td>④</td>
+                <td>検証計画の論理性</td>
+                <td>15点</td>
+                <td>観察計画・評価指標・再評価タイミングが設計されているか</td>
+            </tr>
+            <tr>
+                <td>⑤</td>
+                <td>支援計画の実効性</td>
+                <td>20点</td>
+                <td>本人の意思・ニーズを反映した具体的支援が計画されているか</td>
+            </tr>
+            <tr>
+                <td>⑥</td>
+                <td>振り返り・修正力</td>
+                <td>15点</td>
+                <td>結果を評価し、次の改善に繋げる力があるか</td>
+            </tr>
+        </table>
+
+        <h4>AIからの返却フォーマット</h4>
+        <div class="code-block">{
+            <span class="key">"judgement"</span>: <span class="str">"○ or ×"</span>,
+            <span class="key">"score"</span>: <span class="num">85</span>,
+            <span class="key">"short_comment"</span>: <span class="str">"総評コメント"</span>,
+            <span class="key">"good_points"</span>: [<span class="str">"良い点1"</span>, <span class="str">"良い点2"</span>],
+            <span class="key">"missing_points"</span>: [<span class="str">"不足点1"</span>],
+            <span class="key">"improvement_example"</span>: <span class="str">"改善例の文章"</span>
+            }
+        </div>
+
+        <!-- ===== 5. 人事評価 ===== -->
+        <h2>5. 人事評価との連動</h2>
+        <table>
+            <tr>
+                <th>条件</th>
+                <th>人事評価ポイント</th>
+            </tr>
+            <tr>
+                <td>STEP1 気付き100点</td>
+                <td>+2点</td>
+            </tr>
+            <tr>
+                <td>STEP1 気付き100点（継続）</td>
+                <td>+4点</td>
+            </tr>
+            <tr>
+                <td>STEP2 仮説80点</td>
+                <td>+6点</td>
+            </tr>
+            <tr>
+                <td>STEP2 仮説100点</td>
+                <td>+8点</td>
+            </tr>
+            <tr>
+                <td>STEP4 症例報告2回目完了</td>
+                <td>+10点</td>
+            </tr>
+            <tr>
+                <td>8ヶ月同一STEP滞在（ペナルティ）</td>
+                <td>−2点（繰返し）</td>
+            </tr>
+        </table>
+
+        <!-- ===== 6. 技術構成 ===== -->
+        <div class="page-break"></div>
+        <h2>6. 技術構成</h2>
+
+        <h3>6-1. システム構成図（本番）</h3>
+        <div class="diagram">┌──────────────────────┐
+            │ iPad / PCブラウザ │ ← HTML/CSS/JavaScript (SPA)
+            └──────────┬───────────┘
+            │ HTTPS / REST API (JSON)
+            ┌──────────▼───────────┐
+            │ バックエンド │ ← Firebase or Supabase（選定中）
+            │ 認証 / DB / API │
+            └──────────┬───────────┘
+            │
+            ┌──────────▼───────────┐
+            │ Gemini API │ ← AI採点・フィードバック生成
+            └──────────────────────┘</div>
+
+        <h3>6-2. バックエンド選定（未確定）</h3>
+        <p>Firebase と Supabase のどちらかを採用予定。エンジニアと相談して決定。</p>
+        <table>
+            <tr>
+                <th>観点</th>
+                <th>Firebase</th>
+                <th>Supabase</th>
+            </tr>
+            <tr>
+                <td>DB種類</td>
+                <td>Firestore（NoSQL / ドキュメント型）</td>
+                <td>PostgreSQL（RDB）</td>
+            </tr>
+            <tr>
+                <td>データとの相性</td>
+                <td>△ 表形式データにはやや冗長</td>
+                <td>◎ テーブル構造がそのまま使える</td>
+            </tr>
+            <tr>
+                <td>認証</td>
+                <td>◎ Firebase Auth</td>
+                <td>◎ Supabase Auth</td>
+            </tr>
+            <tr>
+                <td>管理画面</td>
+                <td>Firebaseコンソール（やや技術者向け）</td>
+                <td>テーブルUI（スプレッドシートに近い）</td>
+            </tr>
+            <tr>
+                <td>集計クエリ</td>
+                <td>△ クライアント側で処理が必要</td>
+                <td>◎ SQLで自由に集計可能</td>
+            </tr>
+            <tr>
+                <td>無料枠</td>
+                <td>1GB / 5万読取/日</td>
+                <td>500MB / 5万MAU</td>
+            </tr>
+        </table>
+
+        <!-- ===== 7. データモデル ===== -->
+        <h2>7. データモデル（10テーブル）</h2>
+        <table>
+            <tr>
+                <th>テーブル</th>
+                <th>概要</th>
+                <th>主なカラム</th>
+            </tr>
+            <tr>
+                <td>staff</td>
+                <td>スタッフ情報</td>
+                <td>id, name, role, facility_id, hire_date, work_type, current_step</td>
+            </tr>
+            <tr>
+                <td>facilities</td>
+                <td>事業所</td>
+                <td>id, name, type</td>
+            </tr>
+            <tr>
+                <td>assignments</td>
+                <td>対象者割当</td>
+                <td>staff_id, target_name, care_level, type(メイン/サブ)</td>
+            </tr>
+            <tr>
+                <td>daily_step1</td>
+                <td>STEP1記録</td>
+                <td>staff_id, date, notice_text, ai_judgement, ai_comment</td>
+            </tr>
+            <tr>
+                <td>step2_hypotheses</td>
+                <td>STEP2記録</td>
+                <td>staff_id, date, hypotheses(JSON), ai_judgement</td>
+            </tr>
+            <tr>
+                <td>daily_step3</td>
+                <td>STEP3記録</td>
+                <td>staff_id, date, reflection(JSON), ai_feedback</td>
+            </tr>
+            <tr>
+                <td>step4_reports</td>
+                <td>STEP4記録</td>
+                <td>staff_id, case_data(JSON), presentation_count</td>
+            </tr>
+            <tr>
+                <td>video_tasks</td>
+                <td>動画課題</td>
+                <td>staff_id, step, video_no, watched, test_score, passed</td>
+            </tr>
+            <tr>
+                <td>monthly_results</td>
+                <td>月次評価</td>
+                <td>staff_id, month, score, breakdown(JSON), passed</td>
+            </tr>
+            <tr>
+                <td>audit_log</td>
+                <td>操作ログ</td>
+                <td>action, user_id, target, timestamp</td>
+            </tr>
+        </table>
+
+        <!-- ===== 8. 画面一覧 ===== -->
+        <h2>8. 画面一覧（全13画面）</h2>
+        <table>
+            <tr>
+                <th>#</th>
+                <th>画面名</th>
+                <th>ロール</th>
+                <th>説明</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>ロール選択</td>
+                <td>全員</td>
+                <td>新人/管理者/運営本部の3つから選択</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>ログイン</td>
+                <td>全員</td>
+                <td>職員ID＋パスワード入力</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>新人ホーム</td>
+                <td>新人</td>
+                <td>対象者・期限アラート・進捗・STEPボタン</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>STEP1入力</td>
+                <td>新人</td>
+                <td>気付きテキスト入力フォーム</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>STEP2入力</td>
+                <td>新人</td>
+                <td>仮説カード3〜5個＋なぜ×3段</td>
+            </tr>
+            <tr>
+                <td>6</td>
+                <td>STEP3入力</td>
+                <td>新人</td>
+                <td>振り返り6項目フォーム</td>
+            </tr>
+            <tr>
+                <td>7</td>
+                <td>STEP4入力</td>
+                <td>新人</td>
+                <td>症例報告統合フォーム</td>
+            </tr>
+            <tr>
+                <td>8</td>
+                <td>◯☓結果</td>
+                <td>新人</td>
+                <td>判定結果＋コメント＋改善例</td>
+            </tr>
+            <tr>
+                <td>9</td>
+                <td>月次評価</td>
+                <td>新人</td>
+                <td>100点スコア＋6観点内訳＋レベル</td>
+            </tr>
+            <tr>
+                <td>10</td>
+                <td>記録履歴</td>
+                <td>新人</td>
+                <td>STEP別フィルタ付き過去記録一覧</td>
+            </tr>
+            <tr>
+                <td>11</td>
+                <td>動画課題</td>
+                <td>新人</td>
+                <td>STEP別の動画課題ステータス</td>
+            </tr>
+            <tr>
+                <td>12</td>
+                <td>管理者ダッシュボード</td>
+                <td>管理者</td>
+                <td>スタッフ進捗一覧＋アラート</td>
+            </tr>
+            <tr>
+                <td>13</td>
+                <td>運営本部ダッシュボード</td>
+                <td>運営本部</td>
+                <td>全拠点KPI＋比較</td>
+            </tr>
+        </table>
+
+        <!-- ===== 9. ファイル構成 ===== -->
+        <h2>9. ファイル構成（作成済み）</h2>
+        <div class="file-tree">
+            <span class="folder">c:\cursor\株式会社フリーケア\</span>
+            ├── <span class="file">index.html</span> <span class="comment">← 全13画面を含むSPAエントリポイント</span>
+            ├── <span class="file">README.md</span> <span class="comment">← プロジェクト説明</span>
+            ├── <span class="folder">css/</span>
+            │ └── <span class="file">style.css</span> <span class="comment">← デザインシステム（Duolingo風＋年配者対応）</span>
+            └── <span class="folder">js/</span>
+            ├── <span class="file">app.js</span> <span class="comment">← SPA画面遷移・ホーム画面ロジック</span>
+            ├── <span class="file">api.js</span> <span class="comment">← バックエンド通信抽象レイヤー</span>
+            ├── <span class="file">auth.js</span> <span class="comment">← ログイン・セッション管理</span>
+            ├── <span class="file">data.js</span> <span class="comment">← 評価基準・定数・デモデータ定義</span>
+            ├── <span class="file">storage.js</span> <span class="comment">← LocalStorage CRUD（Phase 3でDB差替え）</span>
+            ├── <span class="file">step1.js</span> <span class="comment">← STEP1 気付き入力＋ルールベース判定</span>
+            ├── <span class="file">step2.js</span> <span class="comment">← STEP2 仮説思考＋動的カード</span>
+            ├── <span class="file">step3.js</span> <span class="comment">← STEP3 振り返り＋6項目</span>
+            ├── <span class="file">step4.js</span> <span class="comment">← STEP4 症例報告＋前提チェック</span>
+            └── <span class="file">monthly.js</span> <span class="comment">← 月次評価表示＋レベル判定</span>
+        </div>
+
+        <!-- ===== 10. 開発進捗 ===== -->
+        <div class="page-break"></div>
+        <h2>10. 開発Phase・進捗</h2>
+
+        <div class="progress-section">
+            <div class="progress-label"><span>全体進捗</span><span>Phase 1 完了 / 全4 Phase</span></div>
+            <div class="progress-bar">
+                <div class="progress-fill green" style="width: 35%">35%</div>
+            </div>
+        </div>
+
+        <h3>Phase 1: フロントエンド基盤 <span class="done">✅ 完了</span></h3>
+        <ul>
+            <li>ロール選択・ログイン画面</li>
+            <li>新人ホーム画面（対象者・期限・進捗・STEP解放）</li>
+            <li>STEP1〜4の入力フォーム</li>
+            <li>AI◯☓判定（ルールベース仮実装）</li>
+            <li>結果画面（◯☓アニメーション＋コメント）</li>
+            <li>月次評価表示画面</li>
+            <li>記録履歴・動画課題管理</li>
+            <li>年配者向けUI（大きなボタン・高コントラスト・大きな文字）</li>
+        </ul>
+
+        <h3>Phase 2: 機能拡充 <span class="todo">🔜 これから</span></h3>
+        <ul>
+            <li>STEP3の「継続/変更/終了」による動的フォーム制御</li>
+            <li>アセスメント・フェイスシート入力フォーム</li>
+            <li>動画課題の視聴・テスト・報告書のフル実装</li>
+            <li>STEP間の解放ロジック精緻化（月次評価合格判定連動）</li>
+        </ul>
+
+        <h3>Phase 3: バックエンド＋AI <span class="todo">🔜 これから</span></h3>
+        <ul>
+            <li>Firebase or Supabase のセットアップ</li>
+            <li>認証システム構築</li>
+            <li>データベース移行（LocalStorage → クラウドDB）</li>
+            <li>Gemini API連携（6観点100点採点）</li>
+            <li>管理者ダッシュボード（進捗一覧・アラート）</li>
+            <li>運営本部ダッシュボード（全拠点KPI）</li>
+        </ul>
+
+        <h3>Phase 4: テスト＋デプロイ <span class="todo">🔜 これから</span></h3>
+        <ul>
+            <li>全画面遷移テスト・合否ロジックテスト</li>
+            <li>iPad実機テスト</li>
+            <li>本番デプロイ＋URL配布</li>
+            <li>スタッフ向け使用マニュアル作成</li>
+        </ul>
+
+        <!-- ===== 11. 未確定事項 ===== -->
+        <h2>11. 未確定事項・要相談</h2>
+        <table>
+            <tr>
+                <th>#</th>
+                <th>項目</th>
+                <th>内容</th>
+            </tr>
+            <tr>
+                <td>1</td>
+                <td>バックエンド選定</td>
+                <td>Firebase or Supabase（エンジニアと相談して決定）</td>
+            </tr>
+            <tr>
+                <td>2</td>
+                <td>Gemini APIキー</td>
+                <td>既存 or 新規取得、管理方法</td>
+            </tr>
+            <tr>
+                <td>3</td>
+                <td>デプロイ先</td>
+                <td>Vercel（確定）</td>
+            </tr>
+            <tr>
+                <td>4</td>
+                <td>認証方式の詳細</td>
+                <td>メール認証？カスタムID？</td>
+            </tr>
+            <tr>
+                <td>5</td>
+                <td>管理者の月次評価入力</td>
+                <td>AI評価＋管理者スコアの統合方法</td>
+            </tr>
+            <tr>
+                <td>6</td>
+                <td>動画の配信方法</td>
+                <td>YouTube限定公開？独自ホスティング？</td>
+            </tr>
+        </table>
+
+        <div class="doc-footer">
+            フリーケア新人研修アプリ 最終仕様書 v1.0 — 2026年2月19日作成
+        </div>
+
+    </div>
+</body>
+
+</html>

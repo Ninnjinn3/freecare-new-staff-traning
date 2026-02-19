@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>フリーケアプログラム — 新人研修</title>
+  <meta name="description" content="フリーケア新人研修・評価システム（Duolingo型）">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap"
+    rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+
+  <!-- ===== Screen 1: ロール選択 ===== -->
+  <section id="screen-role-select" class="screen active">
+    <div class="screen-content role-select-content">
+      <div class="logo-area">
+        <div class="logo-icon">🌿</div>
+        <h1 class="app-title">フリーケアプログラム</h1>
+        <p class="app-subtitle">サービスの質向上委員会</p>
+      </div>
+      <div class="role-buttons">
+        <button class="role-btn role-btn-staff" onclick="selectRole('staff')">
+          <span class="role-icon">👤</span>
+          <span class="role-label">新人研修利用者</span>
+          <span class="role-desc">日々の記録・学習</span>
+        </button>
+        <button class="role-btn role-btn-admin" onclick="selectRole('admin')">
+          <span class="role-icon">👔</span>
+          <span class="role-label">管理者</span>
+          <span class="role-desc">スタッフ進捗管理</span>
+        </button>
+        <button class="role-btn role-btn-exec" onclick="selectRole('exec')">
+          <span class="role-icon">🏢</span>
+          <span class="role-label">運営本部</span>
+          <span class="role-desc">全拠点ダッシュボード</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Screen 2: ログイン ===== -->
+  <section id="screen-login" class="screen">
+    <div class="screen-content login-content">
+      <button class="back-btn" onclick="navigateTo('screen-role-select')">← 戻る</button>
+      <div class="login-header">
+        <div class="login-icon">🔐</div>
+        <h2 class="login-title">ログイン</h2>
+        <p class="login-role-badge" id="login-role-badge"></p>
+      </div>
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="form-group">
+          <label for="login-id">職員ID</label>
+          <input type="text" id="login-id" placeholder="例: FC001" required autocomplete="username">
+        </div>
+        <div class="form-group">
+          <label for="login-password">パスワード</label>
+          <input type="password" id="login-password" placeholder="パスワードを入力" required autocomplete="current-password">
+        </div>
+        <div id="login-error" class="error-message" hidden></div>
+        <button type="submit" class="btn btn-primary btn-full">ログイン</button>
+      </form>
+      <p class="demo-hint">デモ用: ID <code>FC001</code> / PW <code>demo1234</code></p>
+    </div>
+  </section>
+
+  <!-- ===== Screen 3: 新人研修ホーム ===== -->
+  <section id="screen-home" class="screen">
+    <div class="screen-content home-content">
+      <!-- ヘッダー -->
+      <div class="home-header">
+        <div class="user-info">
+          <span class="user-name" id="home-user-name">山田花子</span>
+          <span class="user-step-badge" id="home-step-badge">STEP1</span>
+        </div>
+        <button class="icon-btn" onclick="handleLogout()" title="ログアウト">🚪</button>
+      </div>
+
+      <!-- 対象者カード -->
+      <div class="card target-card">
+        <div class="card-header">
+          <span class="card-icon">📋</span>
+          <span class="card-title">対象者</span>
+        </div>
+        <div class="target-info">
+          <div class="target-main">
+            <span class="target-label">メイン</span>
+            <span class="target-name" id="home-target-name">佐藤 隆さん</span>
+          </div>
+          <div class="target-sub">
+            <span class="target-label">サブ</span>
+            <span class="target-name" id="home-target-sub">田中 美子さん</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 期限アラート -->
+      <div class="card alert-card" id="deadline-alert">
+        <div class="alert-icon">⏰</div>
+        <div class="alert-text">
+          <span class="alert-title">提出期限</span>
+          <span class="alert-deadline" id="home-deadline">3月10日 あと5日</span>
+        </div>
+      </div>
+
+      <!-- 進捗バー -->
+      <div class="card progress-card">
+        <div class="progress-header">
+          <span>今月の進捗</span>
+          <span id="home-progress-text">0/6日</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="home-progress-fill" style="width: 0%"></div>
+        </div>
+        <div class="progress-detail">
+          <span>記載日数: <strong id="home-written-days">0</strong>日</span>
+          <span>◯日数: <strong id="home-circle-days">0</strong>日</span>
+        </div>
+      </div>
+
+      <!-- STEPボタン -->
+      <div class="step-grid">
+        <button class="step-btn step-btn-active" id="step-btn-1" onclick="navigateTo('screen-step1')">
+          <span class="step-number">STEP 1</span>
+          <span class="step-name">気付き</span>
+          <span class="step-status" id="step1-status">進行中</span>
+        </button>
+        <button class="step-btn step-btn-locked" id="step-btn-2" onclick="navigateStep(2)">
+          <span class="step-number">STEP 2</span>
+          <span class="step-name">仮説思考</span>
+          <span class="step-lock">🔒</span>
+        </button>
+        <button class="step-btn step-btn-locked" id="step-btn-3" onclick="navigateStep(3)">
+          <span class="step-number">STEP 3</span>
+          <span class="step-name">振り返り</span>
+          <span class="step-lock">🔒</span>
+        </button>
+        <button class="step-btn step-btn-locked" id="step-btn-4" onclick="navigateStep(4)">
+          <span class="step-number">STEP 4</span>
+          <span class="step-name">症例報告</span>
+          <span class="step-lock">🔒</span>
+        </button>
+      </div>
+
+      <!-- 下部ナビ -->
+      <div class="home-nav">
+        <button class="nav-btn" onclick="navigateTo('screen-monthly')">
+          <span class="nav-icon">📊</span>
+          <span>月次評価</span>
+        </button>
+        <button class="nav-btn" onclick="navigateTo('screen-history')">
+          <span class="nav-icon">📜</span>
+          <span>記録履歴</span>
+        </button>
+        <button class="nav-btn" onclick="navigateTo('screen-video')">
+          <span class="nav-icon">🎬</span>
+          <span>動画課題</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Screen 4: STEP1 気付き入力 ===== -->
+  <section id="screen-step1" class="screen">
+    <div class="screen-content step-content">
+      <div class="step-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+        <h2 class="step-title">STEP1 気付き</h2>
+        <span class="step-month" id="step1-month"></span>
+      </div>
+
+      <form id="step1-form" onsubmit="submitStep1(event)">
+        <div class="form-group">
+          <label for="step1-date">日付</label>
+          <input type="date" id="step1-date" required>
+        </div>
+        <div class="form-group">
+          <label for="step1-target">利用者名</label>
+          <select id="step1-target" required>
+            <option value="">選択してください</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="step1-notice">利用者様の変化や気付いたこと</label>
+          <textarea id="step1-notice" rows="6" placeholder="例: 朝9時、フロアであいさつを呼びかけたが、視線を合わせず返答もなかった。普段は笑顔で返している。"
+            required></textarea>
+          <div class="char-count"><span id="step1-char-count">0</span>文字</div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full" id="step1-submit-btn">
+          送信して判定を受ける
+        </button>
+      </form>
+
+      <!-- 今月の記録サマリ -->
+      <div class="card monthly-summary" id="step1-summary">
+        <h3>今月の記録</h3>
+        <div class="summary-stats">
+          <div class="stat">
+            <span class="stat-value" id="step1-total-count">0</span>
+            <span class="stat-label">記載日数</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value stat-circle" id="step1-circle-count">0</span>
+            <span class="stat-label">◯</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value stat-cross" id="step1-cross-count">0</span>
+            <span class="stat-label">☓</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Screen 5: ◯☓ 判定結果 ===== -->
+  <section id="screen-result" class="screen">
+    <div class="screen-content result-content">
+      <div class="result-animation" id="result-animation">
+        <div class="result-circle" id="result-circle">◯</div>
+      </div>
+      <div class="result-details">
+        <p class="result-comment" id="result-comment"></p>
+        <div class="result-section" id="result-good" hidden>
+          <h4>✅ 良い点</h4>
+          <ul id="result-good-list"></ul>
+        </div>
+        <div class="result-section" id="result-missing" hidden>
+          <h4>❌ 不足している点</h4>
+          <ul id="result-missing-list"></ul>
+        </div>
+        <div class="result-section" id="result-improve" hidden>
+          <h4>💡 改善例</h4>
+          <p id="result-improve-text"></p>
+        </div>
+      </div>
+      <div class="result-actions">
+        <button class="btn btn-primary btn-full" onclick="navigateTo('screen-step1')">
+          次の記録を入力する
+        </button>
+        <button class="btn btn-secondary btn-full" onclick="navigateTo('screen-home')">
+          ホームに戻る
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Screen 6: STEP2 仮説思考入力 ===== -->
+  <section id="screen-step2" class="screen">
+    <div class="screen-content step-content">
+      <div class="step-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+        <h2 class="step-title">STEP2 仮説思考</h2>
+      </div>
+      <form id="step2-form" onsubmit="submitStep2(event)">
+        <div class="form-group">
+          <label for="step2-date">日付</label>
+          <input type="date" id="step2-date" required>
+        </div>
+        <div class="form-group">
+          <label for="step2-target">対象者</label>
+          <select id="step2-target" required>
+            <option value="">選択してください</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="step2-change">気付いた変化を1つ記載</label>
+          <textarea id="step2-change" rows="4" placeholder="例: 3月5日7時ごろ朝の食事時、Aさんはいつもより口数が少なく、表情が暗っていた。"
+            required></textarea>
+        </div>
+
+        <div id="step2-hypotheses-container">
+          <!-- 仮説カードが動的に追加される -->
+        </div>
+        <button type="button" class="btn btn-outline btn-full" onclick="addHypothesisCard()" id="add-hypothesis-btn">
+          ＋ 仮説を追加（最大5つ）
+        </button>
+
+        <div class="form-group">
+          <label for="step2-priority-reason">この優先順位で並べた理由</label>
+          <textarea id="step2-priority-reason" rows="3" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="step2-expected-change">優先順位1番の支援を行うことで、変化すると考えられること</label>
+          <textarea id="step2-expected-change" rows="3" required></textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full">送信して判定を受ける</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===== Screen 7: STEP3 振り返り入力 ===== -->
+  <section id="screen-step3" class="screen">
+    <div class="screen-content step-content">
+      <div class="step-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+        <h2 class="step-title">STEP3 振り返り</h2>
+      </div>
+      <form id="step3-form" onsubmit="submitStep3(event)">
+        <div class="form-group">
+          <label for="step3-date">日付</label>
+          <input type="date" id="step3-date" required>
+        </div>
+        <div class="form-group">
+          <label for="step3-target">対象者</label>
+          <select id="step3-target" required>
+            <option value="">選択してください</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="step3-notice">① 気付き</label>
+          <textarea id="step3-notice" rows="3" placeholder="利用者の変化を記載" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="step3-support">② 支援内容</label>
+          <textarea id="step3-support" rows="3" placeholder="行った支援の内容" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="step3-reason">③ その支援を行った理由</label>
+          <textarea id="step3-reason" rows="3" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="step3-prediction">④ 支援後の変化の予測</label>
+          <textarea id="step3-prediction" rows="3" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="step3-reaction">⑤ 支援後の反応</label>
+          <textarea id="step3-reaction" rows="3" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="step3-decision">⑥ 判断</label>
+          <select id="step3-decision" required onchange="handleStep3Decision(this.value)">
+            <option value="">選択してください</option>
+            <option value="継続">支援内容継続</option>
+            <option value="変更">支援内容変更</option>
+            <option value="終了">支援終了</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="step3-decision-reason">⑥ 上記を選択した理由</label>
+          <textarea id="step3-decision-reason" rows="3" required></textarea>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">送信してフィードバックを受ける</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===== Screen 8: 月次評価 ===== -->
+  <section id="screen-monthly" class="screen">
+    <div class="screen-content">
+      <div class="step-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+        <h2 class="step-title">月次評価</h2>
+      </div>
+      <div class="monthly-report" id="monthly-report">
+        <div class="score-ring-container">
+          <div class="score-ring" id="score-ring">
+            <span class="score-value" id="monthly-score">--</span>
+            <span class="score-label">/ 100点</span>
+          </div>
+        </div>
+        <div class="level-badge" id="monthly-level">
+          <span class="level-grade" id="monthly-grade">--</span>
+          <span class="level-name" id="monthly-level-name">--</span>
+        </div>
+        <div class="score-breakdown" id="score-breakdown">
+          <!-- 6観点の内訳がここに描画 -->
+        </div>
+        <div class="monthly-feedback" id="monthly-feedback">
+          <h3>📝 改善アクション</h3>
+          <ul id="monthly-actions"></ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Screen 9: 記録履歴 ===== -->
+  <section id="screen-history" class="screen">
+    <div class="screen-content">
+      <div class="step-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+        <h2 class="step-title">記録履歴</h2>
+      </div>
+      <div class="history-filters">
+        <select id="history-step-filter" onchange="loadHistory()">
+          <option value="all">全STEP</option>
+          <option value="step1">STEP1 気付き</option>
+          <option value="step2">STEP2 仮説思考</option>
+          <option value="step3">STEP3 振り返り</option>
+        </select>
+      </div>
+      <div class="history-list" id="history-list">
+        <p class="empty-state">記録がありません</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Screen 10: 動画課題 ===== -->
+  <section id="screen-video" class="screen">
+    <div class="screen-content">
+      <div class="step-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+        <h2 class="step-title">🎬 動画課題</h2>
+      </div>
+      <div class="video-tasks" id="video-tasks-list">
+        <!-- 動画課題カードがここに描画 -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Screen 11: 管理者ダッシュボード（後日実装） ===== -->
+  <section id="screen-admin" class="screen">
+    <div class="screen-content">
+      <div class="step-header">
+        <button class="back-btn" onclick="handleLogout()">← ログアウト</button>
+        <h2 class="step-title">管理者ダッシュボード</h2>
+      </div>
+      <div class="coming-soon">
+        <span class="coming-soon-icon">🚧</span>
+        <p>管理者画面は後日実装予定です</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Screen 12: 運営本部ダッシュボード（後日実装） ===== -->
+  <section id="screen-exec" class="screen">
+    <div class="screen-content">
+      <div class="step-header">
+        <button class="back-btn" onclick="handleLogout()">← ログアウト</button>
+        <h2 class="step-title">運営本部ダッシュボード</h2>
+      </div>
+      <div class="coming-soon">
+        <span class="coming-soon-icon">🚧</span>
+        <p>運営本部画面は後日実装予定です</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Scripts -->
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/step1.js"></script>
+  <script src="js/step2.js"></script>
+  <script src="js/step3.js"></script>
+  <script src="js/step4.js"></script>
+  <script src="js/monthly.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/app.js"></script>
+</body>
+
+</html>
