@@ -777,51 +777,41 @@
             └──────────┬───────────┘
             │ HTTPS / REST API (JSON)
             ┌──────────▼───────────┐
-            │ バックエンド │ ← Firebase or Supabase（選定中）
-            │ 認証 / DB / API │
+            │ バックエンド (Vercel) │ [確定]
+            │ 認証 / DB / API (Supabase) │ [確定]
             └──────────┬───────────┘
             │
             ┌──────────▼───────────┐
             │ Gemini API │ ← AI採点・フィードバック生成
             └──────────────────────┘</div>
 
-        <h3>6-2. バックエンド選定（未確定）</h3>
-        <p>Firebase と Supabase のどちらかを採用予定。エンジニアと相談して決定。</p>
+        <h3>6-2. テックスタック選定 [確定]</h3>
+        <p>速度・安定性・開発効率を重視し、以下の構成を採用します。</p>
         <table>
             <tr>
                 <th>観点</th>
-                <th>Firebase</th>
-                <th>Supabase</th>
+                <th>採用技術</th>
+                <th>理由</th>
             </tr>
             <tr>
-                <td>DB種類</td>
-                <td>Firestore（NoSQL / ドキュメント型）</td>
-                <td>PostgreSQL（RDB）</td>
+                <td>フロントエンド</td>
+                <td>HTML / CSS / JS (Vanilla)</td>
+                <td>軽量でiPadでの動作が極めて高速</td>
             </tr>
             <tr>
-                <td>データとの相性</td>
-                <td>△ 表形式データにはやや冗長</td>
-                <td>◎ テーブル構造がそのまま使える</td>
+                <td>バックエンド</td>
+                <td>Vercel</td>
+                <td>サーバーレス運用による低コスト・高可用性</td>
             </tr>
             <tr>
-                <td>認証</td>
-                <td>◎ Firebase Auth</td>
-                <td>◎ Supabase Auth</td>
+                <td>データベース</td>
+                <td>Supabase (PostgreSQL)</td>
+                <td>強力な認証システムと堅牢なDB構造</td>
             </tr>
             <tr>
-                <td>管理画面</td>
-                <td>Firebaseコンソール（やや技術者向け）</td>
-                <td>テーブルUI（スプレッドシートに近い）</td>
-            </tr>
-            <tr>
-                <td>集計クエリ</td>
-                <td>△ クライアント側で処理が必要</td>
-                <td>◎ SQLで自由に集計可能</td>
-            </tr>
-            <tr>
-                <td>無料枠</td>
-                <td>1GB / 5万読取/日</td>
-                <td>500MB / 5万MAU</td>
+                <td>AI連携</td>
+                <td>Gemini API</td>
+                <td>日本語の文脈理解と評価ロジックへの適正</td>
             </tr>
         </table>
 

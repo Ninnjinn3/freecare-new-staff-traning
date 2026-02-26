@@ -35,6 +35,9 @@ function navigateTo(screenId) {
         case 'screen-video':
             loadVideoTasks();
             break;
+        case 'screen-admin':
+            initAdmin();
+            break;
     }
 }
 
@@ -89,6 +92,13 @@ function handleLogout() {
     navigateTo('screen-role-select');
 }
 
+// ===== 選択中の対象者 =====
+let selectedTarget = null;
+
+function getSelectedTarget() {
+    return selectedTarget;
+}
+
 // ===== ホーム画面初期化 =====
 function initHome() {
     const user = Auth.getUser();
@@ -104,12 +114,8 @@ function initHome() {
     const currentStep = user.current_step || 1;
     document.getElementById('home-step-badge').textContent = `STEP${currentStep}`;
 
-    // 対象者
-    const targets = DB.getAll('assignments', { staff_id: user.staff_id, is_active: true });
-    const mainTarget = targets.find(t => t.type === 'main');
-    const subTarget = targets.find(t => t.type === 'sub');
-    document.getElementById('home-target-name').textContent = mainTarget ? mainTarget.name + 'さん' : '未設定';
-    document.getElementById('home-target-sub').textContent = subTarget ? subTarget.name + 'さん' : '未設定';
+    // 対象者オートコンプリート初期化
+    initTargetAutocomplete();
 
     // 期限アラート
     updateDeadlineAlert();
@@ -119,6 +125,118 @@ function initHome() {
 
     // STEPボタンの状態更新
     updateStepButtons(currentStep);
+}
+
+// ===== 対象者オートコンプリート =====
+function initTargetAutocomplete() {
+    const input = document.getElementById('home-target-input');
+    const dropdown = document.getElementById('home-target-dropdown');
+    const selectedContainer = document.getElementById('home-selected-target');
+
+    if (!input || !dropdown) return;
+
+    // LocalStorageから対象者リストを取得（管理者が追加可能）
+    const targets = getTargetList();
+
+    // 既に選択済みの場合は表示
+    if (selectedTarget) {
+        renderSelectedTarget(selectedContainer, selectedTarget);
+        input.value = '';
+    }
+
+    // 入力イベント
+    input.addEventListener('input', function () {
+        const query = this.value.trim();
+        if (query.length === 0) {
+            dropdown.classList.remove('active');
+            return;
+        }
+
+        const matches = targets.filter(t =>
+            t.name.includes(query) ||
+            t.name.replace(/\s/g, '').includes(query.replace(/\s/g, ''))
+        );
+
+        if (matches.length === 0) {
+            dropdown.innerHTML = '<div class="autocomplete-option" style="color: var(--text-muted)">該当なし</div>';
+            dropdown.classList.add('active');
+            return;
+        }
+
+        dropdown.innerHTML = matches.map(t => {
+            const highlighted = t.name.replace(
+                new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'),
+                '<span class="match">$1</span>'
+            );
+            return `<div class="autocomplete-option" data-id="${t.id}" data-name="${t.name}">
+                ${highlighted} <span style="color: var(--text-muted); font-size: 0.85em; margin-left: 8px">${t.care_level || ''}</span>
+            </div>`;
+        }).join('');
+
+        dropdown.classList.add('active');
+    });
+
+    // 選択イベント（イベント委任）
+    dropdown.addEventListener('click', function (e) {
+        const option = e.target.closest('.autocomplete-option');
+        if (!option || !option.dataset.id) return;
+
+        selectedTarget = targets.find(t => t.id === option.dataset.id);
+        input.value = '';
+        dropdown.classList.remove('active');
+        renderSelectedTarget(selectedContainer, selectedTarget);
+        showToast(`${selectedTarget.name}さんを選択しました ✅`);
+    });
+
+    // フォーカスアウトで閉じる（少し遅延）
+    input.addEventListener('blur', () => {
+        setTimeout(() => dropdown.classList.remove('active'), 200);
+    });
+
+    // フォーカスで全件表示
+    input.addEventListener('focus', function () {
+        if (this.value.trim() === '') {
+            const allTargets = getTargetList();
+            dropdown.innerHTML = allTargets.map(t =>
+                `<div class="autocomplete-option" data-id="${t.id}" data-name="${t.name}">
+                    ${t.name} <span style="color: var(--text-muted); font-size: 0.85em; margin-left: 8px">${t.care_level || ''}</span>
+                </div>`
+            ).join('');
+            dropdown.classList.add('active');
+        }
+    });
+}
+
+function renderSelectedTarget(container, target) {
+    if (!container) return;
+    container.innerHTML = `
+        <div class="target-chip">
+            👤 ${target.name}さん（${target.care_level || ''})
+            <button class="remove-chip" onclick="clearSelectedTarget()">✕</button>
+        </div>
+    `;
+}
+
+function clearSelectedTarget() {
+    selectedTarget = null;
+    const container = document.getElementById('home-selected-target');
+    if (container) container.innerHTML = '';
+    showToast('対象者の選択を解除しました');
+}
+
+// ===== 対象者リスト取得（LocalStorage優先） =====
+function getTargetList() {
+    const stored = localStorage.getItem('fc_targets');
+    if (stored) {
+        try { return JSON.parse(stored); } catch (e) { /* fallthrough */ }
+    }
+    // 初回はデモデータを保存
+    localStorage.setItem('fc_targets', JSON.stringify(DEMO_TARGETS));
+    return [...DEMO_TARGETS];
+}
+
+function saveTargetList(targets) {
+    localStorage.setItem('fc_targets', JSON.stringify(targets));
 }
 
 // ===== 期限アラート更新 =====
@@ -307,6 +425,95 @@ function loadVideoTasks() {
       </div>
     `;
     }).join('');
+}
+
+// ===== 管理者画面 =====
+function initAdmin() {
+    renderAdminTargetList();
+}
+
+function showAdminTab(tab) {
+    // タブ切替
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById(`admin-tab-${tab}`).classList.add('active');
+
+    // セクション切替
+    document.getElementById('admin-targets-section').hidden = (tab !== 'targets');
+    document.getElementById('admin-progress-section').hidden = (tab !== 'progress');
+}
+
+function renderAdminTargetList() {
+    const list = document.getElementById('admin-target-list');
+    if (!list) return;
+
+    const targets = getTargetList();
+
+    if (targets.length === 0) {
+        list.innerHTML = '<p class="empty-state">対象者が登録されていません</p>';
+        return;
+    }
+
+    list.innerHTML = targets.map(t => `
+        <div class="target-list-item">
+            <div>
+                <div class="target-list-name">👤 ${t.name}</div>
+                <div class="target-list-meta">${t.care_level || '介護度未設定'} ・ ID: ${t.id}</div>
+            </div>
+            <div class="target-list-actions">
+                <button class="btn-delete" onclick="deleteTarget('${t.id}')">削除</button>
+            </div>
+        </div>
+    `).join('');
+}
+
+function addNewTarget() {
+    const nameInput = document.getElementById('admin-new-target-name');
+    const name = nameInput.value.trim();
+
+    if (!name) {
+        showToast('名前を入力してください');
+        return;
+    }
+
+    const targets = getTargetList();
+
+    // 重複チェック
+    if (targets.some(t => t.name === name)) {
+        showToast('同じ名前の対象者がすでに存在します');
+        return;
+    }
+
+    // 新規ID生成
+    const maxId = targets.reduce((max, t) => {
+        const num = parseInt(t.id.replace('T', ''));
+        return num > max ? num : max;
+    }, 0);
+    const newId = `T${String(maxId + 1).padStart(3, '0')}`;
+
+    targets.push({
+        id: newId,
+        name: name,
+        care_level: '介護度未設定',
+        step: 1
+    });
+
+    saveTargetList(targets);
+    nameInput.value = '';
+    renderAdminTargetList();
+    showToast(`${name}さんを追加しました ✅`);
+}
+
+function deleteTarget(id) {
+    const targets = getTargetList();
+    const target = targets.find(t => t.id === id);
+    if (!target) return;
+
+    if (!confirm(`${target.name}さんを削除してよろしいですか？`)) return;
+
+    const updated = targets.filter(t => t.id !== id);
+    saveTargetList(updated);
+    renderAdminTargetList();
+    showToast(`${target.name}さんを削除しました`);
 }
 
 // ===== トースト通知 =====

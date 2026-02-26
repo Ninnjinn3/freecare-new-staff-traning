@@ -86,18 +86,14 @@
       <div class="card target-card">
         <div class="card-header">
           <span class="card-icon">📋</span>
-          <span class="card-title">対象者</span>
+          <span class="card-title">対象者を選択</span>
         </div>
-        <div class="target-info">
-          <div class="target-main">
-            <span class="target-label">メイン</span>
-            <span class="target-name" id="home-target-name">佐藤 隆さん</span>
-          </div>
-          <div class="target-sub">
-            <span class="target-label">サブ</span>
-            <span class="target-name" id="home-target-sub">田中 美子さん</span>
-          </div>
+        <div class="autocomplete-wrapper">
+          <input type="text" class="autocomplete-input" id="home-target-input" placeholder="名前を入力して検索..."
+            autocomplete="off">
+          <div class="autocomplete-dropdown" id="home-target-dropdown"></div>
         </div>
+        <div id="home-selected-target" style="margin-top: var(--space-sm)"></div>
       </div>
 
       <!-- 期限アラート -->
@@ -414,16 +410,38 @@
     </div>
   </section>
 
-  <!-- ===== Screen 11: 管理者ダッシュボード（後日実装） ===== -->
+  <!-- ===== Screen 11: 管理者ダッシュボード ===== -->
   <section id="screen-admin" class="screen">
     <div class="screen-content">
       <div class="step-header">
         <button class="back-btn" onclick="handleLogout()">← ログアウト</button>
         <h2 class="step-title">管理者ダッシュボード</h2>
       </div>
-      <div class="coming-soon">
-        <span class="coming-soon-icon">🚧</span>
-        <p>管理者画面は後日実装予定です</p>
+
+      <!-- 管理者タブ -->
+      <div class="admin-tabs">
+        <button class="admin-tab active" onclick="showAdminTab('targets')" id="admin-tab-targets">👥 対象者管理</button>
+        <button class="admin-tab" onclick="showAdminTab('progress')" id="admin-tab-progress">📊 進捗確認</button>
+      </div>
+
+      <!-- 対象者管理セクション -->
+      <div class="admin-section" id="admin-targets-section">
+        <div class="admin-section-title">👥 対象者（利用者）一覧</div>
+        <div class="target-list" id="admin-target-list">
+          <!-- 動的に描画 -->
+        </div>
+        <div class="add-target-form">
+          <input type="text" id="admin-new-target-name" placeholder="新しい対象者の名前">
+          <button onclick="addNewTarget()">＋ 追加</button>
+        </div>
+      </div>
+
+      <!-- 進捗確認セクション（後日拡充） -->
+      <div class="admin-section" id="admin-progress-section" hidden>
+        <div class="coming-soon">
+          <span class="coming-soon-icon">🚧</span>
+          <p>スタッフ進捗一覧は後日実装予定です</p>
+        </div>
       </div>
     </div>
   </section>
@@ -443,6 +461,10 @@
   </section>
 
   <!-- Scripts -->
+  <!-- Supabase CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <!-- App Scripts -->
   <script src="js/data.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/auth.js"></script>

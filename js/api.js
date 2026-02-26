@@ -1,83 +1,204 @@
 /* ============================================
-   api.js — バックエンド通信レイヤー
-   Phase 1: ローカル処理（storage.js経由）
-   Phase 3: Firebase/Supabase に差替え
+   api.js — Supabase バックエンド通信レイヤー
+   Phase 2: Supabase (PostgreSQL) に接続
    ============================================ */
 
 const API = {
+
     // ===== 認証 =====
+
     async login(staffId, password) {
-        // Phase 3: await supabase.auth.signInWithPassword(...)
-        return Auth.login(staffId, password);
+        // Supabase Auth でログイン（メールなしカスタム認証）
+        // staff_idをメール形式に変換: FC001 → FC001@freecare.local
+        const email = `${staffId}@freecare.local`;
+        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) {
+            return { success: false, error: 'IDまたはパスワードが正しくありません' };
+        }
+        // スタッフ詳細情報をDBから取得
+        const { data: staff } = await supabase
+            .from('staff_master')
+            .select('*')
+            .eq('staff_id', staffId)
+            .single();
+        if (!staff) {
+            return { success: false, error: 'スタッフ情報が見つかりません' };
+        }
+        // ロールチェック
+        const selectedRole = Auth.getSelectedRole();
+        if (selectedRole && selectedRole !== staff.role) {
+            await supabase.auth.signOut();
+            return { success: false, error: `このIDは「${Auth._roleLabel(staff.role)}」アカウントです` };
+        }
+        Auth.currentUser = staff;
+        sessionStorage.setItem('fc_current_user', JSON.stringify(staff));
+        return { success: true, user: staff };
     },
 
     async logout() {
+        await supabase.auth.signOut();
         return Auth.logout();
     },
 
+    // ===== 対象者（利用者） =====
+
+    async getTargets(facilityId) {
+        const { data, error } = await supabase
+            .from('care_targets')
+            .select('*')
+            .eq('facility_id', facilityId)
+            .eq('is_active', true)
+            .order('name');
+        if (error) { console.error('getTargets:', error); return []; }
+        return data;
+    },
+
+    async addTarget(target) {
+        const { data, error } = await supabase
+            .from('care_targets')
+            .insert(target)
+            .select()
+            .single();
+        if (error) { console.error('addTarget:', error); return null; }
+        return data;
+    },
+
+    async deleteTarget(id) {
+        const { error } = await supabase
+            .from('care_targets')
+            .update({ is_active: false })
+            .eq('id', id);
+        return !error;
+    },
+
     // ===== STEP1 =====
+
     async saveStep1(record) {
-        // Phase 3: await supabase.from('daily_step1').insert(record)
-        return DB.save('daily_step1', record);
+        const { data, error } = await supabase
+            .from('daily_step1')
+            .insert(record)
+            .select()
+            .single();
+        if (error) { console.error('saveStep1:', error); return null; }
+        return data;
     },
 
     async getStep1Records(staffId, yearMonth) {
-        return DB.getByMonth('daily_step1', staffId, yearMonth);
+        const { data, error } = await supabase
+            .from('daily_step1')
+            .select('*')
+            .eq('staff_id', staffId)
+            .eq('year_month', yearMonth)
+            .order('date', { ascending: false });
+        if (error) { console.error('getStep1Records:', error); return []; }
+        return data;
     },
 
     // ===== STEP2 =====
+
     async saveStep2(record) {
-        return DB.save('step2_hypotheses', record);
+        const { data, error } = await supabase
+            .from('step2_hypotheses')
+            .insert(record)
+            .select()
+            .single();
+        if (error) { console.error('saveStep2:', error); return null; }
+        return data;
     },
 
     async getStep2Records(staffId, yearMonth) {
-        return DB.getByMonth('step2_hypotheses', staffId, yearMonth);
+        const { data, error } = await supabase
+            .from('step2_hypotheses')
+            .select('*')
+            .eq('staff_id', staffId)
+            .eq('year_month', yearMonth)
+            .order('date', { ascending: false });
+        if (error) { console.error('getStep2Records:', error); return []; }
+        return data;
     },
 
     // ===== STEP3 =====
+
     async saveStep3(record) {
-        return DB.save('daily_step3', record);
+        const { data, error } = await supabase
+            .from('daily_step3')
+            .insert(record)
+            .select()
+            .single();
+        if (error) { console.error('saveStep3:', error); return null; }
+        return data;
     },
 
     async getStep3Records(staffId, yearMonth) {
-        return DB.getByMonth('daily_step3', staffId, yearMonth);
-    },
-
-    // ===== STEP4 =====
-    async saveStep4(record) {
-        return DB.save('step4_reports', record);
-    },
-
-    async getStep4Reports(staffId) {
-        return DB.getAll('step4_reports', { staff_id: staffId });
-    },
-
-    // ===== 動画課題 =====
-    async getVideoTasks(staffId) {
-        return DB.getAll('video_tasks', { staff_id: staffId });
-    },
-
-    async updateVideoTask(taskId, data) {
-        return DB.update('video_tasks', taskId, data);
+        const { data, error } = await supabase
+            .from('daily_step3')
+            .select('*')
+            .eq('staff_id', staffId)
+            .eq('year_month', yearMonth)
+            .order('date', { ascending: false });
+        if (error) { console.error('getStep3Records:', error); return []; }
+        return data;
     },
 
     // ===== 月次評価 =====
-    async getMonthlyResults(staffId) {
-        return DB.getAll('monthly_results', { staff_id: staffId });
+
+    async getMonthlyEvaluation(staffId, yearMonth) {
+        const { data, error } = await supabase
+            .from('monthly_evaluations')
+            .select('*')
+            .eq('staff_id', staffId)
+            .eq('year_month', yearMonth)
+            .single();
+        if (error) return null;
+        return data;
     },
 
-    async saveMonthlyResult(record) {
-        return DB.save('monthly_results', record);
+    async saveMonthlyEvaluation(record) {
+        const { data, error } = await supabase
+            .from('monthly_evaluations')
+            .upsert(record, { onConflict: 'staff_id,year_month' })
+            .select()
+            .single();
+        if (error) { console.error('saveMonthlyEvaluation:', error); return null; }
+        return data;
     },
 
-    // ===== 対象者 =====
-    async getAssignments(staffId) {
-        return DB.getAll('assignments', { staff_id: staffId, is_active: true });
+    // ===== 動画課題 =====
+
+    async getVideoTasks(staffId) {
+        const { data, error } = await supabase
+            .from('video_tasks')
+            .select('*')
+            .eq('staff_id', staffId)
+            .order('step');
+        if (error) { console.error('getVideoTasks:', error); return []; }
+        return data;
     },
 
-    // ===== AI判定（Phase 3: Gemini API） =====
+    async updateVideoTask(staffId, taskId, updates) {
+        const { error } = await supabase
+            .from('video_tasks')
+            .upsert({ staff_id: staffId, task_id: taskId, ...updates }, { onConflict: 'staff_id,task_id' });
+        return !error;
+    },
+
+    // ===== 管理者：スタッフ一覧 =====
+
+    async getStaffList(facilityId) {
+        const { data, error } = await supabase
+            .from('staff_master')
+            .select('*')
+            .eq('facility_id', facilityId)
+            .eq('is_active', true)
+            .eq('role', 'staff')
+            .order('name');
+        if (error) { console.error('getStaffList:', error); return []; }
+        return data;
+    },
+
+    // ===== AI判定（Phase 3: Vercel経由でGemini API） =====
+    // 現在はローカルのルールベース判定を使用
     async judgeStep1(noticeText) {
-        // Phase 3: サーバーサイドからGemini API呼び出し
         return Step1.judge(noticeText);
     },
 

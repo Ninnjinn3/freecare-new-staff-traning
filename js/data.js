@@ -22,8 +22,8 @@ const STEPS = {
 
 // 勤務形態別 最低記載日数
 const MIN_DAYS = {
-  day:       6, // 日勤
-  night:     2, // 夜勤専従・週2回夜勤
+  day: 6, // 日勤
+  night: 2, // 夜勤専従・週2回夜勤
   nightOnce: 3  // 週1回夜勤
 };
 
@@ -58,7 +58,7 @@ const SCORING_CRITERIA = [
     levels: [
       { score: 15, label: '高', desc: '変化が具体的で、日時・状況・本人の言動が的確に記録されている。比較構造あり。' },
       { score: 10, label: '中', desc: '変化は記載されているが、場面や状況の記述が曖昧。' },
-      { score:  5, label: '低', desc: '変化が抽象的で具体性に欠ける。' }
+      { score: 5, label: '低', desc: '変化が抽象的で具体性に欠ける。' }
     ]
   },
   {
@@ -68,7 +68,7 @@ const SCORING_CRITERIA = [
     levels: [
       { score: 20, label: '高', desc: '身体・心理・環境・社会的要因から3つ以上の仮説を立て、「なぜ？」を3段階以上掘り下げている。' },
       { score: 13, label: '中', desc: '仮説は2つ以上あるが、掘り下げが1〜2段階にとどまっている。' },
-      { score:  7, label: '低', desc: '仮説が1つのみ、または表面的な原因のみ。' }
+      { score: 7, label: '低', desc: '仮説が1つのみ、または表面的な原因のみ。' }
     ]
   },
   {
@@ -78,7 +78,7 @@ const SCORING_CRITERIA = [
     levels: [
       { score: 15, label: '高', desc: '根拠に基づいた優先順位。「もっとも急性かつ可逆的な要因」を選定。' },
       { score: 10, label: '中', desc: '優先はつけているが、根拠が弱い、またはやや主観的。' },
-      { score:  5, label: '低', desc: '優先順位なし、または説明が不明確。' }
+      { score: 5, label: '低', desc: '優先順位なし、または説明が不明確。' }
     ]
   },
   {
@@ -88,7 +88,7 @@ const SCORING_CRITERIA = [
     levels: [
       { score: 15, label: '高', desc: '優先仮説に対して具体的な観察・評価指標・再評価タイミングまで設計。' },
       { score: 10, label: '中', desc: '観察計画はあるが、評価指標や期間が不明確。' },
-      { score:  5, label: '低', desc: '検証計画が具体性に欠ける。' }
+      { score: 5, label: '低', desc: '検証計画が具体性に欠ける。' }
     ]
   },
   {
@@ -98,7 +98,7 @@ const SCORING_CRITERIA = [
     levels: [
       { score: 20, label: '高', desc: '本人の意思・ニーズを反映した具体的支援。多職種連携を含む。' },
       { score: 13, label: '中', desc: '支援は記載されているが、本人の意思確認や連携が不十分。' },
-      { score:  7, label: '低', desc: '一方的な支援計画。本人視点が欠落。' }
+      { score: 7, label: '低', desc: '一方的な支援計画。本人視点が欠落。' }
     ]
   },
   {
@@ -108,7 +108,7 @@ const SCORING_CRITERIA = [
     levels: [
       { score: 15, label: '高', desc: '結果を評価し、次の仮説や改善に繋げる力がある。本人の変化を確認後に判断修正。' },
       { score: 10, label: '中', desc: '振り返りはあるが、次の改善に具体性が不足。' },
-      { score:  5, label: '低', desc: '振り返りが形式的で改善に繋がっていない。' }
+      { score: 5, label: '低', desc: '振り返りが形式的で改善に繋がっていない。' }
     ]
   }
 ];
@@ -116,10 +116,10 @@ const SCORING_CRITERIA = [
 // レベル判定
 const LEVEL_THRESHOLDS = [
   { min: 90, max: 100, level: 3, grade: '1級', name: 'レベル3', label: 'リーダー候補', hrPoints: 10 },
-  { min: 80, max: 89,  level: 3, grade: '1級', name: 'レベル3', label: '仮説100点', hrPoints: 8 },
-  { min: 60, max: 79,  level: 2, grade: '2級', name: 'レベル2', label: '仮説80点', hrPoints: 6 },
-  { min: 40, max: 59,  level: 1, grade: '3級', name: 'レベル1', label: '気付き100点', hrPoints: 4 },
-  { min:  0, max: 39,  level: 0, grade: '-',   name: '新人',    label: '気付き100点', hrPoints: 2 }
+  { min: 80, max: 89, level: 3, grade: '1級', name: 'レベル3', label: '仮説100点', hrPoints: 8 },
+  { min: 60, max: 79, level: 2, grade: '2級', name: 'レベル2', label: '仮説80点', hrPoints: 6 },
+  { min: 40, max: 59, level: 1, grade: '3級', name: 'レベル1', label: '気付き100点', hrPoints: 4 },
+  { min: 0, max: 39, level: 0, grade: '-', name: '新人', label: '気付き100点', hrPoints: 2 }
 ];
 
 // 合格条件
@@ -133,11 +133,11 @@ const PASS_RULES = {
 
 // 人事評価との連動ポイント
 const HR_POINTS_MAP = [
-  { step: 1, score: 100, hrPoints: 2,  label: '気付100点' },
-  { step: 1, score: 100, hrPoints: 4,  label: '気付き100点' },
-  { step: 2, score: 80,  hrPoints: 6,  label: '仮説80点' },
-  { step: 2, score: 100, hrPoints: 8,  label: '仮説100点' },
-  { step: 2, score: 100, hrPoints: 8,  label: '仮説100点' },
+  { step: 1, score: 100, hrPoints: 2, label: '気付100点' },
+  { step: 1, score: 100, hrPoints: 4, label: '気付き100点' },
+  { step: 2, score: 80, hrPoints: 6, label: '仮説80点' },
+  { step: 2, score: 100, hrPoints: 8, label: '仮説100点' },
+  { step: 2, score: 100, hrPoints: 8, label: '仮説100点' },
   { step: 4, score: null, hrPoints: 10, label: '症例報告②' }
 ];
 
@@ -181,9 +181,12 @@ const DEMO_STAFF = [
   }
 ];
 
-// デモ用対象者
+// デモ用対象者（管理者画面から追加・削除可能）
 const DEMO_TARGETS = [
-  { id: 'T001', name: '佐藤 隆', type: 'main', care_level: '介護5', step: 1 },
-  { id: 'T002', name: '田中 美子', type: 'sub', care_level: '介護5', step: 1 },
-  { id: 'T003', name: '鈴木 一郎', type: 'main', care_level: '介護4', step: 2 },
+  { id: 'T001', name: '佐藤 隆', care_level: '介護5', step: 1 },
+  { id: 'T002', name: '田中 美子', care_level: '介護5', step: 1 },
+  { id: 'T003', name: '鈴木 一郎', care_level: '介護4', step: 2 },
+  { id: 'T004', name: '高橋 和子', care_level: '介護3', step: 1 },
+  { id: 'T005', name: '伊藤 正男', care_level: '介護4', step: 1 },
+  { id: 'T006', name: '渡辺 幸子', care_level: '介護3', step: 2 },
 ];
