@@ -190,9 +190,12 @@ async function submitStep2(event) {
     // AI判定
     const aiResult = Step2.judge(change, hypotheses);
 
-    // Supabaseに保存
+    // 結果画面を即座に表示
+    showResult(aiResult);
+
+    // Supabaseにバックグラウンド保存
     const cycle = DB.getCurrentCycle();
-    await API.saveStep2({
+    API.saveStep2({
         staff_id: user.staff_id,
         target_id: target.id || null,
         target_name: target.name,
@@ -204,10 +207,8 @@ async function submitStep2(event) {
         expected_change: expectedChange,
         ai_judgement: aiResult.judgement,
         ai_comment: aiResult.short_comment
-    });
-
-    // 結果画面
-    showResult(aiResult);
+    }).then(() => showToast('記録を保存しました ✅'))
+        .catch(e => { console.error(e); showToast('保存に失敗しました'); });
 
     // フォームリセット
     document.getElementById('step2-form').reset();

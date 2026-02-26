@@ -121,9 +121,12 @@ async function submitStep3(event) {
     // AI判定
     const aiResult = Step3.judge(reflectionData);
 
-    // Supabaseに保存
+    // 結果画面を即座に表示
+    showResult(aiResult);
+
+    // Supabaseにバックグラウンド保存
     const cycle = DB.getCurrentCycle();
-    await API.saveStep3({
+    API.saveStep3({
         staff_id: user.staff_id,
         target_id: target.id || null,
         target_name: target.name,
@@ -133,10 +136,8 @@ async function submitStep3(event) {
         decision: reflectionData.decision,
         ai_judgement: aiResult.judgement,
         ai_comment: aiResult.short_comment
-    });
-
-    // 結果画面
-    showResult(aiResult);
+    }).then(() => showToast('記録を保存しました ✅'))
+        .catch(e => { console.error(e); showToast('保存に失敗しました'); });
 
     // フォームリセット
     document.getElementById('step3-form').reset();

@@ -145,9 +145,12 @@ async function submitStep1(event) {
     // AI判定
     const aiResult = Step1.judge(notice);
 
-    // Supabaseに保存
+    // 結果画面を即座に表示（待たせない）
+    showResult(aiResult);
+
+    // Supabaseにバックグラウンドで保存
     const cycle = DB.getCurrentCycle();
-    await API.saveStep1({
+    API.saveStep1({
         staff_id: user.staff_id,
         target_id: target.id || null,
         target_name: target.name,
@@ -160,10 +163,13 @@ async function submitStep1(event) {
         ai_good_points: aiResult.good_points,
         ai_missing: aiResult.missing_points,
         ai_improve: aiResult.improvement_example
+    }).then(() => {
+        showToast('記録を保存しました ✅');
+        Step1.updateSummary();
+    }).catch(e => {
+        console.error('保存エラー:', e);
+        showToast('保存に失敗しました (ローカルにのみ記録)');
     });
-
-    // 結果画面表示
-    showResult(aiResult);
 
     // フォームリセット
     document.getElementById('step1-form').reset();
