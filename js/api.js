@@ -216,21 +216,42 @@ const API = {
         return data;
     },
 
-    // ===== AI判定（Phase 3: Vercel経由でGemini API） =====
-    // 現在はローカルのルールベース判定を使用
-    async judgeStep1(noticeText) {
-        return Step1.judge(noticeText);
+    // ===== AI判定（Vercel経由でGemini API） =====
+
+    async judgeStep1(data) {
+        try {
+            const resp = await fetch('/api/judge', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ step: 'step1', data })
+            });
+            if (resp.ok) return await resp.json();
+        } catch (e) { console.warn('AI API失敗、ローカル判定を使用:', e); }
+        // フォールバック：ローカルルールベース判定
+        return Step1.judge(data.notice_text);
     },
 
-    async judgeStep2(changeText, hypotheses) {
-        return Step2.judge(changeText, hypotheses);
+    async judgeStep2(data) {
+        try {
+            const resp = await fetch('/api/judge', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ step: 'step2', data })
+            });
+            if (resp.ok) return await resp.json();
+        } catch (e) { console.warn('AI API失敗、ローカル判定を使用:', e); }
+        return Step2.judge(data.change_noticed, data.hypotheses || []);
     },
 
     async judgeStep3(data) {
-        return Step3.judge(data);
-    },
-
-    async judgeStep4(caseData) {
-        return Step4.judge(caseData);
+        try {
+            const resp = await fetch('/api/judge', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ step: 'step3', data })
+            });
+            if (resp.ok) return await resp.json();
+        } catch (e) { console.warn('AI API失敗、ローカル判定を使用:', e); }
+        return Step3.judge(data.reflection || data);
     }
 };

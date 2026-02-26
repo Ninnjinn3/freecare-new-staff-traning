@@ -173,7 +173,7 @@ async function submitStep2(event) {
     const btn = document.getElementById('step2-submit-btn');
     if (btn) { btn.disabled = true; btn.textContent = '判定中...'; }
 
-    // 廃説データ収集
+    // 仮説データ収集
     const hypotheses = [];
     const cards = document.querySelectorAll('.hypothesis-card');
     cards.forEach((card) => {
@@ -187,11 +187,21 @@ async function submitStep2(event) {
         });
     });
 
-    // AI判定
-    const aiResult = Step2.judge(change, hypotheses);
+    if (btn) { btn.textContent = 'AI判定中...'; }
 
-    // 結果画面を即座に表示
+    // Gemini AI判定
+    const judgeData = {
+        target_name: target.name,
+        change_noticed: change,
+        hypotheses: hypotheses,
+        priority_reason: priorityReason,
+        expected_change: expectedChange
+    };
+    const aiResult = await API.judgeStep2(judgeData);
+
+    // 結果画面を表示
     showResult(aiResult);
+    if (btn) { btn.disabled = false; btn.textContent = '送信して判定を受ける'; }
 
     // Supabaseにバックグラウンド保存
     const cycle = DB.getCurrentCycle();
@@ -213,5 +223,4 @@ async function submitStep2(event) {
     // フォームリセット
     document.getElementById('step2-form').reset();
     document.getElementById('step2-date').value = new Date().toISOString().split('T')[0];
-    if (btn) { btn.disabled = false; btn.textContent = '送信して判定を受ける'; }
 }

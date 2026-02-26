@@ -106,7 +106,7 @@ async function submitStep3(event) {
     }
 
     const btn = document.getElementById('step3-submit-btn');
-    if (btn) { btn.disabled = true; btn.textContent = '判定中...'; }
+    if (btn) { btn.disabled = true; btn.textContent = 'AI判定中...'; }
 
     const reflectionData = {
         notice: document.getElementById('step3-notice').value,
@@ -118,11 +118,16 @@ async function submitStep3(event) {
         decisionReason: document.getElementById('step3-decision-reason').value
     };
 
-    // AI判定
-    const aiResult = Step3.judge(reflectionData);
+    // Gemini AI判定
+    const judgeData = {
+        target_name: target.name,
+        reflection: reflectionData
+    };
+    const aiResult = await API.judgeStep3(judgeData);
 
-    // 結果画面を即座に表示
+    // 結果画面を表示
     showResult(aiResult);
+    if (btn) { btn.disabled = false; btn.textContent = '送信して判定を受ける'; }
 
     // Supabaseにバックグラウンド保存
     const cycle = DB.getCurrentCycle();
@@ -142,5 +147,4 @@ async function submitStep3(event) {
     // フォームリセット
     document.getElementById('step3-form').reset();
     document.getElementById('step3-date').value = new Date().toISOString().split('T')[0];
-    if (btn) { btn.disabled = false; btn.textContent = '送信して判定を受ける'; }
 }

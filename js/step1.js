@@ -140,13 +140,22 @@ async function submitStep1(event) {
     // ボタン無効化（二重送信防止）
     const btn = document.getElementById('step1-submit-btn');
     btn.disabled = true;
-    btn.textContent = '判定中...';
+    btn.textContent = 'AI判定中...';
 
-    // AI判定
-    const aiResult = Step1.judge(notice);
+    // Gemini AI判定（Vercel経由）
+    const judgeData = {
+        target_name: target.name,
+        date: date,
+        notice_text: notice
+    };
+    const aiResult = await API.judgeStep1(judgeData);
 
-    // 結果画面を即座に表示（待たせない）
+    // 結果画面を表示
     showResult(aiResult);
+
+    // ボタンを戻す
+    btn.disabled = false;
+    btn.textContent = '送信して判定を受ける';
 
     // Supabaseにバックグラウンドで保存
     const cycle = DB.getCurrentCycle();
@@ -175,9 +184,6 @@ async function submitStep1(event) {
     document.getElementById('step1-form').reset();
     document.getElementById('step1-date').value = new Date().toISOString().split('T')[0];
     document.getElementById('step1-char-count').textContent = '0';
-    btn.disabled = false;
-    btn.textContent = '送信して判定を受ける';
-    Step1.updateSummary();
 }
 
 // ◯☓結果画面表示
