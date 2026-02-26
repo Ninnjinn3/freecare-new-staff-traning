@@ -168,7 +168,7 @@ async function submitStep1(event) {
         Step1.updateSummary();
     }).catch(e => {
         console.error('保存エラー:', e);
-        showToast('保存に失敗しました (ローカルにのみ記録)');
+        showToast('保存エラー: ' + (e?.message || e?.code || JSON.stringify(e)));
     });
 
     // フォームリセット
