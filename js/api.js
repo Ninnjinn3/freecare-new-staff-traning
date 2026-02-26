@@ -8,28 +8,39 @@ const API = {
     // ===== 認証 =====
 
     async login(staffId, password) {
-        // Supabase Auth でログイン（メールなしカスタム認証）
-        // staff_idをメール形式に変換: FC001 → FC001@freecare.local
         const email = `${staffId}@freecare.local`;
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) {
+
+        // Supabase Auth でサインイン
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+        if (authError) {
             return { success: false, error: 'IDまたはパスワードが正しくありません' };
         }
-        // スタッフ詳細情報をDBから取得
-        const { data: staff } = await supabase
+
+        // staff_masterからスタッフ情報を取得
+        const { data: staff, error: staffError } = await supabase
             .from('staff_master')
             .select('*')
             .eq('staff_id', staffId)
             .single();
-        if (!staff) {
-            return { success: false, error: 'スタッフ情報が見つかりません' };
+
+        if (staffError || !staff) {
+            // staff_masterに見つからない場合はAuthメタデータから組み立て
+            const meta = authData.user?.user_metadata || {};
+            const fallbackUser = {
+                staff_id: staffId,
+                name: meta.name || staffId,
+                role: meta.role || 'staff',
+                facility_id: 'F001',
+                facility_name: 'グループホーム',
+                current_step: 1,
+                work_type: 'day'
+            };
+            Auth.currentUser = fallbackUser;
+            sessionStorage.setItem('fc_current_user', JSON.stringify(fallbackUser));
+            return { success: true, user: fallbackUser };
         }
-        // ロールチェック
-        const selectedRole = Auth.getSelectedRole();
-        if (selectedRole && selectedRole !== staff.role) {
-            await supabase.auth.signOut();
-            return { success: false, error: `このIDは「${Auth._roleLabel(staff.role)}」アカウントです` };
-        }
+
+        // 正常パス
         Auth.currentUser = staff;
         sessionStorage.setItem('fc_current_user', JSON.stringify(staff));
         return { success: true, user: staff };

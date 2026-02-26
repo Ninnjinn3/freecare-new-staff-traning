@@ -57,32 +57,39 @@ function selectRole(role) {
 }
 
 // ===== ログイン =====
-function handleLogin(event) {
+async function handleLogin(event) {
     event.preventDefault();
 
     const staffId = document.getElementById('login-id').value.trim();
     const password = document.getElementById('login-password').value;
+    const errorEl = document.getElementById('login-error');
 
-    const result = Auth.login(staffId, password);
+    // ログインボタン無効化
+    const btn = event.target.querySelector('button[type="submit"]');
+    if (btn) { btn.disabled = true; btn.textContent = 'ログイン中...'; }
+
+    // Supabase認証を試みる
+    let result;
+    try {
+        result = await API.login(staffId, password);
+    } catch (e) {
+        // Supabase接続失敗時はローカル認証にフォールバック
+        console.warn('Supabase接続失敗、ローカル認証を使用:', e);
+        result = Auth.login(staffId, password);
+    }
+
+    if (btn) { btn.disabled = false; btn.textContent = 'ログイン'; }
 
     if (result.success) {
-        const errorEl = document.getElementById('login-error');
         errorEl.hidden = true;
 
         // ロール別にリダイレクト
         switch (result.user.role) {
-            case 'staff':
-                navigateTo('screen-home');
-                break;
-            case 'admin':
-                navigateTo('screen-admin');
-                break;
-            case 'exec':
-                navigateTo('screen-exec');
-                break;
+            case 'staff': navigateTo('screen-home'); break;
+            case 'admin': navigateTo('screen-admin'); break;
+            case 'exec': navigateTo('screen-exec'); break;
         }
     } else {
-        const errorEl = document.getElementById('login-error');
         errorEl.textContent = result.error;
         errorEl.hidden = false;
     }
