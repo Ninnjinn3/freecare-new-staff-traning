@@ -26,33 +26,21 @@ const Step1 = {
     },
 
     populateTargets() {
-        const user = Auth.getUser();
-        if (!user) return;
-
-        const select = document.getElementById('step1-target');
-        // 既存オプションを維持（最初の空オプション）
-        select.innerHTML = '<option value="">選択してください</option>';
-
-        const targets = DB.getAll('assignments', { staff_id: user.staff_id, is_active: true });
-        targets.forEach(t => {
-            const opt = document.createElement('option');
-            opt.value = t.name;
-            opt.textContent = `${t.name}（${t.type === 'main' ? 'メイン' : 'サブ'}）`;
-            select.appendChild(opt);
-        });
+        // Step1はオートコンプリートを使用（app.jsのgetTargetList経由）
+        // セレクトボックスは使用しない
     },
 
     // 今月のサマリ更新
-    updateSummary() {
+    async updateSummary() {
         const user = Auth.getUser();
         if (!user) return;
 
         const cycle = DB.getCurrentCycle();
-        const records = DB.getByMonth('daily_step1', user.staff_id, cycle.yearMonth);
+        const records = await API.getStep1Records(user.staff_id, cycle.yearMonth);
 
         const totalCount = records.length;
         const circleCount = records.filter(r => r.ai_judgement === '○').length;
-        const crossCount = records.filter(r => r.ai_judgement === '×').length;
+        const crossCount = records.filter(r => r.ai_judgement === '☓').length;
 
         document.getElementById('step1-total-count').textContent = totalCount;
         document.getElementById('step1-circle-count').textContent = circleCount;
@@ -133,27 +121,45 @@ const Step1 = {
 };
 
 // フォーム送信
-function submitStep1(event) {
+async function submitStep1(event) {
     event.preventDefault();
 
     const user = Auth.getUser();
     if (!user) return;
 
     const date = document.getElementById('step1-date').value;
-    const target = document.getElementById('step1-target').value;
     const notice = document.getElementById('step1-notice').value;
+
+    // 対象者はオートコンプリートで選択されたものを使用
+    const target = getStepSelectedTarget('step1');
+    if (!target) {
+        showToast('対象者を選択してください');
+        return;
+    }
+
+    // ボタン無効化（二重送信防止）
+    const btn = document.getElementById('step1-submit-btn');
+    btn.disabled = true;
+    btn.textContent = '判定中...';
 
     // AI判定
     const aiResult = Step1.judge(notice);
 
-    // 保存
-    DB.save('daily_step1', {
+    // Supabaseに保存
+    const cycle = DB.getCurrentCycle();
+    await API.saveStep1({
         staff_id: user.staff_id,
+        target_id: target.id || null,
+        target_name: target.name,
+        year_month: cycle.yearMonth,
         date: date,
-        target_name: target,
         notice_text: notice,
+        char_count: notice.length,
         ai_judgement: aiResult.judgement,
-        ai_comment_json: JSON.stringify(aiResult)
+        ai_comment: aiResult.short_comment,
+        ai_good_points: aiResult.good_points,
+        ai_missing: aiResult.missing_points,
+        ai_improve: aiResult.improvement_example
     });
 
     // 結果画面表示
@@ -163,6 +169,8 @@ function submitStep1(event) {
     document.getElementById('step1-form').reset();
     document.getElementById('step1-date').value = new Date().toISOString().split('T')[0];
     document.getElementById('step1-char-count').textContent = '0';
+    btn.disabled = false;
+    btn.textContent = '送信して判定を受ける';
     Step1.updateSummary();
 }
 

@@ -19,12 +19,15 @@ function navigateTo(screenId) {
             break;
         case 'screen-step1':
             Step1.init();
+            initStepAutocomplete('step1');
             break;
         case 'screen-step2':
             Step2.init();
+            initStepAutocomplete('step2');
             break;
         case 'screen-step3':
             Step3.init();
+            initStepAutocomplete('step3');
             break;
         case 'screen-monthly':
             Monthly.render();
@@ -224,6 +227,66 @@ function clearSelectedTarget() {
     showToast('対象者の選択を解除しました');
 }
 
+// ===== STEP画面用 対象者オートコンプリート =====
+const stepSelectedTargets = {}; // { step1: null, step2: null, step3: null }
+
+function initStepAutocomplete(stepName) {
+    const input = document.getElementById(`${stepName}-target-input`);
+    const dropdown = document.getElementById(`${stepName}-target-dropdown`);
+    const selectedContainer = document.getElementById(`${stepName}-selected-target`);
+    if (!input || !dropdown) return;
+
+    const targets = getTargetList();
+
+    // 既に選択済みなら表示（ホーム画面で選んだものを引走）
+    if (selectedTarget) {
+        stepSelectedTargets[stepName] = selectedTarget;
+        renderSelectedTarget(selectedContainer, selectedTarget);
+        input.value = '';
+    }
+
+    input.addEventListener('input', function () {
+        const query = this.value.trim();
+        if (!query) { dropdown.classList.remove('active'); return; }
+        const matches = targets.filter(t =>
+            t.name.includes(query) || t.name.replace(/\s/g, '').includes(query.replace(/\s/g, ''))
+        );
+        dropdown.innerHTML = matches.length === 0
+            ? '<div class="autocomplete-option" style="color: var(--text-muted)">該当なし</div>'
+            : matches.map(t => `<div class="autocomplete-option" data-id="${t.id}" data-name="${t.name}">
+                ${t.name} <span style="color: var(--text-muted); font-size: 0.85em; margin-left: 8px">${t.care_level || ''}</span>
+              </div>`).join('');
+        dropdown.classList.add('active');
+    });
+
+    dropdown.addEventListener('click', function (e) {
+        const option = e.target.closest('.autocomplete-option');
+        if (!option || !option.dataset.id) return;
+        const picked = targets.find(t => t.id === option.dataset.id);
+        stepSelectedTargets[stepName] = picked;
+        input.value = '';
+        dropdown.classList.remove('active');
+        renderSelectedTarget(selectedContainer, picked);
+        showToast(`${picked.name}さんを選択しました ✅`);
+    });
+
+    input.addEventListener('blur', () => setTimeout(() => dropdown.classList.remove('active'), 200));
+    input.addEventListener('focus', function () {
+        if (!this.value.trim()) {
+            dropdown.innerHTML = targets.map(t =>
+                `<div class="autocomplete-option" data-id="${t.id}" data-name="${t.name}">
+                    ${t.name} <span style="color: var(--text-muted); font-size: 0.85em; margin-left: 8px">${t.care_level || ''}</span>
+                </div>`
+            ).join('');
+            dropdown.classList.add('active');
+        }
+    });
+}
+
+function getStepSelectedTarget(stepName) {
+    return stepSelectedTargets[stepName] || selectedTarget || null;
+}
+
 // ===== 対象者リスト取得（LocalStorage優先） =====
 function getTargetList() {
     const stored = localStorage.getItem('fc_targets');
@@ -258,13 +321,17 @@ function updateDeadlineAlert() {
 }
 
 // ===== 進捗バー更新 =====
-function updateProgress(user, currentStep) {
+async function updateProgress(user, currentStep) {
     const cycle = DB.getCurrentCycle();
-    let table = 'daily_step1';
-    if (currentStep === 2) table = 'step2_hypotheses';
-    if (currentStep === 3) table = 'daily_step3';
-
-    const records = DB.getByMonth(table, user.staff_id, cycle.yearMonth);
+    let records = [];
+    try {
+        if (currentStep === 1) records = await API.getStep1Records(user.staff_id, cycle.yearMonth);
+        else if (currentStep === 2) records = await API.getStep2Records(user.staff_id, cycle.yearMonth);
+        else if (currentStep === 3) records = await API.getStep3Records(user.staff_id, cycle.yearMonth);
+    } catch (e) {
+        // Supabase接続失敗時はローカルデータを使用
+        records = DB.getByMonth(currentStep === 1 ? 'daily_step1' : currentStep === 2 ? 'step2_hypotheses' : 'daily_step3', user.staff_id, cycle.yearMonth);
+    }
     const workType = user.work_type || 'day';
     const minDays = MIN_DAYS[workType] || 6;
     const writtenDays = records.length;
