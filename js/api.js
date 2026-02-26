@@ -85,12 +85,17 @@ const API = {
     // ===== STEP1 =====
 
     async saveStep1(record) {
+        // target_idがUUID形式でない場合はnullにする（ローカルIDはT001等）
+        const cleaned = { ...record };
+        if (cleaned.target_id && !/^[0-9a-f-]{36}$/i.test(cleaned.target_id)) {
+            cleaned.target_id = null;
+        }
         const { data, error } = await supabase
             .from('daily_step1')
-            .insert(record)
+            .insert(cleaned)
             .select()
             .single();
-        if (error) { console.error('saveStep1:', error); return null; }
+        if (error) { console.error('saveStep1:', error); throw error; }
         return data;
     },
 
@@ -108,12 +113,14 @@ const API = {
     // ===== STEP2 =====
 
     async saveStep2(record) {
+        const cleaned = { ...record };
+        if (cleaned.target_id && !/^[0-9a-f-]{36}$/i.test(cleaned.target_id)) cleaned.target_id = null;
         const { data, error } = await supabase
             .from('step2_hypotheses')
-            .insert(record)
+            .insert(cleaned)
             .select()
             .single();
-        if (error) { console.error('saveStep2:', error); return null; }
+        if (error) { console.error('saveStep2:', error); throw error; }
         return data;
     },
 
@@ -131,12 +138,14 @@ const API = {
     // ===== STEP3 =====
 
     async saveStep3(record) {
+        const cleaned = { ...record };
+        if (cleaned.target_id && !/^[0-9a-f-]{36}$/i.test(cleaned.target_id)) cleaned.target_id = null;
         const { data, error } = await supabase
             .from('daily_step3')
-            .insert(record)
+            .insert(cleaned)
             .select()
             .single();
-        if (error) { console.error('saveStep3:', error); return null; }
+        if (error) { console.error('saveStep3:', error); throw error; }
         return data;
     },
 
