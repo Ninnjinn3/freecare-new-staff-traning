@@ -10,19 +10,7 @@ const Step3 = {
     },
 
     populateTargets() {
-        const user = Auth.getUser();
-        if (!user) return;
-
-        const select = document.getElementById('step3-target');
-        select.innerHTML = '<option value="">選択してください</option>';
-
-        const targets = DB.getAll('assignments', { staff_id: user.staff_id, is_active: true });
-        targets.forEach(t => {
-            const opt = document.createElement('option');
-            opt.value = t.name;
-            opt.textContent = `${t.name}（${t.type === 'main' ? 'メイン' : 'サブ'}）`;
-            select.appendChild(opt);
-        });
+        // オートコンプリートを使用（app.jsのinitStepAutocomplete経由）
     },
 
     // AI判定（Phase 1: ルールベース）
@@ -105,15 +93,22 @@ function handleStep3Decision(value) {
 }
 
 // STEP3送信
-function submitStep3(event) {
+async function submitStep3(event) {
     event.preventDefault();
 
     const user = Auth.getUser();
     if (!user) return;
 
-    const data = {
-        date: document.getElementById('step3-date').value,
-        target: document.getElementById('step3-target').value,
+    const target = getStepSelectedTarget('step3');
+    if (!target) {
+        showToast('対象者を選択してください');
+        return;
+    }
+
+    const btn = document.getElementById('step3-submit-btn');
+    if (btn) { btn.disabled = true; btn.textContent = '判定中...'; }
+
+    const reflectionData = {
         notice: document.getElementById('step3-notice').value,
         support: document.getElementById('step3-support').value,
         reason: document.getElementById('step3-reason').value,
@@ -124,16 +119,20 @@ function submitStep3(event) {
     };
 
     // AI判定
-    const aiResult = Step3.judge(data);
+    const aiResult = Step3.judge(reflectionData);
 
-    // 保存
-    DB.save('daily_step3', {
+    // Supabaseに保存
+    const cycle = DB.getCurrentCycle();
+    await API.saveStep3({
         staff_id: user.staff_id,
-        date: data.date,
-        target_name: data.target,
-        reflection_json: JSON.stringify(data),
+        target_id: target.id || null,
+        target_name: target.name,
+        year_month: cycle.yearMonth,
+        date: document.getElementById('step3-date').value,
+        reflection_json: reflectionData,
+        decision: reflectionData.decision,
         ai_judgement: aiResult.judgement,
-        ai_feedback_json: JSON.stringify(aiResult)
+        ai_comment: aiResult.short_comment
     });
 
     // 結果画面
@@ -142,4 +141,5 @@ function submitStep3(event) {
     // フォームリセット
     document.getElementById('step3-form').reset();
     document.getElementById('step3-date').value = new Date().toISOString().split('T')[0];
+    if (btn) { btn.disabled = false; btn.textContent = '送信して判定を受ける'; }
 }

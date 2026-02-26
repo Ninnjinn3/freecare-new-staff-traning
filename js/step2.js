@@ -21,19 +21,7 @@ const Step2 = {
     },
 
     populateTargets() {
-        const user = Auth.getUser();
-        if (!user) return;
-
-        const select = document.getElementById('step2-target');
-        select.innerHTML = '<option value="">選択してください</option>';
-
-        const targets = DB.getAll('assignments', { staff_id: user.staff_id, is_active: true });
-        targets.forEach(t => {
-            const opt = document.createElement('option');
-            opt.value = t.name;
-            opt.textContent = `${t.name}（${t.type === 'main' ? 'メイン' : 'サブ'}）`;
-            select.appendChild(opt);
-        });
+        // オートコンプリートを使用（app.jsのinitStepAutocomplete経由）
     },
 
     // AI判定（Phase 1: ルールベース）
@@ -164,46 +152,58 @@ function removeHypothesisCard(num) {
 }
 
 // STEP2送信
-function submitStep2(event) {
+async function submitStep2(event) {
     event.preventDefault();
 
     const user = Auth.getUser();
     if (!user) return;
 
     const date = document.getElementById('step2-date').value;
-    const target = document.getElementById('step2-target').value;
     const change = document.getElementById('step2-change').value;
     const priorityReason = document.getElementById('step2-priority-reason').value;
     const expectedChange = document.getElementById('step2-expected-change').value;
 
-    // 仮説データ収集
+    // 対象者はオートコンプリートで選択されたものを使用
+    const target = getStepSelectedTarget('step2');
+    if (!target) {
+        showToast('対象者を選択してください');
+        return;
+    }
+
+    const btn = document.getElementById('step2-submit-btn');
+    if (btn) { btn.disabled = true; btn.textContent = '判定中...'; }
+
+    // 廃説データ収集
     const hypotheses = [];
     const cards = document.querySelectorAll('.hypothesis-card');
-    cards.forEach((card, idx) => {
-        const num = idx + 1;
+    cards.forEach((card) => {
+        const id = card.id.split('-')[1];
         hypotheses.push({
-            why1: card.querySelector(`[name="h${card.id.split('-')[1]}_why1"]`)?.value || '',
-            why2: card.querySelector(`[name="h${card.id.split('-')[1]}_why2"]`)?.value || '',
-            why3: card.querySelector(`[name="h${card.id.split('-')[1]}_why3"]`)?.value || '',
-            support: card.querySelector(`[name="h${card.id.split('-')[1]}_support"]`)?.value || '',
-            priority: parseInt(card.querySelector(`[name="h${card.id.split('-')[1]}_priority"]`)?.value) || 0
+            why1: card.querySelector(`[name="h${id}_why1"]`)?.value || '',
+            why2: card.querySelector(`[name="h${id}_why2"]`)?.value || '',
+            why3: card.querySelector(`[name="h${id}_why3"]`)?.value || '',
+            support: card.querySelector(`[name="h${id}_support"]`)?.value || '',
+            priority: parseInt(card.querySelector(`[name="h${id}_priority"]`)?.value) || 0
         });
     });
 
     // AI判定
     const aiResult = Step2.judge(change, hypotheses);
 
-    // 保存
-    DB.save('step2_hypotheses', {
+    // Supabaseに保存
+    const cycle = DB.getCurrentCycle();
+    await API.saveStep2({
         staff_id: user.staff_id,
+        target_id: target.id || null,
+        target_name: target.name,
+        year_month: cycle.yearMonth,
         date: date,
-        target_name: target,
         change_noticed: change,
-        hypotheses_json: JSON.stringify(hypotheses),
+        hypotheses_json: hypotheses,
         priority_reason: priorityReason,
         expected_change: expectedChange,
         ai_judgement: aiResult.judgement,
-        ai_comment_json: JSON.stringify(aiResult)
+        ai_comment: aiResult.short_comment
     });
 
     // 結果画面
@@ -212,4 +212,5 @@ function submitStep2(event) {
     // フォームリセット
     document.getElementById('step2-form').reset();
     document.getElementById('step2-date').value = new Date().toISOString().split('T')[0];
+    if (btn) { btn.disabled = false; btn.textContent = '送信して判定を受ける'; }
 }
