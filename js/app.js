@@ -44,6 +44,9 @@ function navigateTo(screenId) {
         case 'screen-exec':
             Exec.load();
             break;
+        case 'screen-settings':
+            initSettings();
+            break;
     }
 }
 
@@ -55,6 +58,11 @@ function selectRole(role) {
     const badge = document.getElementById('login-role-badge');
     const labels = { staff: '新人研修利用者', admin: '管理者', exec: '運営本部' };
     badge.textContent = labels[role] || role;
+
+    // デモ用ログイン情報をロールに合わせて表示
+    const demoIds = { staff: 'FC001', admin: 'FC002', exec: 'FC003' };
+    const hint = document.getElementById('demo-hint');
+    if (hint) hint.innerHTML = `デモ用: ID <code>${demoIds[role]}</code> / PW <code>demo1234</code>`;
 
     navigateTo('screen-login');
 }
@@ -621,3 +629,121 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+// ===== 設定画面 =====
+function showDeleteConfirm() {
+    document.getElementById('delete-confirm-banner').hidden = false;
+}
+function hideDeleteConfirm() {
+    document.getElementById('delete-confirm-banner').hidden = true;
+}
+
+async function executeDeleteAccount() {
+    const user = Auth.getUser();
+    if (!user) return;
+
+    try {
+        const resp = await fetch('/api/users', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                action: 'delete',
+                staff_id: user.staff_id,
+                deleted_by: user.staff_id
+            })
+        });
+        const data = await resp.json();
+        if (resp.ok && data.success) {
+            showToast('アカウントが削除されました。お疲れ様でした。');
+            setTimeout(() => {
+                handleLogout();
+            }, 2000);
+        } else {
+            showToast(data.error || '削除に失敗しました');
+        }
+    } catch (e) {
+        showToast('削除に失敗しました: ' + e.message);
+    }
+}
+
+// 設定画面にユーザー情報をセット
+function initSettings() {
+    const user = Auth.getUser();
+    if (!user) return;
+    const nameEl = document.getElementById('settings-user-name');
+    const idEl = document.getElementById('settings-user-id');
+    if (nameEl) nameEl.textContent = user.name || '--';
+    if (idEl) idEl.textContent = `ID: ${user.staff_id || '--'}`;
+}
+
+// ===== ヘルプ画面 =====
+function toggleHelp(header) {
+    const body = header.nextElementSibling;
+    const toggle = header.querySelector('.help-toggle');
+    body.hidden = !body.hidden;
+    toggle.textContent = body.hidden ? '▼' : '▲';
+}
+
+// ===== AIチャットボット =====
+const chatHistory = [];
+
+async function sendHelpChat() {
+    const input = document.getElementById('help-chat-input');
+    const msg = input.value.trim();
+    if (!msg) return;
+
+    input.value = '';
+    const container = document.getElementById('help-chat-messages');
+
+    // ユーザーメッセージ表示
+    container.innerHTML += `
+        <div class="chat-msg chat-user">
+            <div class="chat-bubble">${escapeHtml(msg)}</div>
+            <span class="chat-avatar">👤</span>
+        </div>`;
+
+    // ローディング
+    const loadId = 'chat-loading-' + Date.now();
+    container.innerHTML += `
+        <div class="chat-msg chat-bot" id="${loadId}">
+            <span class="chat-avatar">🤖</span>
+            <div class="chat-bubble">考え中...</div>
+        </div>`;
+    container.scrollTop = container.scrollHeight;
+
+    chatHistory.push({ role: 'user', text: msg });
+
+    try {
+        const resp = await fetch('/api/help-chat', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ message: msg, history: chatHistory.slice(-10) })
+        });
+        const data = await resp.json();
+        const reply = data.reply || 'エラーが発生しました';
+
+        chatHistory.push({ role: 'model', text: reply });
+
+        const loadEl = document.getElementById(loadId);
+        if (loadEl) {
+            loadEl.querySelector('.chat-bubble').innerHTML = formatChatReply(reply);
+        }
+    } catch (e) {
+        const loadEl = document.getElementById(loadId);
+        if (loadEl) {
+            loadEl.querySelector('.chat-bubble').textContent = '通信エラーが発生しました。もう一度お試しください。';
+        }
+    }
+    container.scrollTop = container.scrollHeight;
+}
+
+function escapeHtml(str) {
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+}
+
+function formatChatReply(text) {
+    return text
+        .replace(/\n/g, '<br>')
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/- (.*?)(?=<br>|$)/g, '• $1');
+}

@@ -1670,6 +1670,232 @@ body {
   cursor: pointer;
 }
 
+/* === Settings === */
+.settings-section {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.settings-user-info {
+  text-align: center;
+  padding: 16px 0;
+}
+
+.settings-label {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.settings-value {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-top: 4px;
+}
+
+.settings-sub {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+.settings-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 16px 0;
+}
+
+.btn-danger-full {
+  width: 100%;
+  padding: 14px;
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-cancel {
+  width: 100%;
+  padding: 14px;
+  background: var(--bg-main);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.delete-confirm-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  padding: 20px;
+}
+
+.delete-confirm-content {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 28px;
+  max-width: 380px;
+  text-align: center;
+}
+
+.delete-confirm-icon {
+  font-size: 2.5rem;
+  margin-bottom: 12px;
+}
+
+.delete-confirm-content h3 {
+  margin: 0 0 12px;
+  font-size: 1.1rem;
+}
+
+.delete-confirm-content p {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  line-height: 1.5;
+}
+
+.delete-confirm-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* === Help === */
+.help-guide {
+  margin-bottom: 20px;
+}
+
+.help-item {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  margin-bottom: 8px;
+  overflow: hidden;
+}
+
+.help-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.help-item-header:active {
+  background: var(--bg-main);
+}
+
+.help-toggle {
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.help-item-body {
+  padding: 0 16px 16px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.help-item-body ul {
+  padding-left: 18px;
+  margin: 8px 0 0;
+}
+
+.help-item-body li {
+  margin-bottom: 4px;
+}
+
+/* === Chat === */
+.help-chat-section {
+  margin-top: 8px;
+}
+
+.help-chat-desc {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin: 4px 0 12px;
+}
+
+.chat-messages {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  min-height: 200px;
+  max-height: 400px;
+  overflow-y: auto;
+  margin-bottom: 12px;
+}
+
+.chat-msg {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  align-items: flex-start;
+}
+
+.chat-user {
+  flex-direction: row-reverse;
+}
+
+.chat-avatar {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.chat-bubble {
+  background: var(--bg-main);
+  padding: 10px 14px;
+  border-radius: 16px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  max-width: 80%;
+}
+
+.chat-user .chat-bubble {
+  background: var(--primary);
+  color: #fff;
+}
+
+.chat-input-area {
+  display: flex;
+  gap: 8px;
+}
+
+.chat-input-area input {
+  flex: 1;
+  padding: 12px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.chat-send-btn {
+  padding: 12px 20px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  cursor: pointer;
+}
+
 /* === Coming Soon === */
 .coming-soon {
   display: flex;

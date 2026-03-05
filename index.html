@@ -66,7 +66,7 @@
         <div id="login-error" class="error-message" hidden></div>
         <button type="submit" class="btn btn-primary btn-full">ログイン</button>
       </form>
-      <p class="demo-hint">デモ用: ID <code>FC001</code> / PW <code>demo1234</code></p>
+      <p class="demo-hint" id="demo-hint">デモ用: ID <code>FC001</code> / PW <code>demo1234</code></p>
     </div>
   </section>
 
@@ -152,11 +152,19 @@
         </button>
         <button class="nav-btn" onclick="navigateTo('screen-history')">
           <span class="nav-icon">📜</span>
-          <span>記録履歴</span>
+          <span>履歴</span>
         </button>
         <button class="nav-btn" onclick="navigateTo('screen-video')">
           <span class="nav-icon">🎬</span>
-          <span>動画課題</span>
+          <span>動画</span>
+        </button>
+        <button class="nav-btn" onclick="navigateTo('screen-help')">
+          <span class="nav-icon">❓</span>
+          <span>ヘルプ</span>
+        </button>
+        <button class="nav-btn" onclick="navigateTo('screen-settings')">
+          <span class="nav-icon">⚙️</span>
+          <span>設定</span>
         </button>
       </div>
     </div>
@@ -432,6 +440,135 @@
       </div>
       <div class="video-tasks" id="video-tasks-list">
         <!-- 動画課題カードがここに描画 -->
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Screen: 設定 ===== -->
+  <section id="screen-settings" class="screen">
+    <div class="screen-content">
+      <div class="step-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+        <h2 class="step-title">⚙️ 設定</h2>
+      </div>
+
+      <div class="settings-section">
+        <div class="settings-user-info">
+          <div class="settings-label">ログイン中</div>
+          <div class="settings-value" id="settings-user-name">--</div>
+          <div class="settings-sub" id="settings-user-id">--</div>
+        </div>
+
+        <div class="settings-divider"></div>
+
+        <button class="btn-danger-full" onclick="showDeleteConfirm()">
+          🗑️ アカウントを削除する
+        </button>
+      </div>
+
+      <!-- 削除確認バナー -->
+      <div class="delete-confirm-banner" id="delete-confirm-banner" hidden>
+        <div class="delete-confirm-content">
+          <div class="delete-confirm-icon">⚠️</div>
+          <h3>本当に削除しますか？</h3>
+          <p>アカウントを削除すると<strong>退職したとみなされ</strong>、離職率に反映されます。この操作は取り消せません。</p>
+          <div class="delete-confirm-buttons">
+            <button class="btn-danger-full" onclick="executeDeleteAccount()">はい、削除します</button>
+            <button class="btn-cancel" onclick="hideDeleteConfirm()">いいえ、キャンセル</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Screen: ヘルプ ===== -->
+  <section id="screen-help" class="screen">
+    <div class="screen-content">
+      <div class="step-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+        <h2 class="step-title">❓ ヘルプ</h2>
+      </div>
+
+      <!-- 使い方ガイド -->
+      <div class="help-guide">
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>📋 STEP1 気付き の使い方</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <p>利用者様の日々の変化に気づいたことを記録します。</p>
+            <ul>
+              <li>対象者を選んでSTEP1ボタンを押す</li>
+              <li>日付を選び、気づいた内容を入力</li>
+              <li>「いつ・どこで・誰が・どうなった」を具体的に書く</li>
+              <li>送信するとAIが採点し、フィードバックがもらえます</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>🔍 STEP2 仮説思考 の使い方</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <p>気づいた変化の原因を多角的に分析します。</p>
+            <ul>
+              <li>変化に気づいた内容を記入</li>
+              <li>「なぜ？」を3段階で掘り下げる</li>
+              <li>仮説に優先順位をつけ、支援計画を立てる</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>🔄 STEP3 振り返り の使い方</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <p>行った支援の結果を振り返り、次に活かします。</p>
+            <ul>
+              <li>行った支援とその理由を記録</li>
+              <li>利用者の反応・変化を観察して記入</li>
+              <li>継続・変更・終了の判断と理由を書く</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>📊 月次評価 の見方</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <p>毎月の記録をもとにスコアが算出されます。</p>
+            <ul>
+              <li>80点以上で1回合格 → 次は100点を2回で次のSTEPへ</li>
+              <li>合格/不合格、人事ポイント、記録数が確認できます</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- AIチャットボット -->
+      <div class="help-chat-section">
+        <div class="admin-section-title">🤖 AIサポートチャット</div>
+        <p class="help-chat-desc">アプリの使い方で分からないことがあれば、AIに質問してください。</p>
+
+        <div class="chat-messages" id="help-chat-messages">
+          <div class="chat-msg chat-bot">
+            <span class="chat-avatar">🤖</span>
+            <div class="chat-bubble">こんにちは！フリーケア研修アプリのサポートAIです。使い方で分からないことがあれば、何でも聞いてください！</div>
+          </div>
+        </div>
+
+        <div class="chat-input-area">
+          <input type="text" id="help-chat-input" placeholder="質問を入力..."
+            onkeydown="if(event.key==='Enter')sendHelpChat()">
+          <button class="chat-send-btn" onclick="sendHelpChat()">送信</button>
+        </div>
       </div>
     </div>
   </section>
