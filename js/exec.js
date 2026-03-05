@@ -39,6 +39,10 @@ const Exec = {
         setText('exec-active-staff', `${g.activeStaff}名`);
         setText('exec-pass-rate', `${g.passRate}%`);
         setText('exec-avg-score', g.avgScore > 0 ? `${g.avgScore}点` : '--');
+        // 組織KPI
+        setText('exec-attrition', `${g.attritionRate ?? 0}%`);
+        setText('exec-retention', `${g.retentionRate ?? 0}%`);
+        setText('exec-completion', `${g.completionRate ?? 0}%`);
     },
 
     renderStepDist() {

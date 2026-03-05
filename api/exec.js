@@ -18,10 +18,11 @@ export default async function handler(req, res) {
     const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_vCIiY9zPof_k2CfWC4SLqA_uUNcQ6jo';
 
     try {
-        // 全データ取得
-        const [facilities, allStaff, step1All, step2All, step3All, evalAll] = await Promise.all([
+        // 全データ取得（離職率計算のためinactive含む）
+        const [facilities, allStaff, allStaffWithInactive, step1All, step2All, step3All, evalAll] = await Promise.all([
             sbSelect(SUPABASE_URL, SUPABASE_KEY, 'facilities', 'order=name'),
             sbSelect(SUPABASE_URL, SUPABASE_KEY, 'staff_master', 'role=eq.staff&is_active=eq.true'),
+            sbSelect(SUPABASE_URL, SUPABASE_KEY, 'staff_master', 'role=eq.staff'),
             sbSelect(SUPABASE_URL, SUPABASE_KEY, 'daily_step1', `year_month=eq.${ym}`),
             sbSelect(SUPABASE_URL, SUPABASE_KEY, 'step2_hypotheses', `year_month=eq.${ym}`),
             sbSelect(SUPABASE_URL, SUPABASE_KEY, 'daily_step3', `year_month=eq.${ym}`),
@@ -68,12 +69,35 @@ export default async function handler(req, res) {
         const totalPassCount = allRecords.filter(r => r.ai_judgement === '○').length;
         const allScores = evalAll.map(e => e.score || e.total_score).filter(s => s != null);
 
+        // 離職率（全スタッフ中の非アクティブ割合）
+        const inactiveStaff = allStaffWithInactive.filter(s => !s.is_active);
+        const attritionRate = allStaffWithInactive.length > 0 ?
+            Math.round((inactiveStaff.length / allStaffWithInactive.length) * 100) : 0;
+
+        // 新人定着率（入社6ヶ月以上で在籍中の割合）
+        const sixMonthsAgo = new Date();
+        sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+        const sixMonthStaff = allStaffWithInactive.filter(s =>
+            s.hire_date && new Date(s.hire_date) <= sixMonthsAgo
+        );
+        const retainedStaff = sixMonthStaff.filter(s => s.is_active);
+        const retentionRate = sixMonthStaff.length > 0 ?
+            Math.round((retainedStaff.length / sixMonthStaff.length) * 100) : 0;
+
+        // 教育完了率（STEP4到達者の割合）
+        const completedStaff = allStaff.filter(s => s.current_step >= 4).length;
+        const completionRate = totalStaff > 0 ? Math.round((completedStaff / totalStaff) * 100) : 0;
+
         const globalSummary = {
             totalStaff,
             activeStaff: new Set(allRecords.map(r => r.staff_id)).size,
             totalRecords: allRecords.length,
             passRate: allRecords.length > 0 ? Math.round((totalPassCount / allRecords.length) * 100) : 0,
             avgScore: allScores.length > 0 ? Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length) : 0,
+            attritionRate,
+            retentionRate,
+            completionRate,
+            inactiveCount: inactiveStaff.length,
             stepDistribution: {
                 step1: allStaff.filter(s => s.current_step === 1).length,
                 step2: allStaff.filter(s => s.current_step === 2).length,
