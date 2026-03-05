@@ -169,7 +169,7 @@ const DEMO_STAFF = [
   },
   {
     staff_id: 'FC003',
-    name: '佐藤部長',
+    name: '田中部長',
     password: 'demo1234',
     role: 'exec',
     facility_id: 'HQ',
@@ -183,7 +183,7 @@ const DEMO_STAFF = [
 
 // デモ用対象者（管理者画面から追加・削除可能）
 const DEMO_TARGETS = [
-  { id: 'T001', name: '佐藤 隆', care_level: '介護5', step: 1 },
+  { id: 'T001', name: '山田 隆', care_level: '介護5', step: 1 },
   { id: 'T002', name: '田中 美子', care_level: '介護5', step: 1 },
   { id: 'T003', name: '鈴木 一郎', care_level: '介護4', step: 2 },
   { id: 'T004', name: '高橋 和子', care_level: '介護3', step: 1 },

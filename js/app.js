@@ -632,10 +632,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // ===== 設定画面 =====
 function showDeleteConfirm() {
-    document.getElementById('delete-confirm-banner').hidden = false;
+    document.getElementById('delete-confirm-banner').classList.add('show');
 }
 function hideDeleteConfirm() {
-    document.getElementById('delete-confirm-banner').hidden = true;
+    document.getElementById('delete-confirm-banner').classList.remove('show');
 }
 
 async function executeDeleteAccount() {

@@ -15,7 +15,16 @@ export default async function handler(req, res) {
     if (!message) return res.status(400).json({ error: 'メッセージが必要です' });
 
     const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-    if (!GEMINI_API_KEY) return res.status(500).json({ error: 'API key not configured' });
+    if (!GEMINI_API_KEY) {
+        // API key未設定時はローカル回答
+        return res.status(200).json({
+            reply: 'AIサポートは現在準備中です。以下のヘルプガイドを参考にしてください。\n\n' +
+                '**STEP1**: 利用者の変化を「いつ・どこで・誰が・どうなった」で記録\n' +
+                '**STEP2**: 変化の原因を「なぜ？」で3段階掘り下げ\n' +
+                '**STEP3**: 支援の結果を振り返り、次に活かす\n\n' +
+                'その他のご質問は管理者にお問い合わせください。'
+        });
+    }
 
     const systemPrompt = `あなたは「フリーケアプログラム」という介護施設スタッフ向け新人研修アプリのサポートAIです。
 ユーザーからの質問に対して、日本語でやさしく丁寧に答えてください。

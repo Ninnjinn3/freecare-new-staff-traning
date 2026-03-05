@@ -467,14 +467,14 @@
       </div>
 
       <!-- 削除確認バナー -->
-      <div class="delete-confirm-banner" id="delete-confirm-banner" hidden>
+      <div class="delete-confirm-banner" id="delete-confirm-banner">
         <div class="delete-confirm-content">
           <div class="delete-confirm-icon">⚠️</div>
           <h3>本当に削除しますか？</h3>
-          <p>アカウントを削除すると<strong>退職したとみなされ</strong>、離職率に反映されます。この操作は取り消せません。</p>
+          <p>アカウントを削除すると、<strong>退職扱い</strong>となり、今後ログインできなくなります。<br>これまでの研修記録は管理者側で引き続き確認できます。</p>
           <div class="delete-confirm-buttons">
             <button class="btn-danger-full" onclick="executeDeleteAccount()">はい、削除します</button>
-            <button class="btn-cancel" onclick="hideDeleteConfirm()">いいえ、キャンセル</button>
+            <button class="btn-cancel" onclick="hideDeleteConfirm()">いいえ、やめます</button>
           </div>
         </div>
       </div>
