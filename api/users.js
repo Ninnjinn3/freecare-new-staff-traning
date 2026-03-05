@@ -37,7 +37,7 @@ export default async function handler(req, res) {
 // ===== スタッフ一覧取得 =====
 async function listStaff(url, key, body, res) {
     const { facility_id, include_inactive } = body;
-    let query = `order=name`;
+    let query = `order=created_at.desc`;
     if (facility_id) query += `&facility_id=eq.${facility_id}`;
     if (!include_inactive) query += `&is_active=eq.true`;
 

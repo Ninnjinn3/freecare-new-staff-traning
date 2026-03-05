@@ -182,7 +182,7 @@ const Admin = {
 
         const roleLabels = { staff: '研修', admin: '管理者', exec: '本部' };
 
-        list.innerHTML = [...staffList].reverse().map(s => {
+        list.innerHTML = staffList.map(s => {
             const isInactive = !s.is_active;
             const roleLabel = roleLabels[s.role] || s.role;
 
