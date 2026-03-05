@@ -577,7 +577,9 @@
   <section id="screen-admin" class="screen">
     <div class="screen-content">
       <div class="step-header">
-        <button class="back-btn" onclick="handleLogout()">← ログアウト</button>
+        <button class="back-btn" id="admin-logout-btn" onclick="handleLogout()">← ログアウト</button>
+        <button class="back-btn" id="admin-back-exec-btn" onclick="navigateTo('screen-exec')"
+          style="display:none; background:var(--primary); color:white;">← 本部画面へ戻る</button>
         <h2 class="step-title">管理者ダッシュボード</h2>
       </div>
 
@@ -703,6 +705,8 @@
       <div class="step-header">
         <button class="back-btn" onclick="handleLogout()">← ログアウト</button>
         <h2 class="step-title">運営本部ダッシュボード</h2>
+        <button class="btn-primary-sm" style="margin-left: auto;" onclick="navigateTo('screen-admin'); Admin.load()">⚙️
+          管理者画面を見る</button>
       </div>
 
       <!-- 全社サマリ -->

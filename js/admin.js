@@ -11,7 +11,18 @@ const Admin = {
         const user = Auth.getUser();
         if (!user) return;
 
-        const facilityId = user.facility_id || 'F001';
+        // 運営本部ユーザーが閲覧している場合のボタン出し分け
+        const logoutBtn = document.getElementById('admin-logout-btn');
+        const backBtn = document.getElementById('admin-back-exec-btn');
+        if (user.role === 'exec') {
+            if (logoutBtn) logoutBtn.style.display = 'none';
+            if (backBtn) backBtn.style.display = 'block';
+        } else {
+            if (logoutBtn) logoutBtn.style.display = 'block';
+            if (backBtn) backBtn.style.display = 'none';
+        }
+
+        const facilityId = user.role === 'exec' ? '' : (user.facility_id || 'F001');
         const cycle = DB.getCurrentCycle();
 
         try {
@@ -142,7 +153,7 @@ const Admin = {
     // スタッフ一覧取得
     async loadStaffList() {
         const user = Auth.getUser();
-        const facilityId = user?.facility_id || 'F001';
+        const facilityId = user?.role === 'exec' ? '' : (user?.facility_id || 'F001');
         const showInactive = document.getElementById('show-inactive-staff')?.checked || false;
 
         const list = document.getElementById('staff-manage-list');

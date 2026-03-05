@@ -18,8 +18,10 @@ export default async function handler(req, res) {
 
     try {
         // 1) 該当拠点のスタッフ一覧（研修対象のみ）
-        const staffList = await sbSelect(SUPABASE_URL, SUPABASE_KEY,
-            'staff_master', `facility_id=eq.${facility_id}&role=eq.staff&is_active=eq.true&order=name`);
+        let staffQuery = `role=eq.staff&is_active=eq.true&order=created_at.desc`;
+        if (facility_id) staffQuery += `&facility_id=eq.${facility_id}`;
+
+        const staffList = await sbSelect(SUPABASE_URL, SUPABASE_KEY, 'staff_master', staffQuery);
 
         if (!staffList.length) {
             return res.status(200).json({ staffProgress: [], alerts: [], summary: defaultSummary() });
