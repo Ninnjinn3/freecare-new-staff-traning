@@ -41,6 +41,9 @@ function navigateTo(screenId) {
         case 'screen-admin':
             initAdmin();
             break;
+        case 'screen-exec':
+            Exec.load();
+            break;
     }
 }
 
