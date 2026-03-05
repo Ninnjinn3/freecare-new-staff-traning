@@ -45,6 +45,8 @@ const Admin = {
         setText('summary-active', `${s.activeStaff}名`);
         setText('summary-avg-score', s.avgScore > 0 ? `${s.avgScore}点` : '--');
         setText('summary-avg-pass', `${s.avgPassRate}%`);
+        setText('summary-hit-rate', `${s.hitRate || 0}%`);
+        setText('summary-reflection-rate', `${s.reflectionRate || 0}%`);
     },
 
     // スタッフ進捗一覧描画

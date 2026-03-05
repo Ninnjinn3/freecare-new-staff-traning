@@ -43,6 +43,9 @@ const Exec = {
         setText('exec-attrition', `${g.attritionRate ?? 0}%`);
         setText('exec-retention', `${g.retentionRate ?? 0}%`);
         setText('exec-completion', `${g.completionRate ?? 0}%`);
+        setText('exec-hit-rate', `${g.hitRate ?? 0}%`);
+        setText('exec-reflection-rate', `${g.reflectionRate ?? 0}%`);
+        setText('exec-score-deviation', g.scoreDeviation ? `±${g.scoreDeviation}` : '--');
     },
 
     renderStepDist() {

@@ -80,12 +80,26 @@ export default async function handler(req, res) {
         const alerts = generateAlerts(staffProgress, ym);
 
         // 5) サマリ
+        const activeStaffList = staffProgress.filter(s => s.totalRecords > 0);
+        const activeStaffSize = activeStaffList.length;
+
+        // 仮説的中率（施設全体のSTEP3のうち、判断が「変更」以外の割合）
+        const facilityStep3 = step3All.filter(r => staffIds.includes(r.staff_id));
+        const facilityHits = facilityStep3.filter(r => r.decision === '継続' || r.decision === '終了').length;
+        const hitRate = facilityStep3.length > 0 ? Math.round((facilityHits / facilityStep3.length) * 100) : 0;
+
+        // 振り返り実施率（アクティブスタッフのうち、STEP3を実施した人の割合）
+        const staffWithStep3 = new Set(facilityStep3.map(r => r.staff_id)).size;
+        const reflectionRate = activeStaffSize > 0 ? Math.round((staffWithStep3 / activeStaffSize) * 100) : 0;
+
         const summary = {
             totalStaff: staffProgress.length,
-            activeStaff: staffProgress.filter(s => s.totalRecords > 0).length,
-            avgScore: Math.round(staffProgress.filter(s => s.monthlyScore).reduce((s, p) => s + p.monthlyScore, 0) /
-                Math.max(staffProgress.filter(s => s.monthlyScore).length, 1)),
+            activeStaff: activeStaffSize,
+            avgScore: Math.round(activeStaffList.filter(s => s.monthlyScore).reduce((s, p) => s + p.monthlyScore, 0) /
+                Math.max(activeStaffList.filter(s => s.monthlyScore).length, 1)),
             avgPassRate: Math.round(staffProgress.reduce((s, p) => s + p.passRate, 0) / Math.max(staffProgress.length, 1)),
+            hitRate,
+            reflectionRate,
             stepDistribution: {
                 step1: staffProgress.filter(s => s.current_step === 1).length,
                 step2: staffProgress.filter(s => s.current_step === 2).length,

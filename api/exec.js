@@ -88,9 +88,27 @@ export default async function handler(req, res) {
         const completedStaff = allStaff.filter(s => s.current_step >= 4).length;
         const completionRate = totalStaff > 0 ? Math.round((completedStaff / totalStaff) * 100) : 0;
 
+        // 仮説的中率（全社のSTEP3のうち、判断が「変更」以外の割合）
+        const allStep3Decisions = step3All.filter(r => r.decision === '継続' || r.decision === '終了').length;
+        const globalHitRate = step3All.length > 0 ? Math.round((allStep3Decisions / step3All.length) * 100) : 0;
+
+        // 振り返り実施率（全アクティブスタッフのうち、STEP3を実施した人の割合）
+        const globalStaffWithStep3 = new Set(step3All.map(r => r.staff_id)).size;
+        const activeStaffSize = new Set(allRecords.map(r => r.staff_id)).size;
+        const globalReflectionRate = activeStaffSize > 0 ? Math.round((globalStaffWithStep3 / activeStaffSize) * 100) : 0;
+
+        // 事業所スコア偏差（各拠点の平均スコアの標準偏差計算）
+        const validFacilityScores = facilityStats.map(f => f.avgScore).filter(s => s > 0);
+        let scoreDeviation = 0;
+        if (validFacilityScores.length > 0) {
+            const mean = validFacilityScores.reduce((a, b) => a + b, 0) / validFacilityScores.length;
+            const variance = validFacilityScores.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / validFacilityScores.length;
+            scoreDeviation = Math.round(Math.sqrt(variance));
+        }
+
         const globalSummary = {
             totalStaff,
-            activeStaff: new Set(allRecords.map(r => r.staff_id)).size,
+            activeStaff: activeStaffSize,
             totalRecords: allRecords.length,
             passRate: allRecords.length > 0 ? Math.round((totalPassCount / allRecords.length) * 100) : 0,
             avgScore: allScores.length > 0 ? Math.round(allScores.reduce((a, b) => a + b, 0) / allScores.length) : 0,
@@ -98,6 +116,9 @@ export default async function handler(req, res) {
             retentionRate,
             completionRate,
             inactiveCount: inactiveStaff.length,
+            hitRate: globalHitRate,
+            reflectionRate: globalReflectionRate,
+            scoreDeviation,
             stepDistribution: {
                 step1: allStaff.filter(s => s.current_step === 1).length,
                 step2: allStaff.filter(s => s.current_step === 2).length,
