@@ -446,20 +446,72 @@
 
       <!-- 管理者タブ -->
       <div class="admin-tabs">
-        <button class="admin-tab active" onclick="showAdminTab('targets')" id="admin-tab-targets">👥 対象者管理</button>
-        <button class="admin-tab" onclick="showAdminTab('progress')" id="admin-tab-progress">📊 進捗確認</button>
+        <button class="admin-tab active" onclick="showAdminTab('targets')" id="admin-tab-targets">👥 対象者</button>
+        <button class="admin-tab" onclick="showAdminTab('staff')" id="admin-tab-staff">👤 スタッフ</button>
+        <button class="admin-tab" onclick="showAdminTab('progress')" id="admin-tab-progress">📊 進捗</button>
         <button class="admin-tab" onclick="showAdminTab('alerts')" id="admin-tab-alerts">🔔 アラート</button>
       </div>
 
       <!-- 対象者管理セクション -->
       <div class="admin-section" id="admin-targets-section">
         <div class="admin-section-title">👥 対象者（利用者）一覧</div>
-        <div class="target-list" id="admin-target-list">
-          <!-- 動的に描画 -->
-        </div>
+        <div class="target-list" id="admin-target-list"></div>
         <div class="add-target-form">
           <input type="text" id="admin-new-target-name" placeholder="新しい対象者の名前">
           <button onclick="addNewTarget()">＋ 追加</button>
+        </div>
+      </div>
+
+      <!-- スタッフ管理セクション -->
+      <div class="admin-section" id="admin-staff-section" hidden>
+        <div class="admin-section-title">👤 スタッフ管理</div>
+
+        <!-- スタッフ追加フォーム -->
+        <div class="staff-add-form">
+          <h4>新規スタッフ登録</h4>
+          <div class="form-grid">
+            <div class="form-field">
+              <label>氏名（フルネーム）</label>
+              <input type="text" id="new-staff-name" placeholder="山田花子" required>
+            </div>
+            <div class="form-field">
+              <label>職員ID</label>
+              <input type="text" id="new-staff-id" placeholder="FC004" required>
+            </div>
+            <div class="form-field">
+              <label>初期パスワード</label>
+              <input type="text" id="new-staff-pw" placeholder="demo1234" required>
+            </div>
+            <div class="form-field">
+              <label>勤務形態</label>
+              <select id="new-staff-worktype">
+                <option value="day">日勤</option>
+                <option value="night">夜勤</option>
+                <option value="nightOnce">宿直</option>
+              </select>
+            </div>
+            <div class="form-field">
+              <label>ロール</label>
+              <select id="new-staff-role">
+                <option value="staff">新人研修利用者</option>
+                <option value="admin">管理者</option>
+                <option value="exec">運営本部</option>
+              </select>
+            </div>
+          </div>
+          <button class="btn-primary" onclick="Admin.createStaff()" id="btn-create-staff">＋ スタッフ登録</button>
+        </div>
+
+        <!-- スタッフ一覧フィルター -->
+        <div class="staff-filter">
+          <label>
+            <input type="checkbox" id="show-inactive-staff" onchange="Admin.loadStaffList()"> 退職済みも表示
+          </label>
+        </div>
+
+        <!-- スタッフ一覧 -->
+        <div class="staff-manage-list" id="staff-manage-list">
+          <p class="empty-state">読み込み中...</p>
         </div>
       </div>
 
@@ -484,8 +536,6 @@
             <span class="summary-value" id="summary-avg-pass">--</span>
           </div>
         </div>
-
-        <!-- スタッフ進捗テーブル -->
         <div class="admin-section-title">📊 スタッフ進捗一覧</div>
         <div class="staff-progress-list" id="staff-progress-list">
           <p class="empty-state">読み込み中...</p>

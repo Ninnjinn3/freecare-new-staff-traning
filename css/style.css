@@ -1537,6 +1537,106 @@ body {
   gap: 12px;
 }
 
+/* === Staff Management === */
+.staff-add-form {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 16px;
+}
+
+.staff-add-form h4 {
+  margin: 0 0 14px 0;
+  font-size: 1rem;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.form-field label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.form-field input,
+.form-field select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-main);
+  color: var(--text-primary);
+  font-size: 0.95rem;
+}
+
+.btn-primary {
+  width: 100%;
+  padding: 12px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.staff-filter {
+  margin: 12px 0;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.staff-manage-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.staff-manage-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+}
+
+.staff-manage-card.staff-inactive {
+  opacity: 0.5;
+}
+
+.staff-manage-info {
+  display: flex;
+  gap: 12px;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: 8px;
+}
+
+.left-date {
+  color: var(--danger);
+}
+
+.btn-danger-sm {
+  margin-top: 10px;
+  padding: 6px 14px;
+  background: var(--danger);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
 /* === Coming Soon === */
 .coming-soon {
   display: flex;
