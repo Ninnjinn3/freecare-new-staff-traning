@@ -157,9 +157,16 @@ const IMPORTANT_RULES = `
 `;
 
 const JSON_FORMAT = `
+## improvement_example の書き方（最重要）:
+- judgementが×の場合、新人が送った入力文をそのままコピーして、足りない情報を【】で書き足す。
+- 例: 入力「Aさんがお腹が痛いと言っていた」
+  → improvement_example: 「【昼食後、食堂で】Aさんが【お腹をさすりながら】お腹が痛いと言っていた【。表情はやや苦しそうで、いつもは完食するが今日は半分残していた】」
+- 入力された文章をそのまま使い、足りない所だけ【】で追記する。入力文を書き換えてはいけない。
+- judgementが○の場合は improvement_example を空文字 "" にする。
+
 ## 回答形式（必ずこのJSON形式で回答してください）:
 {
-  "judgement": "○ または ×。‼️missing_pointsが1つでもあれば必ず×にすること",
+  "judgement": "○ または ×",
   "score": 合計スコア（0〜100の整数）,
   "breakdown": {
     "change_clarity": 観点1のスコア,
@@ -169,11 +176,13 @@ const JSON_FORMAT = `
     "support_plan": 観点5のスコア,
     "reflection": 観点6のスコア
   },
-  "short_comment": "総評コメント（1〜2文、新人を励ます温かい内容）",
+  "short_comment": "総評（1〜2文）",
   "good_points": ["良い点1", "良い点2"],
-  "missing_points": ["不足している具体的な情報1", "不足点2"],
-  "improvement_example": "【添削方式】新人が書いた元の文をそのままコピーし、足りない情報（場所・時間・反応など）を【】記号で差し込んだ添削版。元の文は一切変えない。合格時は空文字。"
-}`;
+  "missing_points": ["不足点1", "不足点2"],
+  "improvement_example": "入力文をコピーし足りない部分を【】で補った添削版。○の時は空文字"
+}
+
+‼️ missing_pointsが1つでもあれば judgement は必ず × にすること。`;
 
 // ===== STEP1 プロンプト =====
 function buildStep1Prompt(data) {
