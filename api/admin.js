@@ -25,15 +25,16 @@ export default async function handler(req, res) {
             return res.status(200).json({ staffProgress: [], alerts: [], summary: defaultSummary() });
         }
 
-        // 2) 全スタッフのSTEP1-3記録を一括取得
+        // 2) 全スタッフのSTEP1-3記録を一括取得 + 全期間の月次評価
         const staffIds = staffList.map(s => s.staff_id);
         const ym = year_month || getCurrentYearMonth();
 
-        const [step1All, step2All, step3All, evalAll] = await Promise.all([
+        const [step1All, step2All, step3All, evalCurrent, evalHistory] = await Promise.all([
             sbSelect(SUPABASE_URL, SUPABASE_KEY, 'daily_step1', `year_month=eq.${ym}&order=date.desc`),
             sbSelect(SUPABASE_URL, SUPABASE_KEY, 'step2_hypotheses', `year_month=eq.${ym}&order=date.desc`),
             sbSelect(SUPABASE_URL, SUPABASE_KEY, 'daily_step3', `year_month=eq.${ym}&order=date.desc`),
-            sbSelect(SUPABASE_URL, SUPABASE_KEY, 'monthly_evaluations', `year_month=eq.${ym}`)
+            sbSelect(SUPABASE_URL, SUPABASE_KEY, 'monthly_evaluations', `year_month=eq.${ym}`),
+            sbSelect(SUPABASE_URL, SUPABASE_KEY, 'monthly_evaluations', `order=year_month.asc`)
         ]);
 
         // 3) スタッフごとの進捗データ構築
@@ -42,7 +43,7 @@ export default async function handler(req, res) {
             const s1 = step1All.filter(r => r.staff_id === sid);
             const s2 = step2All.filter(r => r.staff_id === sid);
             const s3 = step3All.filter(r => r.staff_id === sid);
-            const ev = evalAll.find(e => e.staff_id === sid);
+            const ev = evalCurrent.find(e => e.staff_id === sid);
 
             const totalRecords = s1.length + s2.length + s3.length;
             const passCount = [...s1, ...s2, ...s3].filter(r => r.ai_judgement === '○').length;
@@ -51,10 +52,19 @@ export default async function handler(req, res) {
                 new Date(b.created_at) - new Date(a.created_at)
             )[0];
 
+            // STEP内サブレベル計算
+            const subLevel = calcSubLevel(evalHistory.filter(e => e.staff_id === sid), staff.current_step);
+
+            // 今月の課題完了ステータス
+            const minRecords = staff.work_type === 'night' ? 4 : 6;
+            const taskStatus = totalRecords >= minRecords ? 'done' : `${totalRecords}/${minRecords}`;
+
             return {
                 staff_id: sid,
                 name: staff.name,
                 current_step: staff.current_step || 1,
+                subLevel,
+                taskStatus,
                 totalRecords,
                 passCount,
                 failCount,
@@ -145,6 +155,48 @@ function generateAlerts(staffProgress, yearMonth) {
 function getCurrentYearMonth() {
     const now = new Date();
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+}
+
+// ===== STEP内サブレベル計算 =====
+// 進捗: 80点挑戦中 → 80点合格済(100点1回目) → 100点1回合格(2回目挑戦) → STEP合格！
+function calcSubLevel(evalHistory, currentStep) {
+    if (!evalHistory.length) {
+        return { level: 0, label: '80点挑戦中', icon: '🔵', progress: 0 };
+    }
+
+    // 現在のSTEPに関連する評価のみ（stepカラムがあれば使用）
+    const scores = evalHistory
+        .map(e => e.score || e.total_score || 0)
+        .filter(s => s > 0);
+
+    if (scores.length === 0) {
+        return { level: 0, label: '80点挑戦中', icon: '🔵', progress: 0 };
+    }
+
+    // 80点以上が1回でもあるか
+    const has80 = scores.some(s => s >= 80);
+    if (!has80) {
+        const bestScore = Math.max(...scores);
+        return { level: 0, label: `80点挑戦中（最高${bestScore}点）`, icon: '🔵', progress: 15 };
+    }
+
+    // 80点合格後、100点が何回あるか
+    const perfect100Count = scores.filter(s => s === 100).length;
+
+    // 連続100点をチェック
+    let consecutive100 = 0;
+    for (let i = scores.length - 1; i >= 0; i--) {
+        if (scores[i] === 100) consecutive100++;
+        else consecutive100 = 0;
+    }
+
+    if (consecutive100 >= 2) {
+        return { level: 3, label: 'STEP合格！🎉', icon: '🏆', progress: 100 };
+    } else if (perfect100Count >= 1) {
+        return { level: 2, label: '100点1回合格（2回目挑戦中）', icon: '🟡', progress: 70 };
+    } else {
+        return { level: 1, label: '80点合格済（100点挑戦中）', icon: '🟢', progress: 40 };
+    }
 }
 
 function defaultSummary() {

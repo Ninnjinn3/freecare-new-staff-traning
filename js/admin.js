@@ -62,12 +62,21 @@ const Admin = {
             const scoreClass = staff.monthlyScore >= 80 ? 'score-high' :
                 staff.monthlyScore >= 60 ? 'score-mid' : 'score-low';
             const passIcon = staff.passed ? '✅' : (staff.totalRecords > 0 ? '❌' : '—');
+            const sub = staff.subLevel || { label: '--', icon: '🔵', progress: 0 };
+            const taskDone = staff.taskStatus === 'done';
 
             return `
             <div class="staff-card">
                 <div class="staff-card-header">
                     <span class="staff-name">${staff.name}</span>
                     <span class="${stepClass}">STEP${staff.current_step}</span>
+                </div>
+                <div class="sub-level-row">
+                    <span class="sub-level-icon">${sub.icon}</span>
+                    <div class="sub-level-bar-bg">
+                        <div class="sub-level-bar-fill" style="width:${sub.progress}%"></div>
+                    </div>
+                    <span class="sub-level-label">${sub.label}</span>
                 </div>
                 <div class="staff-card-stats">
                     <div class="staff-stat">
@@ -83,11 +92,10 @@ const Admin = {
                         <span class="staff-stat-value ${scoreClass}">${staff.monthlyScore ?? '--'}</span>
                     </div>
                     <div class="staff-stat">
-                        <span class="staff-stat-label">合否</span>
-                        <span class="staff-stat-value">${passIcon}</span>
+                        <span class="staff-stat-label">今月</span>
+                        <span class="staff-stat-value ${taskDone ? 'score-high' : ''}">${taskDone ? '完了✅' : staff.taskStatus || '--'}</span>
                     </div>
                 </div>
-                ${staff.lastRecordDate ? `<div class="staff-last-record">最終記録: ${staff.lastRecordDate}</div>` : ''}
             </div>`;
         }).join('');
     },
