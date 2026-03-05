@@ -305,13 +305,9 @@ function getStepSelectedTarget(stepName) {
     return stepSelectedTargets[stepName] || selectedTarget || null;
 }
 
-// ===== 対象者リスト取得（LocalStorage優先） =====
+// ===== 対象者リスト取得（デモデータ優先） =====
 function getTargetList() {
-    const stored = localStorage.getItem('fc_targets');
-    if (stored) {
-        try { return JSON.parse(stored); } catch (e) { /* fallthrough */ }
-    }
-    // 初回はデモデータを保存
+    // デモデータを常に最新に保つ
     localStorage.setItem('fc_targets', JSON.stringify(DEMO_TARGETS));
     return [...DEMO_TARGETS];
 }

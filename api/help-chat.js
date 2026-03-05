@@ -88,6 +88,8 @@ export default async function handler(req, res) {
 
     } catch (error) {
         console.error('Help chat error:', error);
-        return res.status(500).json({ error: 'チャットエラーが発生しました', detail: error.message });
+        return res.status(200).json({
+            reply: '申し訳ありません、一時的にAIに接続できませんでした。\n\nもう一度お試しいただくか、上のヘルプガイドをご参照ください。'
+        });
     }
 }
