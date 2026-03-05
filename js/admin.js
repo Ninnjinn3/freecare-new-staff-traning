@@ -68,7 +68,7 @@ const Admin = {
             const taskDone = staff.taskStatus === 'done';
 
             return `
-            <div class="staff-card">
+            <div class="staff-card" id="progress-card-${staff.staff_id}">
                 <div class="staff-card-header">
                     <span class="staff-name">${staff.name}</span>
                     <span class="${stepClass}">STEP${staff.current_step}</span>
@@ -182,7 +182,7 @@ const Admin = {
 
         const roleLabels = { staff: '研修', admin: '管理者', exec: '本部' };
 
-        list.innerHTML = staffList.map(s => {
+        list.innerHTML = [...staffList].reverse().map(s => {
             const isInactive = !s.is_active;
             const roleLabel = roleLabels[s.role] || s.role;
 
@@ -199,11 +199,34 @@ const Admin = {
                     ${s.left_date ? `<span class="left-date">退職: ${s.left_date}</span>` : ''}
                 </div>
                 ${!isInactive ? `
-                <button class="btn-danger-sm" onclick="Admin.confirmDelete('${s.staff_id}', '${s.name}')">
-                    退職処理
-                </button>` : ''}
+                <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px;">
+                    <button style="background:var(--primary); color:white; border:none; padding:4px 8px; border-radius:4px; font-size:0.8rem; cursor:pointer;" onclick="Admin.viewStaffProgress('${s.staff_id}')">
+                        進捗を見る
+                    </button>
+                    <button class="btn-danger-sm" onclick="Admin.confirmDelete('${s.staff_id}', '${s.name}')">
+                        退職処理
+                    </button>
+                </div>` : ''}
             </div>`;
         }).join('');
+    },
+
+    // スタッフの進捗を見る
+    viewStaffProgress(staffId) {
+        showAdminTab('progress');
+        setTimeout(() => {
+            const card = document.getElementById(`progress-card-${staffId}`);
+            if (card) {
+                card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                card.style.transition = 'background-color 0.5s ease';
+                card.style.backgroundColor = '#e0f2fe'; // light blue highlight
+                setTimeout(() => {
+                    card.style.backgroundColor = '';
+                }, 2000);
+            } else {
+                showToast('まだ進捗データがありません');
+            }
+        }, 100);
     },
 
     // スタッフ新規作成

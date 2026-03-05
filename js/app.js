@@ -571,7 +571,8 @@ function addNewTarget() {
     }, 0);
     const newId = `T${String(maxId + 1).padStart(3, '0')}`;
 
-    targets.push({
+    // 先頭に追加（上のほうに出るようにする）
+    targets.unshift({
         id: newId,
         name: name,
         care_level: '介護度未設定',
