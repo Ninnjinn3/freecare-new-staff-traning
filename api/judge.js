@@ -136,6 +136,8 @@ const SCORING_RUBRIC = `
 const IMPORTANT_RULES = `
 ## ⚠️ 重要な評価ルール
 
+‼️‼️ 絶対ルール: missing_pointsが1つでもあるならjudgementは必ず「×」にすること。例外なし。
+
 1. **記述の長さは一切評価に含めない**: 文字数は採点基準に入れてはいけない。
    - 1行でも具体的な状況（時間・場所・反応）が含まれていれば高得点をつけてよい。
    - 逆に長文でも中身が曖昧・抽象的なら低得点にする。
@@ -157,7 +159,7 @@ const IMPORTANT_RULES = `
 const JSON_FORMAT = `
 ## 回答形式（必ずこのJSON形式で回答してください）:
 {
-  "judgement": "○ または ×",
+  "judgement": "○ または ×。‼️missing_pointsが1つでもあれば必ず×にすること",
   "score": 合計スコア（0〜100の整数）,
   "breakdown": {
     "change_clarity": 観点1のスコア,
