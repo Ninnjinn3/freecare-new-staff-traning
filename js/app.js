@@ -707,13 +707,14 @@ async function sendHelpChat() {
         </div>`;
     container.scrollTop = container.scrollHeight;
 
+    const historyToSend = chatHistory.slice(-10);
     chatHistory.push({ role: 'user', text: msg });
 
     try {
         const resp = await fetch('/api/help-chat', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ message: msg, history: chatHistory.slice(-10) })
+            body: JSON.stringify({ message: msg, history: historyToSend })
         });
         const data = await resp.json();
         const reply = data.reply || 'エラーが発生しました';

@@ -180,14 +180,21 @@ async function submitStep1(event) {
         showToast('保存エラー: ' + (e?.message || e?.code || JSON.stringify(e)));
     });
 
-    // フォームリセット
-    document.getElementById('step1-form').reset();
-    document.getElementById('step1-date').value = new Date().toISOString().split('T')[0];
-    document.getElementById('step1-char-count').textContent = '0';
+    // フォームリセットは合格時のみ（バツの時は入力内容を残す）
+    if (aiResult.judgement === '○') {
+        document.getElementById('step1-form').reset();
+        document.getElementById('step1-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('step1-char-count').textContent = '0';
+    }
 }
 
 // ◯☓結果画面表示
 function showResult(result) {
+    // AIのハルシネーション対策: 不足点があるのに○判定なら強制的に×にする
+    if (result.missing_points && result.missing_points.length > 0) {
+        result.judgement = '×';
+    }
+
     const circle = document.getElementById('result-circle');
     const isCorrect = result.judgement === '○';
 

@@ -144,7 +144,9 @@ async function submitStep3(event) {
     }).then(() => showToast('記録を保存しました ✅'))
         .catch(e => { console.error(e); showToast('保存に失敗しました'); });
 
-    // フォームリセット
-    document.getElementById('step3-form').reset();
-    document.getElementById('step3-date').value = new Date().toISOString().split('T')[0];
+    // フォームリセットは合格時のみ
+    if (aiResult.judgement === '○') {
+        document.getElementById('step3-form').reset();
+        document.getElementById('step3-date').value = new Date().toISOString().split('T')[0];
+    }
 }
