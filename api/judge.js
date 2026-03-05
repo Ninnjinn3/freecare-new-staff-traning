@@ -69,7 +69,10 @@ async function callGemini(apiKey, prompt) {
 
     if (!response.ok) {
         const errText = await response.text();
-        throw new Error(`Gemini API ${response.status}: ${errText}`);
+        if (response.status === 429) {
+            throw new Error("ただいまAIへのアクセスが集中しており、利用制限がかかっています。約1分おいてから再度お試しください。");
+        }
+        throw new Error(`Gemini API エラー: ${response.status}`);
     }
 
     const json = await response.json();
