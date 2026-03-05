@@ -4,7 +4,7 @@
    ============================================ */
 
 // ===== 画面遷移 =====
-function navigateTo(screenId) {
+async function navigateTo(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const target = document.getElementById(screenId);
     if (target) {
@@ -18,16 +18,16 @@ function navigateTo(screenId) {
             initHome();
             break;
         case 'screen-step1':
-            Step1.init();
-            initStepAutocomplete('step1');
+            await Step1.init();
+            await initStepAutocomplete('step1');
             break;
         case 'screen-step2':
-            Step2.init();
-            initStepAutocomplete('step2');
+            await Step2.init();
+            await initStepAutocomplete('step2');
             break;
         case 'screen-step3':
-            Step3.init();
-            initStepAutocomplete('step3');
+            await Step3.init();
+            await initStepAutocomplete('step3');
             break;
         case 'screen-monthly':
             Monthly.render();
@@ -39,10 +39,10 @@ function navigateTo(screenId) {
             loadVideoTasks();
             break;
         case 'screen-admin':
-            initAdmin();
+            await initAdmin();
             break;
         case 'screen-exec':
-            Exec.load();
+            await Exec.load();
             break;
         case 'screen-settings':
             initSettings();
@@ -248,13 +248,13 @@ function clearSelectedTarget() {
 // ===== STEP画面用 対象者オートコンプリート =====
 const stepSelectedTargets = {}; // { step1: null, step2: null, step3: null }
 
-function initStepAutocomplete(stepName) {
+async function initStepAutocomplete(stepName) {
     const input = document.getElementById(`${stepName}-target-input`);
     const dropdown = document.getElementById(`${stepName}-target-dropdown`);
     const selectedContainer = document.getElementById(`${stepName}-selected-target`);
     if (!input || !dropdown) return;
 
-    const targets = getTargetList();
+    const targets = await getTargetList(true); // 最新を取得
 
     // 既に選択済みなら表示（ホーム画面で選んだものを引走）
     if (selectedTarget) {
@@ -305,15 +305,39 @@ function getStepSelectedTarget(stepName) {
     return stepSelectedTargets[stepName] || selectedTarget || null;
 }
 
-// ===== 対象者リスト取得（デモデータ優先） =====
-function getTargetList() {
-    // デモデータを常に最新に保つ
-    localStorage.setItem('fc_targets', JSON.stringify(DEMO_TARGETS));
-    return [...DEMO_TARGETS];
+// ===== 対象者リスト取得（Supabase連携） =====
+let cachedTargets = null;
+
+async function getTargetList(forceFetch = false) {
+    if (cachedTargets && !forceFetch) return cachedTargets;
+
+    const user = Auth.getUser();
+    if (!user) return [...DEMO_TARGETS];
+
+    try {
+        const data = await API.getTargets(user.facility_id);
+        // DBから取得したデータをアプリケーション用の形式（IDをTxxxにする等）に変換
+        cachedTargets = data.map(t => ({
+            id: t.target_code || t.id,
+            db_id: t.id, // UUIDを保持
+            name: t.name,
+            care_level: t.care_level || '介護度未設定',
+            step: 1 // デフォルト
+        }));
+
+        // デモデータがあればマージ（必要に応じて）
+        if (cachedTargets.length === 0) cachedTargets = [...DEMO_TARGETS];
+
+        return cachedTargets;
+    } catch (e) {
+        console.warn('Targets fetch failed:', e);
+        return [...DEMO_TARGETS];
+    }
 }
 
-function saveTargetList(targets) {
-    localStorage.setItem('fc_targets', JSON.stringify(targets));
+async function saveTargetList(targets) {
+    // この関数は個別追加・削除に置き換わるため、基本的にはローカルキャッシュのみ更新
+    cachedTargets = targets;
 }
 
 // ===== 期限アラート更新 =====
@@ -509,8 +533,9 @@ function loadVideoTasks() {
 }
 
 // ===== 管理者画面 =====
-function initAdmin() {
-    renderAdminTargetList();
+async function initAdmin() {
+    await Admin.load();
+    await renderAdminTargetList();
 }
 
 function showAdminTab(tab) {
@@ -523,11 +548,11 @@ function showAdminTab(tab) {
     document.getElementById('admin-progress-section').hidden = (tab !== 'progress');
 }
 
-function renderAdminTargetList() {
+async function renderAdminTargetList() {
     const list = document.getElementById('admin-target-list');
     if (!list) return;
 
-    const targets = getTargetList();
+    const targets = await getTargetList();
 
     if (targets.length === 0) {
         list.innerHTML = '<p class="empty-state">対象者が登録されていません</p>';
@@ -541,13 +566,13 @@ function renderAdminTargetList() {
                 <div class="target-list-meta">${t.care_level || '介護度未設定'} ・ ID: ${t.id}</div>
             </div>
             <div class="target-list-actions">
-                <button class="btn-delete" onclick="deleteTarget('${t.id}')">削除</button>
+                <button class="btn-delete" onclick="deleteTarget('${t.db_id || t.id}')">削除</button>
             </div>
         </div>
     `).join('');
 }
 
-function addNewTarget() {
+async function addNewTarget() {
     const nameInput = document.getElementById('admin-new-target-name');
     const name = nameInput.value.trim();
 
@@ -556,7 +581,7 @@ function addNewTarget() {
         return;
     }
 
-    const targets = getTargetList();
+    const targets = await getTargetList();
 
     // 重複チェック
     if (targets.some(t => t.name === name)) {
@@ -564,38 +589,64 @@ function addNewTarget() {
         return;
     }
 
-    // 新規ID生成
+    // 新規ID生成 (Txxx)
     const maxId = targets.reduce((max, t) => {
+        if (!t.id || !t.id.startsWith('T')) return max;
         const num = parseInt(t.id.replace('T', ''));
         return num > max ? num : max;
     }, 0);
-    const newId = `T${String(maxId + 1).padStart(3, '0')}`;
+    const newTargetCode = `T${String(maxId + 1).padStart(3, '0')}`;
 
-    // 先頭に追加（上のほうに出るようにする）
-    targets.unshift({
-        id: newId,
+    const user = Auth.getUser();
+    const newTarget = {
+        target_code: newTargetCode,
         name: name,
         care_level: '介護度未設定',
-        step: 1
-    });
+        facility_id: user?.facility_id || 'F001'
+    };
 
-    saveTargetList(targets);
-    nameInput.value = '';
-    renderAdminTargetList();
-    showToast(`${name}さんを追加しました ✅`);
+    try {
+        const added = await API.addTarget(newTarget);
+        if (added) {
+            // キャッシュを更新（先頭に追加して即時反映感を出す）
+            const formatted = {
+                id: added.target_code,
+                db_id: added.id,
+                name: added.name,
+                care_level: added.care_level,
+                step: 1
+            };
+            targets.unshift(formatted);
+            saveTargetList(targets);
+
+            nameInput.value = '';
+            renderAdminTargetList();
+            showToast(`${name}さんを追加しました ✅`);
+        }
+    } catch (e) {
+        showToast('追加に失敗しました');
+        console.error(e);
+    }
 }
 
-function deleteTarget(id) {
-    const targets = getTargetList();
-    const target = targets.find(t => t.id === id);
+async function deleteTarget(id) {
+    const targets = await getTargetList();
+    const target = targets.find(t => t.db_id === id || t.id === id);
     if (!target) return;
 
     if (!confirm(`${target.name}さんを削除してよろしいですか？`)) return;
 
-    const updated = targets.filter(t => t.id !== id);
-    saveTargetList(updated);
-    renderAdminTargetList();
-    showToast(`${target.name}さんを削除しました`);
+    try {
+        const success = await API.deleteTarget(target.db_id || id);
+        if (success) {
+            const updated = targets.filter(t => t.db_id !== id && t.id !== id);
+            saveTargetList(updated);
+            renderAdminTargetList();
+            showToast(`${target.name}さんを削除しました`);
+        }
+    } catch (e) {
+        showToast('削除に失敗しました');
+    }
 }
 
 // ===== トースト通知 =====
