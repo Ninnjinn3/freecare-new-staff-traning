@@ -148,7 +148,16 @@ async function submitStep1(event) {
         date: date,
         notice_text: notice
     };
-    const aiResult = await API.judgeStep1(judgeData);
+
+    let aiResult;
+    try {
+        aiResult = await API.judgeStep1(judgeData);
+    } catch (e) {
+        btn.disabled = false;
+        btn.textContent = '送信して判定を受ける';
+        showToast('エラー: ' + e.message);
+        return; // エラー時はここで中断
+    }
 
     // 結果画面を表示
     showResult(aiResult);

@@ -123,7 +123,14 @@ async function submitStep3(event) {
         target_name: target.name,
         reflection: reflectionData
     };
-    const aiResult = await API.judgeStep3(judgeData);
+    let aiResult;
+    try {
+        aiResult = await API.judgeStep3(judgeData);
+    } catch (e) {
+        if (btn) { btn.disabled = false; btn.textContent = '送信して判定を受ける'; }
+        showToast('エラー: ' + e.message);
+        return;
+    }
 
     // 結果画面を表示
     showResult(aiResult);
