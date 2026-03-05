@@ -1325,6 +1325,171 @@ body {
   color: var(--primary);
 }
 
+/* === Admin Dashboard: Summary === */
+.admin-summary {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.summary-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 16px 10px;
+  text-align: center;
+}
+
+.summary-label {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.summary-value {
+  display: block;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.staff-progress-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.staff-card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+}
+
+.staff-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.staff-name {
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.step-badge {
+  padding: 4px 12px;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #fff;
+}
+
+.step-badge.step-1 {
+  background: var(--primary);
+}
+
+.step-badge.step-2 {
+  background: #f59e0b;
+}
+
+.step-badge.step-3 {
+  background: #8b5cf6;
+}
+
+.step-badge.step-4 {
+  background: var(--success);
+}
+
+.staff-card-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  text-align: center;
+}
+
+.staff-stat-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.staff-stat-value {
+  display: block;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.staff-stat-value.score-high {
+  color: var(--success);
+}
+
+.staff-stat-value.score-mid {
+  color: #f59e0b;
+}
+
+.staff-stat-value.score-low {
+  color: var(--danger);
+}
+
+.staff-last-record {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-top: 8px;
+  text-align: right;
+}
+
+.alert-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.alert-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  border-left: 4px solid;
+}
+
+.alert-danger {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: var(--danger);
+}
+
+.alert-warning {
+  background: rgba(245, 158, 11, 0.1);
+  border-color: #f59e0b;
+}
+
+.alert-info {
+  background: rgba(59, 130, 246, 0.1);
+  border-color: #3b82f6;
+}
+
+.alert-icon {
+  font-size: 1.3rem;
+}
+
+.alert-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.alert-staff {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.alert-message {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
 /* === Coming Soon === */
 .coming-soon {
   display: flex;

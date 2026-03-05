@@ -448,6 +448,7 @@
       <div class="admin-tabs">
         <button class="admin-tab active" onclick="showAdminTab('targets')" id="admin-tab-targets">👥 対象者管理</button>
         <button class="admin-tab" onclick="showAdminTab('progress')" id="admin-tab-progress">📊 進捗確認</button>
+        <button class="admin-tab" onclick="showAdminTab('alerts')" id="admin-tab-alerts">🔔 アラート</button>
       </div>
 
       <!-- 対象者管理セクション -->
@@ -462,11 +463,40 @@
         </div>
       </div>
 
-      <!-- 進捗確認セクション（後日拡充） -->
+      <!-- 進捗確認セクション -->
       <div class="admin-section" id="admin-progress-section" hidden>
-        <div class="coming-soon">
-          <span class="coming-soon-icon">🚧</span>
-          <p>スタッフ進捗一覧は後日実装予定です</p>
+        <!-- サマリカード -->
+        <div class="admin-summary" id="admin-summary">
+          <div class="summary-card">
+            <span class="summary-label">研修対象</span>
+            <span class="summary-value" id="summary-total">--</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-label">記録あり</span>
+            <span class="summary-value" id="summary-active">--</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-label">平均スコア</span>
+            <span class="summary-value" id="summary-avg-score">--</span>
+          </div>
+          <div class="summary-card">
+            <span class="summary-label">平均合格率</span>
+            <span class="summary-value" id="summary-avg-pass">--</span>
+          </div>
+        </div>
+
+        <!-- スタッフ進捗テーブル -->
+        <div class="admin-section-title">📊 スタッフ進捗一覧</div>
+        <div class="staff-progress-list" id="staff-progress-list">
+          <p class="empty-state">読み込み中...</p>
+        </div>
+      </div>
+
+      <!-- アラートセクション -->
+      <div class="admin-section" id="admin-alerts-section" hidden>
+        <div class="admin-section-title">🔔 アラート一覧</div>
+        <div class="alert-list" id="admin-alert-list">
+          <p class="empty-state">読み込み中...</p>
         </div>
       </div>
     </div>
@@ -499,6 +529,7 @@
   <script src="js/step3.js"></script>
   <script src="js/step4.js"></script>
   <script src="js/monthly.js"></script>
+  <script src="js/admin.js"></script>
   <script src="js/api.js"></script>
   <script src="js/app.js"></script>
 </body>
