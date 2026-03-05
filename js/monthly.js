@@ -1,9 +1,39 @@
 /* ============================================
    monthly.js — 月次評価・合否判定
+   Supabase の実データから自動算出
    ============================================ */
 
 const Monthly = {
-    // 月次スコア算出（デモ用）
+    // 月次スコア算出（API経由で実データから算出）
+    async calculate() {
+        const user = Auth.getUser();
+        if (!user) return null;
+
+        const cycle = DB.getCurrentCycle();
+
+        try {
+            const resp = await fetch('/api/monthly', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    staff_id: user.staff_id,
+                    year_month: cycle.yearMonth,
+                    current_step: user.current_step || 1
+                })
+            });
+
+            if (resp.ok) {
+                return await resp.json();
+            }
+        } catch (e) {
+            console.warn('月次評価API失敗、デモデータ使用:', e);
+        }
+
+        // フォールバック: デモデータ
+        return this.calculateDemoScore();
+    },
+
+    // デモ用フォールバック
     calculateDemoScore() {
         return {
             score: 72,
@@ -17,6 +47,10 @@ const Monthly = {
             ],
             level: this.getLevel(72),
             passed: false,
+            hrPoints: 4,
+            totalRecords: 0,
+            passCount: 0,
+            failCount: 0,
             actions: [
                 '仮説の「なぜ？」を3段階まで掘り下げる練習をしましょう',
                 '優先順位の根拠に「緊急性」と「可逆性」の観点を加えましょう',
@@ -34,7 +68,6 @@ const Monthly = {
         if (attemptNumber === 1) {
             return score >= PASS_RULES.firstAttemptScore;
         }
-        // 2回目以降: 2回連続100点
         if (previousScores.length >= 1) {
             const lastScore = previousScores[previousScores.length - 1];
             return lastScore === 100 && score === 100;
@@ -43,11 +76,17 @@ const Monthly = {
     },
 
     // 月次評価画面描画
-    render() {
-        const report = this.calculateDemoScore();
+    async render() {
+        // ローディング表示
+        const scoreEl = document.getElementById('monthly-score');
+        if (scoreEl) scoreEl.textContent = '...';
+
+        // API経由で実データを取得
+        const report = await this.calculate();
+        if (!report) return;
 
         // スコアリング
-        document.getElementById('monthly-score').textContent = report.score;
+        scoreEl.textContent = report.score;
 
         const ring = document.getElementById('score-ring');
         ring.className = 'score-ring';
@@ -57,10 +96,34 @@ const Monthly = {
         else ring.classList.add('score-danger');
 
         // レベル
-        document.getElementById('monthly-grade').textContent = report.level.grade;
-        document.getElementById('monthly-level-name').textContent = report.level.name;
+        const level = report.level || this.getLevel(report.score);
+        document.getElementById('monthly-grade').textContent = level.grade;
+        document.getElementById('monthly-level-name').textContent = level.name;
 
-        // 内訳
+        // 合否バッジ
+        const passEl = document.getElementById('monthly-pass-status');
+        if (passEl) {
+            if (report.totalRecords === 0) {
+                passEl.textContent = '記録なし';
+                passEl.className = 'pass-badge pending';
+            } else if (report.passed) {
+                passEl.textContent = '合格 ✅';
+                passEl.className = 'pass-badge passed';
+            } else {
+                passEl.textContent = '不合格';
+                passEl.className = 'pass-badge failed';
+            }
+        }
+
+        // 人事評価ポイント
+        const hrEl = document.getElementById('monthly-hr-points');
+        if (hrEl) hrEl.textContent = `${report.hrPoints || 0}点`;
+
+        // 記録件数
+        const recordsEl = document.getElementById('monthly-record-count');
+        if (recordsEl) recordsEl.textContent = `${report.totalRecords || 0}件（○${report.passCount || 0} / ×${report.failCount || 0}）`;
+
+        // 6観点内訳
         const breakdown = document.getElementById('score-breakdown');
         breakdown.innerHTML = report.breakdown.map(item => `
       <div class="breakdown-item">
@@ -74,6 +137,6 @@ const Monthly = {
 
         // 改善アクション
         const actionsList = document.getElementById('monthly-actions');
-        actionsList.innerHTML = report.actions.map(a => `<li>${a}</li>`).join('');
+        actionsList.innerHTML = (report.actions || []).map(a => `<li>${a}</li>`).join('');
     }
 };
