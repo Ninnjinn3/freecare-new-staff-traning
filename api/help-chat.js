@@ -78,7 +78,10 @@ export default async function handler(req, res) {
 
         if (!response.ok) {
             const errText = await response.text();
-            throw new Error(`Gemini API ${response.status}: ${errText}`);
+            if (response.status === 429) {
+                return res.status(200).json({ reply: 'ただいまAIへのアクセスが集中しており、お返事できない状態です。約1分おいてから再度お話ししましょう🙇‍♂️' });
+            }
+            throw new Error(`Gemini API エラー: ${response.status}`);
         }
 
         const json = await response.json();
@@ -89,7 +92,7 @@ export default async function handler(req, res) {
     } catch (error) {
         console.error('Help chat error:', error);
         return res.status(200).json({
-            reply: '【デバッグ用エラー表示】\nAI接続エラー: ' + error.message + '\n\n一時的にAIに接続できませんでした。'
+            reply: '一時的にAIに接続できませんでした（エラー: ' + error.message + '）'
         });
     }
 }
