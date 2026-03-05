@@ -545,7 +545,13 @@ function showAdminTab(tab) {
 
     // セクション切替
     document.getElementById('admin-targets-section').hidden = (tab !== 'targets');
+    document.getElementById('admin-staff-section').hidden = (tab !== 'staff');
     document.getElementById('admin-progress-section').hidden = (tab !== 'progress');
+    document.getElementById('admin-alerts-section').hidden = (tab !== 'alerts');
+
+    if (tab === 'staff') {
+        Admin.loadStaffList();
+    }
 }
 
 async function renderAdminTargetList() {
