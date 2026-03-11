@@ -851,25 +851,108 @@ async function renderAssessmentList() {
     container.innerHTML = '<p style="text-align:center; color:var(--text-secondary);">読み込み中...</p>';
 
     try {
-        const targets = await API.getTargets();
+        const user = Auth.getUser();
+        const facilityId = user?.facility_id || 'F001';
+        const targets = await API.getTargets(facilityId);
+
         if (!targets || targets.length === 0) {
-            container.innerHTML = '<p class="empty-state">登録済みの対象者がありません</p>';
+            container.innerHTML = '<p class="empty-state">登録済みの対象者がいません<br><small>ホーム画面の「＋ 新規追加」から登録できます</small></p>';
             return;
         }
-        container.innerHTML = targets.map(t => `
-            <div class="assess-card">
-                <div class="assess-card-info">
-                    <h4>${escapeHtml(t.name || '')} <small style="font-weight:400; color:var(--text-secondary);">${escapeHtml(t.furigana || '')}</small></h4>
-                    <p>${escapeHtml(t.care_level || '介護度未設定')} ${t.age ? '・' + t.age + '歳' : ''} ${t.gender ? '・' + t.gender : ''}</p>
+
+        container.innerHTML = targets.map(t => {
+            const id = t.id || t.db_id;
+            return `
+            <div style="margin-bottom:var(--space-md); border-radius:var(--radius); border:1px solid var(--border); overflow:hidden;">
+                <!-- ヘッダー -->
+                <div style="display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:var(--surface); cursor:pointer;"
+                     onclick="toggleAssessDetail('detail-${id}', this)">
+                    <div>
+                        <div style="font-weight:700; font-size:1.05rem;">👤 ${escapeHtml(t.name || '')}</div>
+                        <div style="font-size:0.82rem; color:var(--text-secondary); margin-top:2px;">
+                            ${escapeHtml(t.care_level || '介護度未設定')}
+                            ${t.age ? '・' + t.age + '歳' : ''}
+                            ${t.gender ? '・' + t.gender : ''}
+                            ${t.disease ? '・' + escapeHtml(t.disease) : ''}
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:8px; align-items:center;">
+                        <button class="btn-edit-sm" onclick="event.stopPropagation(); openEditAssessment('${id}')">✏️ 編集</button>
+                        <span style="color:var(--text-secondary); font-size:1.1rem; transition:transform 0.2s;" class="detail-toggle-icon">▼</span>
+                    </div>
                 </div>
-                <div class="assess-card-actions">
-                    <button class="btn-edit-sm" onclick="openEditAssessment('${t.id || t.db_id}')">✏️ 編集</button>
+                <!-- 詳細（折りたたみ） -->
+                <div id="detail-${id}" hidden style="background:var(--bg); border-top:1px solid var(--border); padding:12px 16px;">
+                    ${renderAssessDetail(t)}
                 </div>
-            </div>
-        `).join('');
+            </div>`;
+        }).join('');
     } catch (e) {
-        container.innerHTML = '<p class="empty-state">読み込みエラー</p>';
+        container.innerHTML = '<p class="empty-state">読み込みエラー: ' + escapeHtml(e?.message || '') + '</p>';
+        console.error(e);
     }
+}
+
+function toggleAssessDetail(detailId, header) {
+    const el = document.getElementById(detailId);
+    if (!el) return;
+    const icon = header.querySelector('.detail-toggle-icon');
+    if (el.hidden) {
+        el.hidden = false;
+        if (icon) icon.style.transform = 'rotate(180deg)';
+    } else {
+        el.hidden = true;
+        if (icon) icon.style.transform = '';
+    }
+}
+
+function renderAssessDetail(t) {
+    const row = (label, val) => val
+        ? `<div style="display:flex; gap:8px; margin-bottom:6px; font-size:0.88rem;">
+              <span style="min-width:160px; color:var(--text-secondary); flex-shrink:0;">${label}</span>
+              <span style="color:var(--text); white-space:pre-wrap;">${escapeHtml(val)}</span>
+           </div>`
+        : '';
+
+    let html = '';
+    html += `<div style="font-weight:700; margin-bottom:8px; color:var(--primary);">📋 フェイスシート</div>`;
+    html += row('病名', t.disease);
+    html += row('病歴・経歴', t.disease_history);
+    html += row('感染症', t.infection);
+    html += row('服薬', t.medication);
+    html += row('服薬管理方法', t.medication_mgmt);
+    html += row('家族構成', t.family);
+    html += row('家族との関係性', t.family_relation);
+    html += row('サービス利用開始の理由', t.service_reason);
+    html += row('生活スケジュール', t.schedule);
+    html += row('利用中のサービス・支援者', t.services);
+    html += row('アレルギー', t.allergy);
+    html += row('こだわり', t.fixation);
+    html += row('苦手', t.weakness);
+    html += row('注意点（禁句ワード）', t.caution);
+    html += row('性格', t.personality);
+    html += row('金銭管理', t.money);
+    html += row('信頼している人', t.trusted);
+    html += row('安心できる場所', t.safe_place);
+    html += row('急変時対応意向', t.emergency);
+    html += row('趣味・熱中できるもの', t.hobby);
+    html += row('嗜好品', t.preference);
+
+    if (t.adl || t.goal || t.behavior) {
+        html += `<div style="font-weight:700; margin:12px 0 8px; color:var(--secondary);">📊 アセスメント ${t.assess_date ? '（' + t.assess_date + '時点）' : ''}</div>`;
+        html += row('ADL・IADL', t.adl);
+        html += row('受診方法', t.visit_method);
+        html += row('目標', t.goal);
+        html += row('行動パターン', t.behavior);
+        html += row('他者との関わり', t.social);
+        html += row('社会参加意欲', t.motivation);
+        html += row('注意サイン', t.warning_sign);
+    }
+
+    if (!html.includes('<span style="color:var(--text)')) {
+        html += '<p style="color:var(--text-secondary); font-size:0.85rem;">詳細情報未登録（編集から追加できます）</p>';
+    }
+    return html;
 }
 
 // ===== 編集画面を開く =====
