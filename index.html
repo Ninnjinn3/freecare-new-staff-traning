@@ -82,18 +82,39 @@
         <button class="icon-btn" onclick="handleLogout()" title="ログアウト">🚪</button>
       </div>
 
-      <!-- 対象者カード -->
+      <!-- 対象者カード（2モード）-->
       <div class="card target-card">
         <div class="card-header">
           <span class="card-icon">📋</span>
-          <span class="card-title">対象者を選択</span>
+          <span class="card-title">介護対象者</span>
         </div>
-        <div class="autocomplete-wrapper">
-          <input type="text" class="autocomplete-input" id="home-target-input" placeholder="名前を入力して検索..."
-            autocomplete="off">
-          <div class="autocomplete-dropdown" id="home-target-dropdown"></div>
+        <!-- モード切替ボタン -->
+        <div style="display:flex; gap:8px; margin-bottom: var(--space-sm);">
+          <button class="btn-mode active" id="mode-select-btn" onclick="switchTargetMode('select')">
+            👤 今まで追加した人を選ぶ
+          </button>
+          <button class="btn-mode" id="mode-add-btn" onclick="switchTargetMode('add')">
+            ＋ 新規追加
+          </button>
         </div>
-        <div id="home-selected-target" style="margin-top: var(--space-sm)"></div>
+        <!-- 既存選択モード -->
+        <div id="target-select-mode">
+          <div class="autocomplete-wrapper">
+            <input type="text" class="autocomplete-input" id="home-target-input" placeholder="名前を入力して検索..."
+              autocomplete="off">
+            <div class="autocomplete-dropdown" id="home-target-dropdown"></div>
+          </div>
+          <div id="home-selected-target" style="margin-top: var(--space-sm)"></div>
+          <button class="btn-link" onclick="navigateTo('screen-assessment-list')"
+            style="margin-top:8px; font-size:0.85rem;">📂 登録済み対象者一覧・編集</button>
+        </div>
+        <!-- 新規追加モード -->
+        <div id="target-add-mode" hidden>
+          <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom: var(--space-sm);">
+            アセスメント・フェイスシートを入力して新規登録します</p>
+          <button class="btn-primary" style="width:100%;" onclick="navigateTo('screen-assessment-new')">📝
+            アセスメント・フェイスシートを入力する</button>
+        </div>
       </div>
 
       <!-- 期限アラート -->
@@ -573,7 +594,169 @@
     </div>
   </section>
 
+  <!-- ===== Screen: アセスメント新規追加 ===== -->
+  <section id="screen-assessment-new" class="screen">
+    <div class="screen-content step-content">
+      <div class="step-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+        <h2 class="step-title">📝 介護対象者の登録</h2>
+      </div>
+
+      <form id="assessment-new-form" onsubmit="saveAssessment(event)">
+        <div class="card" style="margin-bottom: var(--space-md);">
+          <div class="admin-section-title" style="margin-bottom: var(--space-md);">基本情報</div>
+          <div class="form-group">
+            <label for="assess-name">氏名 <span style="color:var(--danger)">*</span></label>
+            <input type="text" id="assess-name" placeholder="例：山田 花子" required>
+          </div>
+          <div class="form-group">
+            <label for="assess-furigana">フリガナ</label>
+            <input type="text" id="assess-furigana" placeholder="例：ヤマダ ハナコ">
+          </div>
+          <div class="form-group">
+            <label for="assess-care-level">介護度</label>
+            <select id="assess-care-level">
+              <option value="">選択してください</option>
+              <option>要支援1</option>
+              <option>要支援2</option>
+              <option>要介護1</option>
+              <option>要介護2</option>
+              <option>要介護3</option>
+              <option>要介護4</option>
+              <option>要介護5</option>
+            </select>
+          </div>
+          <div class="form-group" style="display:flex; gap:12px;">
+            <div style="flex:1;">
+              <label for="assess-age">年齢</label>
+              <input type="number" id="assess-age" min="0" max="120" placeholder="例：82">
+            </div>
+            <div style="flex:1;">
+              <label for="assess-gender">性別</label>
+              <select id="assess-gender">
+                <option value="">選択</option>
+                <option>男性</option>
+                <option>女性</option>
+                <option>その他</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: var(--space-md);">
+          <div class="admin-section-title" style="margin-bottom: var(--space-md);">フェイスシート</div>
+          <div class="form-group">
+            <label for="assess-life-background">生活背景・生活歴</label>
+            <textarea id="assess-life-background" rows="3" placeholder="出身地、職歴、趣味、生活習慣など"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="assess-adl">心身状態・ADL・IADL概要</label>
+            <textarea id="assess-adl" rows="3" placeholder="現在の心身状態、日常生活動作の概要"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="assess-care-manager">担当ケアマネ名</label>
+            <input type="text" id="assess-care-manager" placeholder="例：田中 一郎（○○居宅）">
+          </div>
+          <div class="form-group">
+            <label for="assess-note">備考</label>
+            <textarea id="assess-note" rows="3" placeholder="その他特記事項"></textarea>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full">✅ 登録する</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- ===== Screen: 対象者一覧・編集 ===== -->
+  <section id="screen-assessment-list" class="screen">
+    <div class="screen-content step-content">
+      <div class="step-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+        <h2 class="step-title">📂 介護対象者一覧</h2>
+      </div>
+      <button class="btn-primary" style="width:100%; margin-bottom:var(--space-md);"
+        onclick="navigateTo('screen-assessment-new')">＋ 新規対象者を追加</button>
+      <div id="assessment-list-container">
+        <p class="empty-state">登録済みの対象者がありません</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Screen: 対象者詳細・編集 ===== -->
+  <section id="screen-assessment-edit" class="screen">
+    <div class="screen-content step-content">
+      <div class="step-header">
+        <button class="back-btn" onclick="navigateTo('screen-assessment-list')">← 一覧へ</button>
+        <h2 class="step-title">✏️ 対象者の編集</h2>
+      </div>
+      <form id="assessment-edit-form" onsubmit="updateAssessment(event)">
+        <input type="hidden" id="edit-assess-id">
+        <div class="card" style="margin-bottom: var(--space-md);">
+          <div class="admin-section-title" style="margin-bottom: var(--space-md);">基本情報</div>
+          <div class="form-group">
+            <label for="edit-assess-name">氏名</label>
+            <input type="text" id="edit-assess-name" required>
+          </div>
+          <div class="form-group">
+            <label for="edit-assess-furigana">フリガナ</label>
+            <input type="text" id="edit-assess-furigana">
+          </div>
+          <div class="form-group">
+            <label for="edit-assess-care-level">介護度</label>
+            <select id="edit-assess-care-level">
+              <option value="">選択してください</option>
+              <option>要支援1</option>
+              <option>要支援2</option>
+              <option>要介護1</option>
+              <option>要介護2</option>
+              <option>要介護3</option>
+              <option>要介護4</option>
+              <option>要介護5</option>
+            </select>
+          </div>
+          <div class="form-group" style="display:flex; gap:12px;">
+            <div style="flex:1;">
+              <label for="edit-assess-age">年齢</label>
+              <input type="number" id="edit-assess-age" min="0" max="120">
+            </div>
+            <div style="flex:1;">
+              <label for="edit-assess-gender">性別</label>
+              <select id="edit-assess-gender">
+                <option value="">選択</option>
+                <option>男性</option>
+                <option>女性</option>
+                <option>その他</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="margin-bottom: var(--space-md);">
+          <div class="admin-section-title" style="margin-bottom: var(--space-md);">フェイスシート</div>
+          <div class="form-group">
+            <label for="edit-assess-life-background">生活背景・生活歴</label>
+            <textarea id="edit-assess-life-background" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="edit-assess-adl">心身状態・ADL・IADL概要</label>
+            <textarea id="edit-assess-adl" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="edit-assess-care-manager">担当ケアマネ名</label>
+            <input type="text" id="edit-assess-care-manager">
+          </div>
+          <div class="form-group">
+            <label for="edit-assess-note">備考</label>
+            <textarea id="edit-assess-note" rows="3"></textarea>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-primary btn-full">💾 変更を保存する</button>
+      </form>
+    </div>
+  </section>
+
   <!-- ===== Screen: 設定 ===== -->
+
 
   <section id="screen-settings" class="screen">
     <div class="screen-content">
@@ -917,11 +1100,11 @@
   <script src="js/step2.js?v=5"></script>
   <script src="js/step3.js?v=5"></script>
   <script src="js/step4.js?v=5"></script>
-  <script src="js/monthly.js?v=6"></script>
-  <script src="js/admin.js?v=6"></script>
-  <script src="js/exec.js?v=6"></script>
-  <script src="js/api.js?v=6"></script>
-  <script src="js/app.js?v=6"></script>
+  <script src="js/monthly.js?v=7"></script>
+  <script src="js/admin.js?v=7"></script>
+  <script src="js/exec.js?v=7"></script>
+  <script src="js/api.js?v=7"></script>
+  <script src="js/app.js?v=7"></script>
 </body>
 
 </html>

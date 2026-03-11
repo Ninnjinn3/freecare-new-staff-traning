@@ -47,6 +47,13 @@ async function navigateTo(screenId) {
         case 'screen-settings':
             initSettings();
             break;
+        case 'screen-assessment-list':
+            renderAssessmentList();
+            break;
+        case 'screen-step4':
+            Step4.init();
+            await initStepAutocomplete('step4');
+            break;
     }
 }
 
@@ -802,4 +809,134 @@ function formatChatReply(text) {
         .replace(/\n/g, '<br>')
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
         .replace(/- (.*?)(?=<br>|$)/g, '• $1');
+}
+
+// ===== 介護対象者 2モード切替 =====
+function switchTargetMode(mode) {
+    const selectMode = document.getElementById('target-select-mode');
+    const addMode = document.getElementById('target-add-mode');
+    const selectBtn = document.getElementById('mode-select-btn');
+    const addBtn = document.getElementById('mode-add-btn');
+    if (!selectMode || !addMode) return;
+
+    if (mode === 'select') {
+        selectMode.hidden = false;
+        addMode.hidden = true;
+        selectBtn.classList.add('active');
+        addBtn.classList.remove('active');
+    } else {
+        selectMode.hidden = true;
+        addMode.hidden = false;
+        addBtn.classList.add('active');
+        selectBtn.classList.remove('active');
+    }
+}
+
+// ===== アセスメント・フェイスシート 新規保存 =====
+async function saveAssessment(event) {
+    event.preventDefault();
+    const name = document.getElementById('assess-name')?.value?.trim();
+    if (!name) { showToast('氏名は必須です'); return; }
+
+    const assessData = {
+        name,
+        furigana: document.getElementById('assess-furigana')?.value?.trim() || '',
+        care_level: document.getElementById('assess-care-level')?.value || '',
+        age: document.getElementById('assess-age')?.value || '',
+        gender: document.getElementById('assess-gender')?.value || '',
+        life_background: document.getElementById('assess-life-background')?.value?.trim() || '',
+        adl: document.getElementById('assess-adl')?.value?.trim() || '',
+        care_manager: document.getElementById('assess-care-manager')?.value?.trim() || '',
+        note: document.getElementById('assess-note')?.value?.trim() || '',
+    };
+
+    try {
+        await API.addTarget(assessData);
+        cachedTargets = null; // キャッシュクリア
+        showToast(`${name} さんを登録しました ✅`);
+        document.getElementById('assessment-new-form')?.reset();
+        navigateTo('screen-home');
+        switchTargetMode('select');
+    } catch (e) {
+        showToast('保存エラー: ' + (e?.message || JSON.stringify(e)));
+    }
+}
+
+// ===== 対象者一覧を描画 =====
+async function renderAssessmentList() {
+    const container = document.getElementById('assessment-list-container');
+    if (!container) return;
+    container.innerHTML = '<p style="text-align:center; color:var(--text-secondary);">読み込み中...</p>';
+
+    try {
+        const targets = await API.getTargets();
+        if (!targets || targets.length === 0) {
+            container.innerHTML = '<p class="empty-state">登録済みの対象者がありません</p>';
+            return;
+        }
+        container.innerHTML = targets.map(t => `
+            <div class="assess-card">
+                <div class="assess-card-info">
+                    <h4>${escapeHtml(t.name || '')} <small style="font-weight:400; color:var(--text-secondary);">${escapeHtml(t.furigana || '')}</small></h4>
+                    <p>${escapeHtml(t.care_level || '介護度未設定')} ${t.age ? '・' + t.age + '歳' : ''} ${t.gender ? '・' + t.gender : ''}</p>
+                </div>
+                <div class="assess-card-actions">
+                    <button class="btn-edit-sm" onclick="openEditAssessment('${t.id || t.db_id}')">✏️ 編集</button>
+                </div>
+            </div>
+        `).join('');
+    } catch (e) {
+        container.innerHTML = '<p class="empty-state">読み込みエラー</p>';
+    }
+}
+
+// ===== 編集画面を開く =====
+async function openEditAssessment(id) {
+    const targets = await API.getTargets();
+    const t = targets.find(x => (x.id || x.db_id) == id);
+    if (!t) { showToast('対象者が見つかりません'); return; }
+
+    document.getElementById('edit-assess-id').value = id;
+    document.getElementById('edit-assess-name').value = t.name || '';
+    document.getElementById('edit-assess-furigana').value = t.furigana || '';
+    document.getElementById('edit-assess-care-level').value = t.care_level || '';
+    document.getElementById('edit-assess-age').value = t.age || '';
+    document.getElementById('edit-assess-gender').value = t.gender || '';
+    document.getElementById('edit-assess-life-background').value = t.life_background || '';
+    document.getElementById('edit-assess-adl').value = t.adl || '';
+    document.getElementById('edit-assess-care-manager').value = t.care_manager || '';
+    document.getElementById('edit-assess-note').value = t.note || '';
+
+    navigateTo('screen-assessment-edit');
+}
+
+// ===== 対象者情報を更新 =====
+async function updateAssessment(event) {
+    event.preventDefault();
+    const id = document.getElementById('edit-assess-id')?.value;
+    const name = document.getElementById('edit-assess-name')?.value?.trim();
+    if (!name) { showToast('氏名は必須です'); return; }
+
+    const updatedData = {
+        name,
+        furigana: document.getElementById('edit-assess-furigana')?.value?.trim() || '',
+        care_level: document.getElementById('edit-assess-care-level')?.value || '',
+        age: document.getElementById('edit-assess-age')?.value || '',
+        gender: document.getElementById('edit-assess-gender')?.value || '',
+        life_background: document.getElementById('edit-assess-life-background')?.value?.trim() || '',
+        adl: document.getElementById('edit-assess-adl')?.value?.trim() || '',
+        care_manager: document.getElementById('edit-assess-care-manager')?.value?.trim() || '',
+        note: document.getElementById('edit-assess-note')?.value?.trim() || '',
+    };
+
+    try {
+        // Supabase update via API
+        const { error } = await window.supabase.from('care_targets').update(updatedData).eq('id', id);
+        if (error) throw error;
+        cachedTargets = null;
+        showToast(`${name} さんの情報を更新しました ✅`);
+        navigateTo('screen-assessment-list');
+    } catch (e) {
+        showToast('更新エラー: ' + (e?.message || JSON.stringify(e)));
+    }
 }
