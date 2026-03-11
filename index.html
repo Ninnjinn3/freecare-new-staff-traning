@@ -448,7 +448,133 @@
     </div>
   </section>
 
+  <!-- ===== Screen: STEP4 症例報告 ===== -->
+  <section id="screen-step4" class="screen">
+    <div class="screen-content step-content">
+      <div class="step-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+        <h2 class="step-title">STEP4 症例報告</h2>
+      </div>
+
+      <!-- 前提条件未達の場合 -->
+      <div id="step4-prerequisite" class="card" style="text-align:center; border-color: var(--warning);" hidden>
+        <p style="font-size:1.5rem; margin-bottom:8px;">🔒</p>
+        <p><strong>全動画の視聴・テスト100点・報告書提出</strong>がすべて完了してからSTEP4に進めます。</p>
+        <button class="btn-primary" style="margin-top:12px;" onclick="navigateTo('screen-video')">🎬 動画課題を確認する</button>
+      </div>
+
+      <!-- 症例報告書フォーム -->
+      <form id="step4-form" onsubmit="submitStep4(event)">
+
+        <!-- Ⅰ．基本情報 -->
+        <div class="card" style="margin-bottom: var(--space-md);">
+          <div class="admin-section-title" style="margin-bottom: var(--space-md);">Ⅰ．基本情報</div>
+          <div class="form-group">
+            <label>対象者</label>
+            <div class="autocomplete-wrapper">
+              <input type="text" class="autocomplete-input" id="step4-target-input" placeholder="名前を入力して検索..."
+                autocomplete="off">
+              <div class="autocomplete-dropdown" id="step4-target-dropdown"></div>
+            </div>
+            <div id="step4-selected-target" style="margin-top: var(--space-sm)"></div>
+          </div>
+          <div class="form-group">
+            <label for="step4-other-services">他事業利用（内容）</label>
+            <textarea id="step4-other-services" rows="3" placeholder="例：居宅介護支援、訪問看護など"></textarea>
+          </div>
+        </div>
+
+        <!-- Ⅱ．支援前の状況 -->
+        <div class="card" style="margin-bottom: var(--space-md);">
+          <div class="admin-section-title" style="margin-bottom: var(--space-md);">Ⅱ．支援前の状況</div>
+          <div class="form-group">
+            <label for="step4-life-background">生活背景・生活歴</label>
+            <textarea id="step4-life-background" rows="4" placeholder="出身地、職歴、趣味、生活習慣など"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="step4-physical-status">心身状態・ADL・IADL・コミュニケーション</label>
+            <textarea id="step4-physical-status" rows="4" placeholder="現在の心身状態、日常生活動作、会話能力など"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="step4-service-reason">サービス利用開始の理由</label>
+            <textarea id="step4-service-reason" rows="3" placeholder="なぜこのサービスを利用することになったか"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="step4-goal">本人・家族の目標</label>
+            <textarea id="step4-goal" rows="3" placeholder="本人や家族が希望する生活・目標"></textarea>
+          </div>
+        </div>
+
+        <!-- Ⅲ．介入の仮説と目的 -->
+        <div class="card" style="margin-bottom: var(--space-md);">
+          <div class="admin-section-title" style="margin-bottom: var(--space-md);">Ⅲ．介入の仮説と目的</div>
+          <div class="form-group">
+            <label for="step4-noticed-change">気付いた変化</label>
+            <textarea id="step4-noticed-change" rows="3" placeholder="いつ・どこで・誰が・どのように変化したか"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="step4-cause-support">原因とそれに対する支援及び優先順位</label>
+            <textarea id="step4-cause-support" rows="4" placeholder="変化の原因と、立てた仮説・優先順位をつけた支援計画"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="step4-evidence">根拠（観察・記録・他職種情報）</label>
+            <textarea id="step4-evidence" rows="3" placeholder="仮説の根拠となった観察内容・記録・他職種からの情報"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="step4-expected-change">支援を行うことで、変化すると考えられること</label>
+            <textarea id="step4-expected-change" rows="3" placeholder="この支援によって期待される変化・効果"></textarea>
+          </div>
+        </div>
+
+        <!-- Ⅳ．実施内容 -->
+        <div class="card" style="margin-bottom: var(--space-md);">
+          <div class="admin-section-title" style="margin-bottom: var(--space-md);">Ⅳ．実施内容</div>
+          <div class="form-group">
+            <label for="step4-intervention">介入内容（実際に行った支援・工夫・実施頻度・期間）</label>
+            <textarea id="step4-intervention" rows="4" placeholder="具体的な支援内容、工夫した点、頻度・期間"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="step4-collaboration">他職種との連携内容</label>
+            <textarea id="step4-collaboration" rows="3" placeholder="看護師・ケアマネ・家族などとの連携内容"></textarea>
+          </div>
+        </div>
+
+        <!-- Ⅴ．結果・変化 -->
+        <div class="card" style="margin-bottom: var(--space-md);">
+          <div class="admin-section-title" style="margin-bottom: var(--space-md);">Ⅴ．結果・変化</div>
+          <div class="form-group">
+            <label for="step4-result">支援後の変化（行動・ADL・生活・心理・ご本人・家族・他職種の反応など）</label>
+            <textarea id="step4-result" rows="5" placeholder="支援後にどのような変化が見られたか、具体的に記載"></textarea>
+          </div>
+        </div>
+
+        <!-- Ⅵ．考察 -->
+        <div class="card" style="margin-bottom: var(--space-md);">
+          <div class="admin-section-title" style="margin-bottom: var(--space-md);">Ⅵ．考察</div>
+          <div class="form-group">
+            <label for="step4-reflection">自身の学び・今後の課題</label>
+            <textarea id="step4-reflection" rows="5" placeholder="この症例を通じて学んだこと、今後に活かしたいこと"></textarea>
+          </div>
+        </div>
+
+        <!-- 発表情報 -->
+        <div class="card" style="margin-bottom: var(--space-md);">
+          <div class="form-group">
+            <label for="step4-presentation-date">発表予定日</label>
+            <input type="date" id="step4-presentation-date">
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full">📋 症例報告書を保存する</button>
+      </form>
+
+      <!-- 結果表示エリア -->
+      <div id="step4-result-area" hidden></div>
+    </div>
+  </section>
+
   <!-- ===== Screen: 設定 ===== -->
+
   <section id="screen-settings" class="screen">
     <div class="screen-content">
       <div class="step-header">
@@ -791,11 +917,11 @@
   <script src="js/step2.js?v=5"></script>
   <script src="js/step3.js?v=5"></script>
   <script src="js/step4.js?v=5"></script>
-  <script src="js/monthly.js?v=5"></script>
-  <script src="js/admin.js?v=5"></script>
-  <script src="js/exec.js?v=5"></script>
-  <script src="js/api.js?v=5"></script>
-  <script src="js/app.js?v=5"></script>
+  <script src="js/monthly.js?v=6"></script>
+  <script src="js/admin.js?v=6"></script>
+  <script src="js/exec.js?v=6"></script>
+  <script src="js/api.js?v=6"></script>
+  <script src="js/app.js?v=6"></script>
 </body>
 
 </html>
