@@ -796,7 +796,13 @@ async function saveAssessment(event) {
     if (!name) { showToast('氏名は必須です'); return; }
     const g = id => document.getElementById(id)?.value?.trim() || '';
 
+    const user = Auth.getUser();
+    const facility_id = user?.facility_id || 'F001';
+    const target_code = 'T' + Date.now().toString().slice(-6);
+
     const assessData = {
+        target_code,
+        facility_id,
         name,
         age: g('assess-age'),
         gender: g('assess-gender'),
@@ -833,12 +839,14 @@ async function saveAssessment(event) {
     };
 
     try {
-        await API.addTarget(assessData);
+        const newTarget = await API.addTarget(assessData);
+        if (!newTarget) throw new Error('保存に失敗しました（DBエラー）');
+
         cachedTargets = null;
+        selectedTarget = newTarget; // 作成した対象者を自動選択状態にする
         showToast(`${name} さんを登録しました ✅`);
         document.getElementById('assessment-new-form')?.reset();
         navigateTo('screen-home');
-        switchTargetMode('select');
     } catch (e) {
         showToast('保存エラー: ' + (e?.message || JSON.stringify(e)));
     }
