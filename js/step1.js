@@ -159,16 +159,9 @@ async function submitStep1(event) {
         return; // エラー時はここで中断
     }
 
-    // 結果画面を表示
-    showResult(aiResult);
-
-    // ボタンを戻す
-    btn.disabled = false;
-    btn.textContent = '送信して判定を受ける';
-
-    // Supabaseにバックグラウンドで保存
+    // Supabaseに保存
     const cycle = DB.getCurrentCycle();
-    API.saveStep1({
+    const isSaved = await API.saveStep1({
         staff_id: user.staff_id,
         target_id: target.id || null,
         target_name: target.name,
@@ -178,22 +171,22 @@ async function submitStep1(event) {
         char_count: notice.length,
         ai_judgement: aiResult.judgement,
         ai_comment: aiResult.short_comment,
-        ai_good_points: aiResult.good_points,
-        ai_missing: aiResult.missing_points,
-        ai_improve: aiResult.improvement_example
-    }).then(() => {
-        showToast('記録を保存しました ✅');
-        Step1.updateSummary();
-    }).catch(e => {
-        console.error('保存エラー:', e);
-        showToast('保存エラー: ' + (e?.message || e?.code || JSON.stringify(e)));
+        good_points: aiResult.good_points,
+        missing_points: aiResult.missing_points,
+        improvement_example: aiResult.improvement_example
     });
 
-    // フォームリセットは合格時のみ（バツの時は入力内容を残す）
-    if (aiResult.judgement === '○') {
+    btn.disabled = false;
+    btn.textContent = '送信して判定を受ける';
+
+    if (isSaved) {
+        showToast('本日の記録を提出しました ✅');
         document.getElementById('step1-form').reset();
         document.getElementById('step1-date').value = new Date().toISOString().split('T')[0];
         document.getElementById('step1-char-count').textContent = '0';
+        Step1.updateSummary();
+    } else {
+        showToast('保存に失敗しました。もう一度お試しください。');
     }
 }
 

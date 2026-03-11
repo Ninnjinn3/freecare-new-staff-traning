@@ -238,6 +238,11 @@
           </div>
         </div>
       </div>
+
+      <button type="button" class="btn btn-outline btn-full" style="margin-top: var(--space-md);"
+        onclick="navigateTo('screen-monthly'); Monthly.render();">
+        今月のまとめを見る
+      </button>
     </div>
   </section>
 
@@ -421,6 +426,13 @@
         <div class="monthly-feedback" id="monthly-feedback">
           <h3>📝 改善アクション</h3>
           <ul id="monthly-actions"></ul>
+        </div>
+
+        <div class="monthly-daily-records" id="monthly-daily-records" style="margin-top: var(--space-lg)">
+          <h3>📅 今月の記録一覧</h3>
+          <div id="monthly-records-list">
+            <!-- JavaScriptで描画 -->
+          </div>
         </div>
       </div>
     </div>
@@ -1170,11 +1182,11 @@
   <script src="js/step2.js?v=5"></script>
   <script src="js/step3.js?v=5"></script>
   <script src="js/step4.js?v=5"></script>
-  <script src="js/monthly.js?v=15"></script>
-  <script src="js/admin.js?v=15"></script>
-  <script src="js/exec.js?v=15"></script>
-  <script src="js/api.js?v=15"></script>
-  <script src="js/app.js?v=15"></script>
+  <script src="js/monthly.js?v=16"></script>
+  <script src="js/admin.js?v=16"></script>
+  <script src="js/exec.js?v=16"></script>
+  <script src="js/api.js?v=16"></script>
+  <script src="js/app.js?v=16"></script>
 </body>
 
 </html>

@@ -138,5 +138,41 @@ const Monthly = {
         // 改善アクション
         const actionsList = document.getElementById('monthly-actions');
         actionsList.innerHTML = (report.actions || []).map(a => `<li>${a}</li>`).join('');
+
+        // 毎日の記録一覧を描画
+        const recordsList = document.getElementById('monthly-records-list');
+        if (recordsList) {
+            recordsList.innerHTML = '<p style="text-align:center;color:var(--text-muted)">読み込み中...</p>';
+            try {
+                const user = Auth.getUser();
+                const cycle = DB.getCurrentCycle();
+                const records = await API.getStep1Records(user.staff_id, cycle.yearMonth);
+
+                if (records && records.length > 0) {
+                    recordsList.innerHTML = records.map(r => `
+                        <div class="card" style="margin-bottom: var(--space-sm); padding: var(--space-sm); border-left: 4px solid ${r.ai_judgement === '○' ? 'var(--success)' : 'var(--danger)'}">
+                            <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
+                                <strong style="font-size:1.1rem">${r.date} <span style="font-weight:normal; font-size:0.9rem; color:var(--text-muted)">- ${r.target_name}さん</span></strong>
+                                <span class="stat-circle" style="font-weight:bold; color: ${r.ai_judgement === '○' ? 'var(--success)' : 'var(--danger)'}">${r.ai_judgement}</span>
+                            </div>
+                            <div style="font-size: 0.95rem; color: var(--text); margin-bottom: 8px; line-height: 1.5;">
+                                ${r.notice_text}
+                            </div>
+                            ${r.ai_judgement === '×' && r.improvement_example ? `
+                            <div style="font-size: 0.85rem; color: #b71c1c; background: #ffebee; padding: 8px; border-radius: 4px; margin-top: 8px;">
+                                <strong>💡 AIからの改善アドバイス:</strong><br>
+                                ${r.improvement_example}
+                            </div>
+                            ` : ''}
+                        </div>
+                    `).join('');
+                } else {
+                    recordsList.innerHTML = '<p class="empty-state">今月の記録はありません</p>';
+                }
+            } catch (e) {
+                console.error('記録一覧取得エラー:', e);
+                recordsList.innerHTML = '<p class="empty-state">記録の取得に失敗しました</p>';
+            }
+        }
     }
 };
