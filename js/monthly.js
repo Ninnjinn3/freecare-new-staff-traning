@@ -317,7 +317,7 @@ const Monthly = {
 
                 if (records && records.length > 0) {
                     recordsList.innerHTML = records.map(r => `
-            < div class="card" style = "margin-bottom: var(--space-sm); padding: var(--space-sm); border-left: 4px solid ${r.ai_judgement === '○' ? 'var(--success)' : 'var(--danger)'}" >
+                        <div class="card" style="margin-bottom: var(--space-sm); padding: var(--space-sm); border-left: 4px solid ${r.ai_judgement === '○' ? 'var(--success)' : 'var(--danger)'}">
                             <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
                                 <strong style="font-size:1.1rem">${r.date} <span style="font-weight:normal; font-size:0.9rem; color:var(--text-muted)">- ${r.target_name}さん</span></strong>
                                 <span class="stat-circle" style="font-weight:bold; color: ${r.ai_judgement === '○' ? 'var(--success)' : 'var(--danger)'}">${r.ai_judgement}</span>
@@ -332,7 +332,7 @@ const Monthly = {
                             </div>
                             ` : ''
                         }
-                        </div >
+                        </div>
     `).join('');
                 } else {
                     recordsList.innerHTML = '<p class="empty-state">今月の記録はありません</p>';

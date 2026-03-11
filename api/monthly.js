@@ -44,9 +44,27 @@ export default async function handler(req, res) {
             });
         }
 
-        // 3) 6観点スコアを集計
-        const breakdown = calculateBreakdown(step1Records, step2Records, step3Records);
-        const score = breakdown.reduce((sum, b) => sum + b.score, 0);
+        // 3) 6観点スコアを集計（AI評価）
+        const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+        let breakdown = [];
+        let isAIEvaluated = false;
+
+        if (GEMINI_API_KEY) {
+            try {
+                breakdown = await evaluateMonthlyWithAI(step1Records, step2Records, step3Records, GEMINI_API_KEY);
+                if (breakdown && breakdown.length === 6) {
+                    isAIEvaluated = true;
+                }
+            } catch (e) {
+                console.error('AI evaluation failed, falling back to basic calculation:', e);
+            }
+        }
+
+        if (!isAIEvaluated || !breakdown || breakdown.length === 0) {
+            breakdown = calculateBreakdown(step1Records, step2Records, step3Records);
+        }
+
+        const score = breakdown.reduce((sum, b) => sum + (b.score || 0), 0);
 
         // 4) ○/×カウント
         const allJudgements = [
@@ -71,7 +89,7 @@ export default async function handler(req, res) {
         // 7) 人事評価ポイント算出
         const hrPoints = calculateHRPoints(step, score, previousEvals);
 
-        // 8) 改善アクション生成
+        // 8) 改善アクション生成 (AI側で既に生成されていても、全体サマリーとして使用)
         const actions = generateActions(breakdown);
 
         // 9) monthly_evaluations に保存（upsert）
@@ -142,6 +160,80 @@ function calculateBreakdown(step1, step2, step3) {
         { name: '支援計画の実効性', key: 'support_plan', score: calcScore(20, step3Rate || passRate), max: 20 },
         { name: '振り返り・修正力', key: 'reflection', score: calcScore(15, step3Rate || passRate), max: 15 }
     ];
+}
+
+// ===== AI 月次評価算出 =====
+async function evaluateMonthlyWithAI(step1, step2, step3, apiKey) {
+    const s1Text = step1.map(r => `・気付き: ${r.notice_text}`).slice(0, 15).join('\n'); // 長すぎる場合は制限
+    const s2Text = step2.map(r => `・仮説: ${r.hypothesis}\n・理由: ${r.reason}\n・支援案: ${r.support_plan}`).slice(0, 10).join('\n');
+    const s3Text = step3.map(r => `・実施支援: ${r.support_done}\n・結果: ${r.result}\n・判定: ${r.judgement}`).slice(0, 5).join('\n');
+
+    const prompt = `あなたは新人介護スタッフの「月次評価」を行うAIメンターです。
+以下のスタッフが1ヶ月間に記録した提出物（STEP1〜3）を元に、月次評価シートの6つの観点について厳密に採点とフィードバックを行ってください。
+
+【今月の記録（抜粋）】
+■ STEP1（気付き）
+${s1Text || '記録なし'}
+
+■ STEP2（仮説思考）
+${s2Text || '記録なし'}
+
+■ STEP3（振り返り）
+${s3Text || '記録なし'}
+
+【評価基準と配点】
+1. 気づいた変化の明確さ (15点満点)
+15点:「いつ、どこで、誰が、どうなった」＋普段との違いが明確。10点:変化はあるが普段との違い等一要素が欠落。5点:漠然とした変化のみ。
+2. 要因の多層的分析 (20点満点)
+20点:身体・心理・環境等、複数の視点から深く要因を分析。12点:要因は挙げているが視点が単一。5点:浅く思い込みが見られる。
+3. 要因の関連性と優先順位 (15点満点)
+15点:複数要因の関連性を整理し、根拠に基づき的確に優先順位を設定。10点:優先順位はあるが根拠が弱い。5点:理由が不明確。
+4. 検証計画の論理性 (15点満点)
+15点:仮説に基づき、期待される変化が具体的・計測可能。10点:計画はあるが変化が抽象的。5点:とりあえず行動するだけの計画。
+5. 支援計画の実効性 (20点満点)
+20点:チームで共有・実行可能な具体的で現実的な支援内容。13点:支援は記載されているが意思確認や連携が不十分。7点:一方的な支援計画。
+6. 振り返り・修正力 (15点満点)
+15点:結果を評価し、次の仮説や改善に繋げる力がある。10点:振り返りはあるが、次の改善に具体性が不足。5点:形式的で改善に繋がっていない。
+
+【出力形式】
+JSON配列形式で出力してください。\`\`\`json などのマークダウン装飾は含めず、生のJSON文字列のみを出力すること。フォーマットは以下の通りです。
+[
+  {
+    "name": "気づいた変化の明確さ",
+    "key": "change_clarity",
+    "max": 15,
+    "score": 10,
+    "judgement": "適切な気付きができています",
+    "userContent": "（スタッフの記録から該当する内容を要約）",
+    "goodPoints": ["良い点1", "良い点2"],
+    "badPoints": ["不十分な点"],
+    "improvement": "次満点を取るための具体的な助言",
+    "criteriaRef": [
+      { "pts": 15, "desc": "「いつ、どこで、誰が、どうなった」＋普段との違いが明確に記載されている", "check": false },
+      { "pts": 10, "desc": "変化は書かれているが「普段との違い」など一要素が欠けている", "check": true },
+      { "pts": 5, "desc": "漠然とした変化のみ。（例：様子がおかしい）", "check": false }
+    ]
+  },
+  ...（全6項目、順番通りに出力してください）
+]`;
+
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            contents: [{ role: 'user', parts: [{ text: prompt }] }],
+            generationConfig: { temperature: 0.1, responseMimeType: "application/json" }
+        })
+    });
+
+    if (!response.ok) throw new Error('API Error ' + response.statusText);
+    const json = await response.json();
+    const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) throw new Error('No text returned from AI');
+
+    let parsed = JSON.parse(text);
+    return parsed;
 }
 
 function calcScore(max, rate) {
