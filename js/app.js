@@ -433,63 +433,72 @@ function navigateStep(stepNum) {
 }
 
 // ===== 記録履歴 =====
-function loadHistory() {
+async function loadHistory() {
     const user = Auth.getUser();
     if (!user) return;
 
     const filter = document.getElementById('history-step-filter').value;
     const listEl = document.getElementById('history-list');
+    listEl.innerHTML = '<p class="empty-state">読み込み中...</p>';
 
     let records = [];
 
-    if (filter === 'all' || filter === 'step1') {
-        const step1 = DB.getAll('daily_step1', { staff_id: user.staff_id });
-        records = records.concat(step1.map(r => ({
-            ...r,
-            stepLabel: 'STEP1',
-            text: r.notice_text
-        })));
-    }
-
-    if (filter === 'all' || filter === 'step2') {
-        const step2 = DB.getAll('step2_hypotheses', { staff_id: user.staff_id });
-        records = records.concat(step2.map(r => ({
-            ...r,
-            stepLabel: 'STEP2',
-            text: r.change_noticed
-        })));
-    }
-
-    if (filter === 'all' || filter === 'step3') {
-        const step3 = DB.getAll('daily_step3', { staff_id: user.staff_id });
-        records = records.concat(step3.map(r => {
-            const data = JSON.parse(r.reflection_json || '{}');
-            return {
+    try {
+        if (filter === 'all' || filter === 'step1') {
+            const step1 = await API.getStep1Records(user.staff_id, null);
+            records = records.concat(step1.map(r => ({
                 ...r,
-                stepLabel: 'STEP3',
-                text: data.notice || ''
-            };
-        }));
+                stepLabel: 'STEP1',
+                text: r.notice_text
+            })));
+        }
+
+        if (filter === 'all' || filter === 'step2') {
+            const step2 = await API.getStep2Records(user.staff_id, null);
+            records = records.concat(step2.map(r => ({
+                ...r,
+                stepLabel: 'STEP2',
+                text: r.change_noticed
+            })));
+        }
+
+        if (filter === 'all' || filter === 'step3') {
+            const step3 = await API.getStep3Records(user.staff_id, null);
+            records = records.concat(step3.map(r => {
+                let notice = '';
+                try {
+                    const data = JSON.parse(r.reflection_json || '{}');
+                    notice = data.notice || '';
+                } catch (e) { }
+                return {
+                    ...r,
+                    stepLabel: 'STEP3',
+                    text: notice || r.support_done
+                };
+            }));
+        }
+
+        // 日付降順
+        records.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+        if (records.length === 0) {
+            listEl.innerHTML = '<p class="empty-state">記録がありません</p>';
+            return;
+        }
+
+        listEl.innerHTML = records.map(r => `
+        <div class="history-item" style="margin-bottom: 12px; padding: 12px; background: white; border-radius: 8px; border-left: 4px solid ${r.ai_judgement === '○' ? 'var(--success)' : 'var(--danger)'}; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+          <div class="history-item-header" style="display:flex; justify-content:space-between; margin-bottom: 8px;">
+            <strong style="font-size:1.1rem; color:var(--text);">${r.date || '--'} <span style="font-size:0.9rem; font-weight:normal; color:#666;">[${r.stepLabel}] - ${r.target_name || ''}さん</span></strong>
+            <span class="history-judgement" style="font-weight:bold; color: ${r.ai_judgement === '○' ? 'var(--success)' : 'var(--danger)'}">${r.ai_judgement || '-'}</span>
+          </div>
+          <div class="history-text" style="font-size:0.95rem; line-height:1.4; color:#333;">${r.text || ''}</div>
+        </div>
+      `).join('');
+    } catch (e) {
+        console.error('履歴の取得に失敗:', e);
+        listEl.innerHTML = '<p class="empty-state">履歴の取得に失敗しました</p>';
     }
-
-    // 日付降順
-    records.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-
-    if (records.length === 0) {
-        listEl.innerHTML = '<p class="empty-state">記録がありません</p>';
-        return;
-    }
-
-    listEl.innerHTML = records.map(r => `
-    <div class="history-item">
-      <div class="history-item-header">
-        <span class="history-date">${r.date || '--'} [${r.stepLabel}]</span>
-        <span class="history-judgement ${r.ai_judgement === '○' ? 'is-circle' : 'is-cross'}">${r.ai_judgement || '-'}</span>
-      </div>
-      <div class="history-target">${r.target_name || ''}</div>
-      <div class="history-text">${r.text || ''}</div>
-    </div>
-  `).join('');
 }
 
 // ===== 動画課題 =====

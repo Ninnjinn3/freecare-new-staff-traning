@@ -100,12 +100,11 @@ const API = {
     },
 
     async getStep1Records(staffId, yearMonth) {
-        const { data, error } = await supabase
-            .from('daily_step1')
-            .select('*')
-            .eq('staff_id', staffId)
-            .eq('year_month', yearMonth)
-            .order('date', { ascending: false });
+        let query = supabase.from('daily_step1').select('*').eq('staff_id', staffId).order('date', { ascending: false });
+        if (yearMonth) {
+            query = query.eq('year_month', yearMonth);
+        }
+        const { data, error } = await query;
         if (error) { console.error('getStep1Records:', error); return []; }
         return data;
     },
@@ -125,12 +124,11 @@ const API = {
     },
 
     async getStep2Records(staffId, yearMonth) {
-        const { data, error } = await supabase
-            .from('step2_hypotheses')
-            .select('*')
-            .eq('staff_id', staffId)
-            .eq('year_month', yearMonth)
-            .order('date', { ascending: false });
+        let query = supabase.from('step2_hypotheses').select('*').eq('staff_id', staffId).order('date', { ascending: false });
+        if (yearMonth) {
+            query = query.eq('year_month', yearMonth);
+        }
+        const { data, error } = await query;
         if (error) { console.error('getStep2Records:', error); return []; }
         return data;
     },
@@ -150,12 +148,11 @@ const API = {
     },
 
     async getStep3Records(staffId, yearMonth) {
-        const { data, error } = await supabase
-            .from('daily_step3')
-            .select('*')
-            .eq('staff_id', staffId)
-            .eq('year_month', yearMonth)
-            .order('date', { ascending: false });
+        let query = supabase.from('daily_step3').select('*').eq('staff_id', staffId).order('date', { ascending: false });
+        if (yearMonth) {
+            query = query.eq('year_month', yearMonth);
+        }
+        const { data, error } = await query;
         if (error) { console.error('getStep3Records:', error); return []; }
         return data;
     },
