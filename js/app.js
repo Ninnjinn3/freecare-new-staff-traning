@@ -867,6 +867,7 @@ async function saveAssessment(event) {
         // アセスメント
         assess_date: g('assess-date'),
         adl: g('assess-adl'),
+        visit_method: g('assess-visit-method'),
         goal: g('assess-goal'),
         behavior: g('assess-behavior'),
         social: g('assess-social'),
@@ -948,6 +949,7 @@ async function openEditAssessment(id) {
     s('edit-assess-preference', t.preference);
     s('edit-assess-date', t.assess_date);
     s('edit-assess-adl', t.adl);
+    s('edit-assess-visit-method', t.visit_method);
     s('edit-assess-goal', t.goal);
     s('edit-assess-behavior', t.behavior);
     s('edit-assess-social', t.social);
@@ -992,6 +994,7 @@ async function updateAssessment(event) {
         preference: g('edit-assess-preference'),
         assess_date: g('edit-assess-date'),
         adl: g('edit-assess-adl'),
+        visit_method: g('edit-assess-visit-method'),
         goal: g('edit-assess-goal'),
         behavior: g('edit-assess-behavior'),
         social: g('edit-assess-social'),
