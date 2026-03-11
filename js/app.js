@@ -957,7 +957,9 @@ function renderAssessDetail(t) {
 
 // ===== 編集画面を開く =====
 async function openEditAssessment(id) {
-    const targets = await API.getTargets();
+    const user = Auth.getUser();
+    const facilityId = user?.facility_id || 'F001';
+    const targets = await API.getTargets(facilityId);
     const t = targets.find(x => (x.id || x.db_id) == id);
     if (!t) { showToast('対象者が見つかりません'); return; }
     const s = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
