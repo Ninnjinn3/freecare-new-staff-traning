@@ -422,12 +422,13 @@ function navigateStep(stepNum) {
 
     const currentStep = user.current_step || 1;
 
-    if (stepNum > currentStep) {
-        showToast('前のSTEPをクリアしてください 🔒');
-        return;
-    }
+    // ⚠️ 一時的にロック解除中（確認後に戻す）
+    // if (stepNum > currentStep) {
+    //     showToast('前のSTEPをクリアしてください 🔒');
+    //     return;
+    // }
 
-    const screens = { 1: 'screen-step1', 2: 'screen-step2', 3: 'screen-step3' };
+    const screens = { 1: 'screen-step1', 2: 'screen-step2', 3: 'screen-step3', 4: 'screen-step4' };
     if (screens[stepNum]) {
         navigateTo(screens[stepNum]);
     }
