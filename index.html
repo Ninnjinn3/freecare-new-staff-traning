@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="ja">
 
 <head>
@@ -599,67 +599,149 @@
     <div class="screen-content step-content">
       <div class="step-header">
         <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
-        <h2 class="step-title">📝 介護対象者の登録</h2>
+        <h2 class="step-title">📝 フェイスシート・アセスメント登録</h2>
       </div>
-
       <form id="assessment-new-form" onsubmit="saveAssessment(event)">
+
+        <!-- フェイスシート -->
         <div class="card" style="margin-bottom: var(--space-md);">
-          <div class="admin-section-title" style="margin-bottom: var(--space-md);">基本情報</div>
+          <div class="admin-section-title" style="margin-bottom: var(--space-md);">📋 フェイスシート</div>
           <div class="form-group">
-            <label for="assess-name">氏名 <span style="color:var(--danger)">*</span></label>
+            <label>名前 <span style="color:var(--danger)">*</span></label>
             <input type="text" id="assess-name" placeholder="例：山田 花子" required>
-          </div>
-          <div class="form-group">
-            <label for="assess-furigana">フリガナ</label>
-            <input type="text" id="assess-furigana" placeholder="例：ヤマダ ハナコ">
-          </div>
-          <div class="form-group">
-            <label for="assess-care-level">介護度</label>
-            <select id="assess-care-level">
-              <option value="">選択してください</option>
-              <option>要支援1</option>
-              <option>要支援2</option>
-              <option>要介護1</option>
-              <option>要介護2</option>
-              <option>要介護3</option>
-              <option>要介護4</option>
-              <option>要介護5</option>
-            </select>
           </div>
           <div class="form-group" style="display:flex; gap:12px;">
             <div style="flex:1;">
-              <label for="assess-age">年齢</label>
-              <input type="number" id="assess-age" min="0" max="120" placeholder="例：82">
+              <label>年齢</label>
+              <input type="number" id="assess-age" min="0" max="120" placeholder="例：82"> <span
+                style="font-size:0.85rem; color:var(--text-secondary);">歳</span>
             </div>
             <div style="flex:1;">
-              <label for="assess-gender">性別</label>
+              <label>性別</label>
               <select id="assess-gender">
                 <option value="">選択</option>
-                <option>男性</option>
-                <option>女性</option>
+                <option>男</option>
+                <option>女</option>
                 <option>その他</option>
               </select>
             </div>
           </div>
+          <div class="form-group">
+            <label>病名</label>
+            <input type="text" id="assess-disease" placeholder="例：統合失調症">
+          </div>
+          <div class="form-group">
+            <label>病歴・経歴</label>
+            <textarea id="assess-disease-history" rows="2" placeholder="例：10年前に発症"></textarea>
+          </div>
+          <div class="form-group">
+            <label>感染症</label>
+            <input type="text" id="assess-infection" placeholder="例：肝炎既往あり">
+          </div>
+          <div class="form-group">
+            <label>服薬</label>
+            <input type="text" id="assess-medication" placeholder="例：リスペリドン2mg">
+          </div>
+          <div class="form-group">
+            <label>服薬管理方法</label>
+            <input type="text" id="assess-medication-mgmt" placeholder="例：自己管理（時々忘れる）">
+          </div>
+          <div class="form-group">
+            <label>家族構成</label>
+            <textarea id="assess-family" rows="2" placeholder="例：母（同居）、兄（別居）"></textarea>
+          </div>
+          <div class="form-group">
+            <label>家族との関係性</label>
+            <textarea id="assess-family-relation" rows="2" placeholder="例：母とは良好、兄とは疎遠"></textarea>
+          </div>
+          <div class="form-group">
+            <label>サービス利用開始の理由</label>
+            <textarea id="assess-service-reason" rows="2" placeholder="例：症状の安定と社会復帰支援のため"></textarea>
+          </div>
+          <div class="form-group">
+            <label>生活スケジュール</label>
+            <textarea id="assess-schedule" rows="2" placeholder="例：朝10時起床、デイサービス週3回利用"></textarea>
+          </div>
+          <div class="form-group">
+            <label>利用しているサービス・支援者</label>
+            <textarea id="assess-services" rows="2" placeholder="例：訪問看護、就労支援B型、ケースワーカー"></textarea>
+          </div>
+          <div class="form-group">
+            <label>アレルギー</label>
+            <input type="text" id="assess-allergy" placeholder="例：特になし">
+          </div>
+          <div class="form-group">
+            <label>こだわり</label>
+            <textarea id="assess-fixation" rows="2" placeholder="例：物の配置を変えられるのが苦手"></textarea>
+          </div>
+          <div class="form-group">
+            <label>苦手</label>
+            <textarea id="assess-weakness" rows="2" placeholder="例：大声や騒がしい環境"></textarea>
+          </div>
+          <div class="form-group">
+            <label>関わる上での注意点（禁句ワード）</label>
+            <textarea id="assess-caution" rows="2" placeholder='例：「怠けている」はNG'></textarea>
+          </div>
+          <div class="form-group">
+            <label>性格</label>
+            <input type="text" id="assess-personality" placeholder="例：おだやかで協調的">
+          </div>
+          <div class="form-group">
+            <label>金銭管理の有無</label>
+            <input type="text" id="assess-money" placeholder="例：管理できるが不安あり">
+          </div>
+          <div class="form-group">
+            <label>信頼している人</label>
+            <input type="text" id="assess-trusted" placeholder="例：母、主治医">
+          </div>
+          <div class="form-group">
+            <label>安心できる場所</label>
+            <input type="text" id="assess-safe-place" placeholder="例：自室、デイサービス">
+          </div>
+          <div class="form-group">
+            <label>急変時の対応意向</label>
+            <textarea id="assess-emergency" rows="2" placeholder="例：母と主治医に連絡、受診優先"></textarea>
+          </div>
+          <div class="form-group">
+            <label>趣味・熱中できるもの</label>
+            <input type="text" id="assess-hobby" placeholder="例：読書、クラシック音楽">
+          </div>
+          <div class="form-group">
+            <label>嗜好品</label>
+            <input type="text" id="assess-preference" placeholder="例：喫煙10本/日">
+          </div>
         </div>
 
+        <!-- アセスメント -->
         <div class="card" style="margin-bottom: var(--space-md);">
-          <div class="admin-section-title" style="margin-bottom: var(--space-md);">フェイスシート</div>
+          <div class="admin-section-title" style="margin-bottom: var(--space-md);">📊 アセスメント</div>
           <div class="form-group">
-            <label for="assess-life-background">生活背景・生活歴</label>
-            <textarea id="assess-life-background" rows="3" placeholder="出身地、職歴、趣味、生活習慣など"></textarea>
+            <label>時点（年月日）</label>
+            <input type="date" id="assess-date">
           </div>
           <div class="form-group">
-            <label for="assess-adl">心身状態・ADL・IADL概要</label>
-            <textarea id="assess-adl" rows="3" placeholder="現在の心身状態、日常生活動作の概要"></textarea>
+            <label>ADL・IADL・受診方法</label>
+            <textarea id="assess-adl" rows="2" placeholder="例：日常生活は自立、通院は付き添いあり"></textarea>
           </div>
           <div class="form-group">
-            <label for="assess-care-manager">担当ケアマネ名</label>
-            <input type="text" id="assess-care-manager" placeholder="例：田中 一郎（○○居宅）">
+            <label>目標</label>
+            <textarea id="assess-goal" rows="2" placeholder="例：週5日の作業所通所を目指す"></textarea>
           </div>
           <div class="form-group">
-            <label for="assess-note">備考</label>
-            <textarea id="assess-note" rows="3" placeholder="その他特記事項"></textarea>
+            <label>行動パターン</label>
+            <textarea id="assess-behavior" rows="2" placeholder="例：朝は活動的、夕方以降は不安定"></textarea>
+          </div>
+          <div class="form-group">
+            <label>他者との関わり</label>
+            <textarea id="assess-social" rows="2" placeholder="例：慣れれば会話可能、初対面は無口"></textarea>
+          </div>
+          <div class="form-group">
+            <label>社会参加意欲</label>
+            <input type="text" id="assess-motivation" placeholder="例：高い（就労意欲あり）">
+          </div>
+          <div class="form-group">
+            <label>注意サイン</label>
+            <textarea id="assess-warning-sign" rows="2" placeholder="例：独り言が増えると不調の兆し"></textarea>
           </div>
         </div>
 
@@ -692,70 +774,69 @@
       </div>
       <form id="assessment-edit-form" onsubmit="updateAssessment(event)">
         <input type="hidden" id="edit-assess-id">
+
+        <!-- フェイスシート編集 -->
         <div class="card" style="margin-bottom: var(--space-md);">
-          <div class="admin-section-title" style="margin-bottom: var(--space-md);">基本情報</div>
-          <div class="form-group">
-            <label for="edit-assess-name">氏名</label>
-            <input type="text" id="edit-assess-name" required>
-          </div>
-          <div class="form-group">
-            <label for="edit-assess-furigana">フリガナ</label>
-            <input type="text" id="edit-assess-furigana">
-          </div>
-          <div class="form-group">
-            <label for="edit-assess-care-level">介護度</label>
-            <select id="edit-assess-care-level">
-              <option value="">選択してください</option>
-              <option>要支援1</option>
-              <option>要支援2</option>
-              <option>要介護1</option>
-              <option>要介護2</option>
-              <option>要介護3</option>
-              <option>要介護4</option>
-              <option>要介護5</option>
-            </select>
-          </div>
+          <div class="admin-section-title" style="margin-bottom: var(--space-md);">📋 フェイスシート</div>
+          <div class="form-group"><label>名前</label><input type="text" id="edit-assess-name" required></div>
           <div class="form-group" style="display:flex; gap:12px;">
-            <div style="flex:1;">
-              <label for="edit-assess-age">年齢</label>
-              <input type="number" id="edit-assess-age" min="0" max="120">
-            </div>
-            <div style="flex:1;">
-              <label for="edit-assess-gender">性別</label>
+            <div style="flex:1;"><label>年齢</label><input type="number" id="edit-assess-age" min="0" max="120"></div>
+            <div style="flex:1;"><label>性別</label>
               <select id="edit-assess-gender">
                 <option value="">選択</option>
-                <option>男性</option>
-                <option>女性</option>
+                <option>男</option>
+                <option>女</option>
                 <option>その他</option>
               </select>
             </div>
           </div>
+          <div class="form-group"><label>病名</label><input type="text" id="edit-assess-disease"></div>
+          <div class="form-group"><label>病歴・経歴</label><textarea id="edit-assess-disease-history" rows="2"></textarea>
+          </div>
+          <div class="form-group"><label>感染症</label><input type="text" id="edit-assess-infection"></div>
+          <div class="form-group"><label>服薬</label><input type="text" id="edit-assess-medication"></div>
+          <div class="form-group"><label>服薬管理方法</label><input type="text" id="edit-assess-medication-mgmt"></div>
+          <div class="form-group"><label>家族構成</label><textarea id="edit-assess-family" rows="2"></textarea></div>
+          <div class="form-group"><label>家族との関係性</label><textarea id="edit-assess-family-relation" rows="2"></textarea>
+          </div>
+          <div class="form-group"><label>サービス利用開始の理由</label><textarea id="edit-assess-service-reason"
+              rows="2"></textarea></div>
+          <div class="form-group"><label>生活スケジュール</label><textarea id="edit-assess-schedule" rows="2"></textarea></div>
+          <div class="form-group"><label>利用しているサービス・支援者</label><textarea id="edit-assess-services" rows="2"></textarea>
+          </div>
+          <div class="form-group"><label>アレルギー</label><input type="text" id="edit-assess-allergy"></div>
+          <div class="form-group"><label>こだわり</label><textarea id="edit-assess-fixation" rows="2"></textarea></div>
+          <div class="form-group"><label>苦手</label><textarea id="edit-assess-weakness" rows="2"></textarea></div>
+          <div class="form-group"><label>関わる上での注意点（禁句ワード）</label><textarea id="edit-assess-caution" rows="2"></textarea>
+          </div>
+          <div class="form-group"><label>性格</label><input type="text" id="edit-assess-personality"></div>
+          <div class="form-group"><label>金銭管理の有無</label><input type="text" id="edit-assess-money"></div>
+          <div class="form-group"><label>信頼している人</label><input type="text" id="edit-assess-trusted"></div>
+          <div class="form-group"><label>安心できる場所</label><input type="text" id="edit-assess-safe-place"></div>
+          <div class="form-group"><label>急変時の対応意向</label><textarea id="edit-assess-emergency" rows="2"></textarea></div>
+          <div class="form-group"><label>趣味・熱中できるもの</label><input type="text" id="edit-assess-hobby"></div>
+          <div class="form-group"><label>嗜好品</label><input type="text" id="edit-assess-preference"></div>
         </div>
+
+        <!-- アセスメント編集 -->
         <div class="card" style="margin-bottom: var(--space-md);">
-          <div class="admin-section-title" style="margin-bottom: var(--space-md);">フェイスシート</div>
-          <div class="form-group">
-            <label for="edit-assess-life-background">生活背景・生活歴</label>
-            <textarea id="edit-assess-life-background" rows="3"></textarea>
-          </div>
-          <div class="form-group">
-            <label for="edit-assess-adl">心身状態・ADL・IADL概要</label>
-            <textarea id="edit-assess-adl" rows="3"></textarea>
-          </div>
-          <div class="form-group">
-            <label for="edit-assess-care-manager">担当ケアマネ名</label>
-            <input type="text" id="edit-assess-care-manager">
-          </div>
-          <div class="form-group">
-            <label for="edit-assess-note">備考</label>
-            <textarea id="edit-assess-note" rows="3"></textarea>
-          </div>
+          <div class="admin-section-title" style="margin-bottom: var(--space-md);">📊 アセスメント</div>
+          <div class="form-group"><label>時点（年月日）</label><input type="date" id="edit-assess-date"></div>
+          <div class="form-group"><label>ADL・IADL・受診方法</label><textarea id="edit-assess-adl" rows="2"></textarea></div>
+          <div class="form-group"><label>目標</label><textarea id="edit-assess-goal" rows="2"></textarea></div>
+          <div class="form-group"><label>行動パターン</label><textarea id="edit-assess-behavior" rows="2"></textarea></div>
+          <div class="form-group"><label>他者との関わり</label><textarea id="edit-assess-social" rows="2"></textarea></div>
+          <div class="form-group"><label>社会参加意欲</label><input type="text" id="edit-assess-motivation"></div>
+          <div class="form-group"><label>注意サイン</label><textarea id="edit-assess-warning-sign" rows="2"></textarea></div>
         </div>
+
         <button type="submit" class="btn btn-primary btn-full">💾 変更を保存する</button>
       </form>
     </div>
   </section>
 
   <!-- ===== Screen: 設定 ===== -->
+
 
 
   <section id="screen-settings" class="screen">
@@ -1100,11 +1181,11 @@
   <script src="js/step2.js?v=5"></script>
   <script src="js/step3.js?v=5"></script>
   <script src="js/step4.js?v=5"></script>
-  <script src="js/monthly.js?v=7"></script>
-  <script src="js/admin.js?v=7"></script>
-  <script src="js/exec.js?v=7"></script>
-  <script src="js/api.js?v=7"></script>
-  <script src="js/app.js?v=7"></script>
+  <script src="js/monthly.js?v=8"></script>
+  <script src="js/admin.js?v=8"></script>
+  <script src="js/exec.js?v=8"></script>
+  <script src="js/api.js?v=8"></script>
+  <script src="js/app.js?v=8"></script>
 </body>
 
 </html>

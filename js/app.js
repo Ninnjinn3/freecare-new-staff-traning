@@ -837,22 +837,46 @@ async function saveAssessment(event) {
     event.preventDefault();
     const name = document.getElementById('assess-name')?.value?.trim();
     if (!name) { showToast('氏名は必須です'); return; }
+    const g = id => document.getElementById(id)?.value?.trim() || '';
 
     const assessData = {
         name,
-        furigana: document.getElementById('assess-furigana')?.value?.trim() || '',
-        care_level: document.getElementById('assess-care-level')?.value || '',
-        age: document.getElementById('assess-age')?.value || '',
-        gender: document.getElementById('assess-gender')?.value || '',
-        life_background: document.getElementById('assess-life-background')?.value?.trim() || '',
-        adl: document.getElementById('assess-adl')?.value?.trim() || '',
-        care_manager: document.getElementById('assess-care-manager')?.value?.trim() || '',
-        note: document.getElementById('assess-note')?.value?.trim() || '',
+        age: g('assess-age'),
+        gender: g('assess-gender'),
+        disease: g('assess-disease'),
+        disease_history: g('assess-disease-history'),
+        infection: g('assess-infection'),
+        medication: g('assess-medication'),
+        medication_mgmt: g('assess-medication-mgmt'),
+        family: g('assess-family'),
+        family_relation: g('assess-family-relation'),
+        service_reason: g('assess-service-reason'),
+        schedule: g('assess-schedule'),
+        services: g('assess-services'),
+        allergy: g('assess-allergy'),
+        fixation: g('assess-fixation'),
+        weakness: g('assess-weakness'),
+        caution: g('assess-caution'),
+        personality: g('assess-personality'),
+        money: g('assess-money'),
+        trusted: g('assess-trusted'),
+        safe_place: g('assess-safe-place'),
+        emergency: g('assess-emergency'),
+        hobby: g('assess-hobby'),
+        preference: g('assess-preference'),
+        // アセスメント
+        assess_date: g('assess-date'),
+        adl: g('assess-adl'),
+        goal: g('assess-goal'),
+        behavior: g('assess-behavior'),
+        social: g('assess-social'),
+        motivation: g('assess-motivation'),
+        warning_sign: g('assess-warning-sign'),
     };
 
     try {
         await API.addTarget(assessData);
-        cachedTargets = null; // キャッシュクリア
+        cachedTargets = null;
         showToast(`${name} さんを登録しました ✅`);
         document.getElementById('assessment-new-form')?.reset();
         navigateTo('screen-home');
@@ -895,17 +919,40 @@ async function openEditAssessment(id) {
     const targets = await API.getTargets();
     const t = targets.find(x => (x.id || x.db_id) == id);
     if (!t) { showToast('対象者が見つかりません'); return; }
+    const s = (elId, val) => { const el = document.getElementById(elId); if (el) el.value = val || ''; };
 
-    document.getElementById('edit-assess-id').value = id;
-    document.getElementById('edit-assess-name').value = t.name || '';
-    document.getElementById('edit-assess-furigana').value = t.furigana || '';
-    document.getElementById('edit-assess-care-level').value = t.care_level || '';
-    document.getElementById('edit-assess-age').value = t.age || '';
-    document.getElementById('edit-assess-gender').value = t.gender || '';
-    document.getElementById('edit-assess-life-background').value = t.life_background || '';
-    document.getElementById('edit-assess-adl').value = t.adl || '';
-    document.getElementById('edit-assess-care-manager').value = t.care_manager || '';
-    document.getElementById('edit-assess-note').value = t.note || '';
+    s('edit-assess-id', id);
+    s('edit-assess-name', t.name);
+    s('edit-assess-age', t.age);
+    s('edit-assess-gender', t.gender);
+    s('edit-assess-disease', t.disease);
+    s('edit-assess-disease-history', t.disease_history);
+    s('edit-assess-infection', t.infection);
+    s('edit-assess-medication', t.medication);
+    s('edit-assess-medication-mgmt', t.medication_mgmt);
+    s('edit-assess-family', t.family);
+    s('edit-assess-family-relation', t.family_relation);
+    s('edit-assess-service-reason', t.service_reason);
+    s('edit-assess-schedule', t.schedule);
+    s('edit-assess-services', t.services);
+    s('edit-assess-allergy', t.allergy);
+    s('edit-assess-fixation', t.fixation);
+    s('edit-assess-weakness', t.weakness);
+    s('edit-assess-caution', t.caution);
+    s('edit-assess-personality', t.personality);
+    s('edit-assess-money', t.money);
+    s('edit-assess-trusted', t.trusted);
+    s('edit-assess-safe-place', t.safe_place);
+    s('edit-assess-emergency', t.emergency);
+    s('edit-assess-hobby', t.hobby);
+    s('edit-assess-preference', t.preference);
+    s('edit-assess-date', t.assess_date);
+    s('edit-assess-adl', t.adl);
+    s('edit-assess-goal', t.goal);
+    s('edit-assess-behavior', t.behavior);
+    s('edit-assess-social', t.social);
+    s('edit-assess-motivation', t.motivation);
+    s('edit-assess-warning-sign', t.warning_sign);
 
     navigateTo('screen-assessment-edit');
 }
@@ -916,21 +963,43 @@ async function updateAssessment(event) {
     const id = document.getElementById('edit-assess-id')?.value;
     const name = document.getElementById('edit-assess-name')?.value?.trim();
     if (!name) { showToast('氏名は必須です'); return; }
+    const g = id => document.getElementById(id)?.value?.trim() || '';
 
     const updatedData = {
         name,
-        furigana: document.getElementById('edit-assess-furigana')?.value?.trim() || '',
-        care_level: document.getElementById('edit-assess-care-level')?.value || '',
-        age: document.getElementById('edit-assess-age')?.value || '',
-        gender: document.getElementById('edit-assess-gender')?.value || '',
-        life_background: document.getElementById('edit-assess-life-background')?.value?.trim() || '',
-        adl: document.getElementById('edit-assess-adl')?.value?.trim() || '',
-        care_manager: document.getElementById('edit-assess-care-manager')?.value?.trim() || '',
-        note: document.getElementById('edit-assess-note')?.value?.trim() || '',
+        age: g('edit-assess-age'),
+        gender: g('edit-assess-gender'),
+        disease: g('edit-assess-disease'),
+        disease_history: g('edit-assess-disease-history'),
+        infection: g('edit-assess-infection'),
+        medication: g('edit-assess-medication'),
+        medication_mgmt: g('edit-assess-medication-mgmt'),
+        family: g('edit-assess-family'),
+        family_relation: g('edit-assess-family-relation'),
+        service_reason: g('edit-assess-service-reason'),
+        schedule: g('edit-assess-schedule'),
+        services: g('edit-assess-services'),
+        allergy: g('edit-assess-allergy'),
+        fixation: g('edit-assess-fixation'),
+        weakness: g('edit-assess-weakness'),
+        caution: g('edit-assess-caution'),
+        personality: g('edit-assess-personality'),
+        money: g('edit-assess-money'),
+        trusted: g('edit-assess-trusted'),
+        safe_place: g('edit-assess-safe-place'),
+        emergency: g('edit-assess-emergency'),
+        hobby: g('edit-assess-hobby'),
+        preference: g('edit-assess-preference'),
+        assess_date: g('edit-assess-date'),
+        adl: g('edit-assess-adl'),
+        goal: g('edit-assess-goal'),
+        behavior: g('edit-assess-behavior'),
+        social: g('edit-assess-social'),
+        motivation: g('edit-assess-motivation'),
+        warning_sign: g('edit-assess-warning-sign'),
     };
 
     try {
-        // Supabase update via API
         const { error } = await window.supabase.from('care_targets').update(updatedData).eq('id', id);
         if (error) throw error;
         cachedTargets = null;
