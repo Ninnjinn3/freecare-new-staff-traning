@@ -172,11 +172,10 @@ function defaultBreakdown(totalScore) {
 // ===== レベル判定 =====
 function getLevel(score) {
     const thresholds = [
-        { min: 90, max: 100, grade: '1級', name: 'レベル3', label: 'リーダー候補', hrPoints: 10 },
-        { min: 80, max: 89, grade: '1級', name: 'レベル3', label: '仮説100点', hrPoints: 8 },
-        { min: 60, max: 79, grade: '2級', name: 'レベル2', label: '仮説80点', hrPoints: 6 },
-        { min: 40, max: 59, grade: '3級', name: 'レベル1', label: '気付き100点', hrPoints: 4 },
-        { min: 0, max: 39, grade: '-', name: '新人', label: '研修中', hrPoints: 2 }
+        { min: 71, max: 100, level: 3, grade: '上級', name: '上級（レベル3）', hrPoints: 10 },
+        { min: 61, max: 70, level: 2, grade: '中級', name: '中級（レベル2）', hrPoints: 6 },
+        { min: 31, max: 60, level: 1, grade: '初級', name: '初級（レベル1）', hrPoints: 4 },
+        { min: 0, max: 30, level: 0, grade: '新人', name: '新人', hrPoints: 2 }
     ];
     return thresholds.find(t => score >= t.min && score <= t.max) || thresholds[thresholds.length - 1];
 }
@@ -192,21 +191,30 @@ function checkPass(score, attemptNumber, previousScores) {
 
 // ===== 人事評価ポイント =====
 function calculateHRPoints(step, score, previousEvals) {
-    let points = 0;
+    let points = 2; // 初期
 
-    if (step >= 1 && score >= 100) {
-        points = 2;
-        const consecutive100 = previousEvals.filter(e => e.score === 100).length;
-        if (consecutive100 >= 1) points = 4;
-    }
-    if (step >= 2 && score >= 80) points = Math.max(points, 6);
-    if (step >= 2 && score >= 100) points = Math.max(points, 8);
-    if (step >= 4) points = Math.max(points, 10);
+    // 現在のステップとスコアを previousEvals に含めて判定を容易にする
+    const allEvals = [...previousEvals, { step, score }];
 
-    // 8ヶ月滞在ペナルティ
-    const sameStepMonths = previousEvals.filter(e => e.step === step).length;
-    if (sameStepMonths >= 8) {
-        points -= (Math.floor((sameStepMonths - 8) / 8) + 1) * 2;
+    // ステップごとの到達状況を確認
+    const hasScore = (s, min) => allEvals.some(e => e.step === s && e.score >= min);
+    const countScore = (s, min) => allEvals.filter(e => e.step === s && e.score >= min).length;
+
+    // 定められたマイルストーンに到達していればポイント更新
+    if (hasScore(1, 80)) points = Math.max(points, 4);
+    if (countScore(1, 100) >= 1) points = Math.max(points, 6);
+    if (hasScore(2, 80)) points = Math.max(points, 6);
+    if (countScore(2, 100) >= 1) points = Math.max(points, 8);
+    if (hasScore(3, 80)) points = Math.max(points, 8);
+    if (countScore(3, 100) >= 1) points = Math.max(points, 10);
+    if (hasScore(4, 0)) points = Math.max(points, 10); // 症例報告はSTEP4到達で最大評価
+
+    // 6ヶ月滞在ペナルティ (現在のstepに何ヶ月いるか)
+    const sameStepEvals = allEvals.filter(e => e.step === step).length;
+    if (sameStepEvals >= 6) {
+        // 6ヶ月ごとに2点減点
+        const penaltyMultiplier = Math.floor(sameStepEvals / 6);
+        points -= penaltyMultiplier * 2;
     }
 
     return Math.max(points, 0);
