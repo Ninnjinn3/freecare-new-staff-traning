@@ -52,9 +52,7 @@ function submitStep4(event) {
         // Ⅴ. 結果・変化
         result: getValue('step4-result'),
         // Ⅵ. 考察
-        reflection: getValue('step4-reflection'),
-        // 発表日
-        presentationDate: getValue('step4-presentation-date')
+        reflection: getValue('step4-reflection')
     };
 
     // 必須チェック（最低限）
