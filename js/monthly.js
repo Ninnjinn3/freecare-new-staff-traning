@@ -218,7 +218,7 @@ const Monthly = {
                         <td style="font-size: 0.8rem;">${item.name}</td>
                         <td style="text-align:center;">${item.max}点</td>
                         <td style="text-align:center; font-weight:bold; color: ${item.score === item.max ? 'var(--success)' : 'var(--danger)'}">${item.score}点</td>
-                        <td style="font-size: 0.8rem;">${item.judgement}</td>
+                        <td style="font-size: 0.8rem;">${item.judgement || '-'}</td>
                     </tr>
             `;
         });
@@ -258,8 +258,8 @@ const Monthly = {
                 item.criteriaRef.forEach(c => {
                     html += `
                         <tr>
-                            <td class="center">${c.pts}点</td>
-                            <td style="font-size:0.8rem">${c.desc}</td>
+                            <td class="center">${c.pts || '-'}点</td>
+                            <td style="font-size:0.8rem">${c.desc || ''}</td>
                             <td class="center">${c.check ? '✅' : 'ー'}</td>
                         </tr>
                     `;
@@ -269,7 +269,7 @@ const Monthly = {
             html += `
                     </tbody>
                 </table>
-                
+                <div style="font-size:0.8rem; color:#666; margin-bottom:15px;">※上記は評価基準の一部抜粋です。完全な基準はヘルプやマニュアルをご参照ください。</div>
                 <div class="eval-box-title">【スタッフの記載内容】</div>
                 <div class="eval-content-text">${item.userContent ? item.userContent.replace(/\n/g, '<br>') : '（記載なし）'}</div>
             `;
@@ -293,8 +293,8 @@ const Monthly = {
             if (item.improvement) {
                 html += `
                 <div class="eval-improve-box">
-                    <div class="eval-improve-title">【${item.max}点を取るための改善例】</div>
-                    <div style="font-size:0.85rem">${item.improvement}</div>
+                    <div class="eval-improve-title">【改善点・アドバイス】</div>
+                    <div style="font-size:0.85rem">${item.improvement.replace(/\n/g, '<br>')}</div>
                 </div>
                 `;
             }
