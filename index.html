@@ -82,40 +82,26 @@
         <button class="icon-btn" onclick="handleLogout()" title="ログアウト">🚪</button>
       </div>
 
-      <!-- 対象者カード（2モード）-->
+      <!-- 対象者カード -->
       <div class="card target-card">
         <div class="card-header">
           <span class="card-icon">📋</span>
           <span class="card-title">介護対象者</span>
         </div>
-        <!-- モード切替ボタン -->
-        <div style="display:flex; gap:8px; margin-bottom: var(--space-sm);">
-          <button class="btn-mode active" id="mode-select-btn" onclick="switchTargetMode('select')">
-            👤 今まで追加した人を選ぶ
-          </button>
-          <button class="btn-mode" id="mode-add-btn" onclick="switchTargetMode('add')">
-            ＋ 新規追加
-          </button>
-        </div>
-        <!-- 既存選択モード -->
-        <div id="target-select-mode">
-          <div class="autocomplete-wrapper">
-            <input type="text" class="autocomplete-input" id="home-target-input" placeholder="名前を入力して検索..."
-              autocomplete="off">
-            <div class="autocomplete-dropdown" id="home-target-dropdown"></div>
-          </div>
-          <div id="home-selected-target" style="margin-top: var(--space-sm)"></div>
-          <button class="btn-link" onclick="navigateTo('screen-assessment-list')"
-            style="margin-top:8px; font-size:0.85rem;">📂 登録済み対象者一覧・編集</button>
-        </div>
-        <!-- 新規追加モード -->
-        <div id="target-add-mode" hidden>
-          <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom: var(--space-sm);">
-            アセスメント・フェイスシートを入力して新規登録します</p>
-          <button class="btn-primary" style="width:100%;" onclick="navigateTo('screen-assessment-new')">📝
-            アセスメント・フェイスシートを入力する</button>
+        <!-- ドロップダウン選択 -->
+        <select id="home-target-select" onchange="onTargetSelectChange(this)" style="width:100%; padding:10px 12px; border-radius:var(--radius); border:2px solid var(--border);
+                 font-size:1rem; background:var(--surface); color:var(--text); margin-bottom:var(--space-sm);">
+          <option value="">── 介護対象者を選択してください ──</option>
+        </select>
+        <div id="home-selected-target" style="margin-top: var(--space-sm)"></div>
+        <div style="display:flex; gap:8px; margin-top:var(--space-sm);">
+          <button class="btn-link" onclick="navigateTo('screen-assessment-list')" style="font-size:0.85rem;">📂
+            一覧・編集</button>
+          <button class="btn-link" onclick="navigateTo('screen-assessment-new')"
+            style="font-size:0.85rem; margin-left:auto;">＋ 新規追加</button>
         </div>
       </div>
+
 
       <!-- 期限アラート -->
       <div class="card alert-card" id="deadline-alert">
@@ -1186,11 +1172,11 @@
   <script src="js/step2.js?v=5"></script>
   <script src="js/step3.js?v=5"></script>
   <script src="js/step4.js?v=5"></script>
-  <script src="js/monthly.js?v=8"></script>
-  <script src="js/admin.js?v=8"></script>
-  <script src="js/exec.js?v=8"></script>
-  <script src="js/api.js?v=8"></script>
-  <script src="js/app.js?v=8"></script>
+  <script src="js/monthly.js?v=9"></script>
+  <script src="js/admin.js?v=9"></script>
+  <script src="js/exec.js?v=9"></script>
+  <script src="js/api.js?v=9"></script>
+  <script src="js/app.js?v=9"></script>
 </body>
 
 </html>

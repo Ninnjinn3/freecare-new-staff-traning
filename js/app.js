@@ -142,8 +142,8 @@ function initHome() {
     const currentStep = user.current_step || 1;
     document.getElementById('home-step-badge').textContent = `STEP${currentStep}`;
 
-    // 対象者オートコンプリート初期化
-    initTargetAutocomplete();
+    // 対象者ドロップダウン初期化
+    initTargetDropdown();
 
     // 期限アラート
     updateDeadlineAlert();
@@ -155,100 +155,57 @@ function initHome() {
     updateStepButtons(currentStep);
 }
 
-// ===== 対象者オートコンプリート =====
-function initTargetAutocomplete() {
-    const input = document.getElementById('home-target-input');
-    const dropdown = document.getElementById('home-target-dropdown');
-    const selectedContainer = document.getElementById('home-selected-target');
+// ===== 対象者ドロップダウン =====
+async function initTargetDropdown() {
+    const select = document.getElementById('home-target-select');
+    if (!select) return;
 
-    if (!input || !dropdown) return;
+    try {
+        const targets = await getTargetList(true); // Supabaseから最新を取得
+        // オプションを再描画
+        select.innerHTML = '<option value="">── 介護対象者を選択してください ──</option>';
+        targets.forEach(t => {
+            const opt = document.createElement('option');
+            opt.value = t.id || t.db_id;
+            opt.textContent = t.name + (t.care_level ? `（${t.care_level}）` : '');
+            opt.dataset.name = t.name;
+            opt.dataset.level = t.care_level || '';
+            select.appendChild(opt);
+        });
 
-    // LocalStorageから対象者リストを取得（管理者が追加可能）
-    const targets = getTargetList();
+        // 既に選択済みなら復元
+        if (selectedTarget) {
+            select.value = selectedTarget.id || selectedTarget.db_id || '';
+        }
 
-    // 既に選択済みの場合は表示
-    if (selectedTarget) {
-        renderSelectedTarget(selectedContainer, selectedTarget);
-        input.value = '';
+        if (targets.length === 0) {
+            select.innerHTML = '<option value="">※ まずは対象者を新規追加してください</option>';
+        }
+    } catch (e) {
+        console.error('対象者ドロップダウン読み込みエラー:', e);
     }
-
-    // 入力イベント
-    input.addEventListener('input', function () {
-        const query = this.value.trim();
-        if (query.length === 0) {
-            dropdown.classList.remove('active');
-            return;
-        }
-
-        const matches = targets.filter(t =>
-            t.name.includes(query) ||
-            t.name.replace(/\s/g, '').includes(query.replace(/\s/g, ''))
-        );
-
-        if (matches.length === 0) {
-            dropdown.innerHTML = '<div class="autocomplete-option" style="color: var(--text-muted)">該当なし</div>';
-            dropdown.classList.add('active');
-            return;
-        }
-
-        dropdown.innerHTML = matches.map(t => {
-            const highlighted = t.name.replace(
-                new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'),
-                '<span class="match">$1</span>'
-            );
-            return `<div class="autocomplete-option" data-id="${t.id}" data-name="${t.name}">
-                ${highlighted} <span style="color: var(--text-muted); font-size: 0.85em; margin-left: 8px">${t.care_level || ''}</span>
-            </div>`;
-        }).join('');
-
-        dropdown.classList.add('active');
-    });
-
-    // 選択イベント（イベント委任）
-    dropdown.addEventListener('click', function (e) {
-        const option = e.target.closest('.autocomplete-option');
-        if (!option || !option.dataset.id) return;
-
-        selectedTarget = targets.find(t => t.id === option.dataset.id);
-        input.value = '';
-        dropdown.classList.remove('active');
-        renderSelectedTarget(selectedContainer, selectedTarget);
-        showToast(`${selectedTarget.name}さんを選択しました ✅`);
-    });
-
-    // フォーカスアウトで閉じる（少し遅延）
-    input.addEventListener('blur', () => {
-        setTimeout(() => dropdown.classList.remove('active'), 200);
-    });
-
-    // フォーカスで全件表示
-    input.addEventListener('focus', function () {
-        if (this.value.trim() === '') {
-            const allTargets = getTargetList();
-            dropdown.innerHTML = allTargets.map(t =>
-                `<div class="autocomplete-option" data-id="${t.id}" data-name="${t.name}">
-                    ${t.name} <span style="color: var(--text-muted); font-size: 0.85em; margin-left: 8px">${t.care_level || ''}</span>
-                </div>`
-            ).join('');
-            dropdown.classList.add('active');
-        }
-    });
 }
 
-function renderSelectedTarget(container, target) {
-    if (!container) return;
-    container.innerHTML = `
-        <div class="target-chip">
-            👤 ${target.name}さん（${target.care_level || ''})
-            <button class="remove-chip" onclick="clearSelectedTarget()">✕</button>
-        </div>
-    `;
+function onTargetSelectChange(selectEl) {
+    const selectedId = selectEl.value;
+    if (!selectedId) {
+        selectedTarget = null;
+        return;
+    }
+    const opt = selectEl.options[selectEl.selectedIndex];
+    selectedTarget = {
+        id: selectedId,
+        db_id: selectedId,
+        name: opt.dataset.name || opt.textContent,
+        care_level: opt.dataset.level || ''
+    };
+    showToast(`${selectedTarget.name}さんを選択しました ✅`);
 }
 
 function clearSelectedTarget() {
     selectedTarget = null;
-    const container = document.getElementById('home-selected-target');
-    if (container) container.innerHTML = '';
+    const sel = document.getElementById('home-target-select');
+    if (sel) sel.value = '';
     showToast('対象者の選択を解除しました');
 }
 
