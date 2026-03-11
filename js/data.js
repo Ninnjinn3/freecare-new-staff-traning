@@ -115,11 +115,10 @@ const SCORING_CRITERIA = [
 
 // レベル判定
 const LEVEL_THRESHOLDS = [
-  { min: 90, max: 100, level: 3, grade: '1級', name: 'レベル3', label: 'リーダー候補', hrPoints: 10 },
-  { min: 80, max: 89, level: 3, grade: '1級', name: 'レベル3', label: '仮説100点', hrPoints: 8 },
-  { min: 60, max: 79, level: 2, grade: '2級', name: 'レベル2', label: '仮説80点', hrPoints: 6 },
-  { min: 40, max: 59, level: 1, grade: '3級', name: 'レベル1', label: '気付き100点', hrPoints: 4 },
-  { min: 0, max: 39, level: 0, grade: '-', name: '新人', label: '気付き100点', hrPoints: 2 }
+  { min: 71, max: 100, level: 3, grade: '上級', name: '上級（レベル3）', desc: '仮説の精度が高く、論理的思考力が優れている。リーダー候補。' },
+  { min: 61, max: 70, level: 2, grade: '中級', name: '中級（レベル2）', desc: '適切な仮説思考ができており、実践レベルに達している。' },
+  { min: 31, max: 60, level: 1, grade: '初級', name: '初級（レベル1）', desc: '基本的な思考はできているが、深掘りや論理性がやや不足。要トレーニング。' },
+  { min: 0, max: 30, level: 0, grade: '新人', name: '新人', desc: '表面的な考察に留まっており、指導が必要。' }
 ];
 
 // 合格条件
