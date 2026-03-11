@@ -162,6 +162,10 @@
           <span class="nav-icon">❓</span>
           <span>ヘルプ</span>
         </button>
+        <button class="nav-btn" onclick="navigateTo('screen-ai-helper')">
+          <span class="nav-icon">🤖</span>
+          <span>AIサポート</span>
+        </button>
         <button class="nav-btn" onclick="navigateTo('screen-settings')">
           <span class="nav-icon">⚙️</span>
           <span>設定</span>
@@ -552,23 +556,36 @@
         </div>
       </div>
 
-      <!-- AIチャットボット -->
-      <div class="help-chat-section">
-        <div class="admin-section-title">🤖 AIサポートチャット</div>
-        <p class="help-chat-desc">アプリの使い方で分からないことがあれば、AIに質問してください。</p>
+      <!-- AIサポートへの誘導 -->
+      <div class="help-chat-section" style="text-align:center; padding: var(--space-lg);">
+        <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">アプリの使い方について、AIが何でも答えます！</p>
+        <button class="btn-primary" onclick="navigateTo('screen-ai-helper')"
+          style="width:100%; padding: 14px; font-size: 1.05rem;">🤖 AIサポートを開く</button>
+      </div>
+    </div>
+  </section>
 
-        <div class="chat-messages" id="help-chat-messages">
-          <div class="chat-msg chat-bot">
-            <span class="chat-avatar">🤖</span>
-            <div class="chat-bubble">こんにちは！フリーケア研修アプリのサポートAIです。使い方で分からないことがあれば、何でも聞いてください！</div>
-          </div>
-        </div>
+  <!-- ===== Screen: AIサポーター ===== -->
+  <section id="screen-ai-helper" class="screen">
+    <div class="screen-content" style="display:flex; flex-direction:column; height:100%; padding:0;">
+      <div class="step-header" style="padding: var(--space-md) var(--space-lg); flex-shrink:0;">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+        <h2 class="step-title">🤖 AIサポーター</h2>
+      </div>
 
-        <div class="chat-input-area">
-          <input type="text" id="help-chat-input" placeholder="質問を入力..."
-            onkeydown="if(event.key==='Enter')sendHelpChat()">
-          <button class="chat-send-btn" onclick="sendHelpChat()">送信</button>
+      <div class="chat-messages" id="help-chat-messages"
+        style="flex:1; overflow-y:auto; padding: var(--space-md) var(--space-lg);">
+        <div class="chat-msg chat-bot">
+          <span class="chat-avatar">🤖</span>
+          <div class="chat-bubble">こんにちは！フリーケアくんです😊<br>研修の記録の書き方、採点基準、STEPの進め方など、なんでも聞いてな！</div>
         </div>
+      </div>
+
+      <div class="chat-input-area"
+        style="flex-shrink:0; padding: var(--space-md) var(--space-lg); border-top: 1px solid var(--border);">
+        <input type="text" id="help-chat-input" placeholder="例：STEP1の書き方を教えて"
+          onkeydown="if(event.key==='Enter')sendHelpChat()">
+        <button class="chat-send-btn" onclick="sendHelpChat()">送信</button>
       </div>
     </div>
   </section>
@@ -775,18 +792,18 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js?v=4"></script>
   <!-- App Scripts -->
-  <script src="js/data.js?v=4"></script>
-  <script src="js/storage.js?v=4"></script>
-  <script src="js/auth.js?v=4"></script>
-  <script src="js/step1.js?v=4"></script>
-  <script src="js/step2.js?v=4"></script>
-  <script src="js/step3.js?v=4"></script>
-  <script src="js/step4.js?v=4"></script>
-  <script src="js/monthly.js?v=4"></script>
-  <script src="js/admin.js?v=4"></script>
-  <script src="js/exec.js?v=4"></script>
-  <script src="js/api.js?v=4"></script>
-  <script src="js/app.js?v=4"></script>
+  <script src="js/data.js?v=5"></script>
+  <script src="js/storage.js?v=5"></script>
+  <script src="js/auth.js?v=5"></script>
+  <script src="js/step1.js?v=5"></script>
+  <script src="js/step2.js?v=5"></script>
+  <script src="js/step3.js?v=5"></script>
+  <script src="js/step4.js?v=5"></script>
+  <script src="js/monthly.js?v=5"></script>
+  <script src="js/admin.js?v=5"></script>
+  <script src="js/exec.js?v=5"></script>
+  <script src="js/api.js?v=5"></script>
+  <script src="js/app.js?v=5"></script>
 </body>
 
 </html>
