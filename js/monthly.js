@@ -36,26 +36,125 @@ const Monthly = {
     // デモ用フォールバック
     calculateDemoScore() {
         return {
-            score: 72,
+            score: 85,
+            level: { grade: 'B', name: '上級（レベル3）…リーダー候補', color: 'var(--primary)' },
+            passed: true,
             breakdown: [
-                { name: '気づいた変化の明確さ', score: 12, max: 15 },
-                { name: '要因の多層的分析', score: 14, max: 20 },
-                { name: '要因の関連性と優先順位', score: 10, max: 15 },
-                { name: '検証計画の論理性', score: 11, max: 15 },
-                { name: '支援計画の実効性', score: 14, max: 20 },
-                { name: '振り返り・修正力', score: 11, max: 15 }
+                {
+                    id: 1, name: '① 気づいた変化の明確さ', score: 10, max: 15,
+                    judgement: '日時・状況の詳細と本人意思の確認が不足',
+                    criteriaRef: [
+                        { pts: 15, desc: '変化が具体的で、日時・状況が記録されている。本人の意思やニーズも明確に把握できている。', check: false },
+                        { pts: 10, desc: '変化は記録されているが、状況の詳細が不足。本人の意思やニーズの把握が不足。', check: true },
+                        { pts: 5, desc: '変化が抽象的で記録も曖昧。本人の意思やニーズが把握できていない。', check: false }
+                    ],
+                    userContent: "「普段はスタッフからの声かけをきっかけに会話されることが多いが、本日は自ら会話を持ちかける場面が見られた。また、普段は自発的に活動へ参加されるが、本日は開始時に促しが必要であった。」",
+                    goodPoints: [
+                        "「普段は〇〇だが本日は〇〇」という比較構造で変化を明確に捉えている",
+                        "2つの変化（会話の増加・行動の消極化）を同時に観察できている"
+                    ],
+                    badPoints: [
+                        "日時の記載がない（「本日」とあるだけで、何時頃・どの活動中かが不明）",
+                        "状況の詳細がない（誰に対して話しかけたのか、どの活動で促しが必要だったのか）",
+                        "本人の意思やニーズが未確認（本人がどう感じていたかの記載がない）"
+                    ],
+                    improvement: "「1月18日10時の集団体操開始時、上野様は普段であればスタッフの声かけ前に席を立たれるが、本日は体操開始の案内をしても座ったまま動かれなかった。一方、9時の来所直後には隣席の高木様に自ら『今日は寒いね』と話しかける場面が2回あり、普段の声かけ中心の会話パターンとは異なっていた。ご本人に体調を尋ねたところ、『体は大丈夫だけど、何をするのがよくわからなくて…』と不安そうに話されていた。」"
+                },
+                {
+                    id: 2, name: '② 要因の多層的分析', score: 20, max: 20,
+                    judgement: '全仮説で5段階以上の掘り下げ。満点',
+                    criteriaRef: [
+                        { pts: 20, desc: '「なぜ？」を3回以上掘り下げ、表面的でない根本要因を考えている', check: true },
+                        { pts: 15, desc: '「なぜ？」を2回掘り下げて考察', check: false },
+                        { pts: 10, desc: '「なぜ？」を1回だけ考えている', check: false },
+                        { pts: 5, desc: '表層的な要因しか考えられていない', check: false }
+                    ],
+                    userContent: "仮説1: 意欲低下 → 何をすればよいか迷う → 見通しが持てない → 不安が強まる → 安心感を求める → 会話が増える\n仮説2: 睡眠不足 → 集中力低下 → 判断が遅れる → 行動のきっかけがつかめない → 職員に頼る → 会話が増える",
+                    goodPoints: [
+                        "5つの仮説すべてで5段階以上の掘り下げを行っており、表面的な「体調不良」レベルで止まらず、行動の根本メカニズムまで到達している。文句なしの満点。"
+                    ],
+                    badPoints: [],
+                    improvement: ""
+                },
+                {
+                    id: 3, name: '③ 要因の関連性と優先順位', score: 15, max: 15,
+                    judgement: '対象者特性を根拠にした論理的な順位づけ。満点',
+                    criteriaRef: [
+                        { pts: 15, desc: '3つ以上の要因を論理的につなげ、優先順位の根拠を説明', check: true },
+                        { pts: 10, desc: '2つの要因を関連づけ、優先順位はあるが根拠がやや曖昧', check: false },
+                        { pts: 5, desc: '要因のリストはあるが、関連性が不明確で優先順位の根拠がない', check: false }
+                    ],
+                    userContent: "「上野様は普段、自発的に行動されることが多く、職員の声かけがなくても活動に参加されている。そのため、今回見られた会話の増加や行動への迷いは、一時的な意欲低下や不安感が最も大きく影響していると考えた。体調不良や疲労、睡眠状況などの身体的要因は二次的な可能性とし、環境変化についても影響は考えられるが一過性のものと判断した。心理的要因については長期的な視点での観察が必要なため、優先順位を低く設定した。」",
+                    goodPoints: [
+                        "5つの要因に明確な順位（1〜5位）を設定し、それぞれ異なる論拠（対象者の普段の特性・身体要因の二次性・環境要因の一過性・心理要因の長期性）で順位づけしている。"
+                    ],
+                    badPoints: [],
+                    improvement: ""
+                },
+                {
+                    id: 4, name: '④ 検証計画の論理性', score: 10, max: 15,
+                    judgement: '判断基準・期間・リスク管理の明示が不足',
+                    criteriaRef: [
+                        { pts: 15, desc: '明確な検証方法と判断基準をリスク管理のもと設定', check: false },
+                        { pts: 10, desc: '検証方法はあるが、判断基準やリスクが曖昧', check: true },
+                        { pts: 5, desc: '検証方法やリスクが不十分、または記載なし', check: false }
+                    ],
+                    userContent: "仮説1: 「表情・発語量・動作遅延を記録」とデータ収集方法を記載\n仮説2: 「変化が続く場合は看護師・家族へ共有」とエスカレーション基準がある",
+                    goodPoints: [
+                        "仮説2で「表情・発語量・動作遅延を記録」とデータ収集方法を記載",
+                        "仮説2で「変化が続く場合は看護師・家族へ共有」とエスカレーション基準がある"
+                    ],
+                    badPoints: [
+                        "仮説1（最優先）に判断基準がない：何日間観察するのか、何をもって「改善した/しない」と判断するのかが不明",
+                        "リスク管理が不十分：支援がうまくいかなかった場合の対応の記載がない",
+                        "定量的な基準がない：「活動への迷いが減る」の判断を何で測るのかが不明"
+                    ],
+                    improvement: "「活動前に内容・時間・流れを説明する支援を1週間実施し、以下を日々記録する。①活動開始時に自発的に動けたか、②活動中の離席・質問回数。1週間後に促し回数が3回以下に減少し、自発行動が増えていれば仮説1を支持と判断する。変化がなければ別の検証に移行する。」"
+                },
+                {
+                    id: 5, name: '⑤ 支援計画の実効性', score: 20, max: 20,
+                    judgement: '5要因すべてに具体的・実行可能な支援策。満点',
+                    criteriaRef: [
+                        { pts: 20, desc: '2つ以上の支援策を具体的に記述し、どちらを優先するか根拠を示している', check: true },
+                        { pts: 15, desc: '1つの支援策を明確に記述', check: false },
+                        { pts: 10, desc: '抽象的な支援策', check: false },
+                        { pts: 5, desc: '実行性が低い、または支援策なし', check: false }
+                    ],
+                    userContent: "1. 意欲低下・不安 → 活動前に内容・時間・流れを説明し見通しを明確化。\n2. 睡眠不足・体調不良 → 来所時の睡眠・体調確認。表情・発語量・動作速度を記録。\n3. 環境変化への敏感い → 職員や席替え時は事前に伝え見通しを持てるよう配慮。\n4. 体力低下・疲労 → 活動量を調整しこまめな休憩。\n5. 心理的不安・孤独感 → 会話を否定せず共感的に受け止める。",
+                    goodPoints: [
+                        "5つの要因それぞれに対して個別の具体的かつ実行可能な支援策を立案。優先順位と根拠も明確。文句なしの満点。"
+                    ],
+                    badPoints: [],
+                    improvement: ""
+                },
+                {
+                    id: 6, name: '⑥ 振り返り・修正力', score: 10, max: 15,
+                    judgement: '本人意思の直接確認と新たな仮説立案が不足',
+                    criteriaRef: [
+                        { pts: 15, desc: '支援の結果を詳細に分析し、本人意思確認のもと新たな仮説や改善策を立てている', check: false },
+                        { pts: 10, desc: '支援の結果を記録しているが、本人意思の確認も曖昧で次の仮説にうまくつなげられていない', check: true },
+                        { pts: 5, desc: '変化を記録しているだけで、本人意思の確認もなく次の行動につながっていない', check: false },
+                        { pts: 0, desc: '諦めている（支援終了の判断をしている）', check: false }
+                    ],
+                    userContent: "1/18: 「それならできそう」と発言。活動にスムーズに参加。 → 継続\n1/24: 自ら席を立ち準備。会話量も適度で活動に集中 → 継続\n1/26: 「今日はこれですね」と理解を示す発言。 → 継続\n1/28: 説明＋職員と一緒に1回目の動作を実施。「一緒にやると分かりやすい」と発言 → 継続\n1/31: 声かけなしでも活動参加。会話量も落ち着き、表情も穏やか → 終了",
+                    goodPoints: [
+                        "5回にわたり継続的に経過を記録している",
+                        "本人の言葉を3回記録（「それならできそう」「今日はこれですね」「一緒にやると分かりやすい」）",
+                        "途中で支援方法を変更（言葉の説明→実演追加）し、最終的に改善を確認して支援終了"
+                    ],
+                    badPoints: [
+                        "本人への意思確認が「反応の観察」にとどまっている：「この支援をどう感じていますか？」「他に不安なことはありますか？」といった直接的な意思確認ではない",
+                        "新たな仮説が立てられていない：1/28に支援変更しているが、「なぜ言葉の説明だけでは不十分だったのか」の新たな仮説がない",
+                        "支援終了時の分析が薄い：「何が最も効果的だったか」「今後再発した場合にどうするか」の分析がない"
+                    ],
+                    improvement: "「1/28: 説明を聞いても表情に不安が残っており、ご本人に確認したところ、『聞いただけどよくわからない』と話された。そこで職員と一緒に1回目の動作を実施したところ、『一緒にやると分かりやすい』と笑顔が見られた。支援内容変更。理由：見通しの欠如である可能性。今後は実演を標準手順に組み込み、他の活動時間でも同様の支援を試行する。」"
+                }
             ],
-            level: this.getLevel(72),
-            passed: false,
-            hrPoints: 4,
-            totalRecords: 0,
-            passCount: 0,
-            failCount: 0,
-            actions: [
-                '仮説の「なぜ？」を3段階まで掘り下げる練習をしましょう',
-                '優先順位の根拠に「緊急性」と「可逆性」の観点を加えましょう',
-                '支援計画に本人の意思確認プロセスを組み込みましょう'
-            ]
+            hrPoints: 10,
+            totalRecords: 15,
+            passCount: 12,
+            failCount: 3,
+            actions: []
         };
     },
 
@@ -85,59 +184,127 @@ const Monthly = {
         const report = await this.calculate();
         if (!report) return;
 
-        // スコアリング
-        scoreEl.textContent = report.score;
-
-        const ring = document.getElementById('score-ring');
-        ring.className = 'score-ring';
-        if (report.score >= 80) ring.classList.add('score-high');
-        else if (report.score >= 60) ring.classList.add('score-mid');
-        else if (report.score >= 40) ring.classList.add('score-low');
-        else ring.classList.add('score-danger');
-
-        // レベル
-        const level = report.level || this.getLevel(report.score);
-        document.getElementById('monthly-grade').textContent = level.grade;
-        document.getElementById('monthly-level-name').textContent = level.name;
-
-        // 合否バッジ
-        const passEl = document.getElementById('monthly-pass-status');
-        if (passEl) {
-            if (report.totalRecords === 0) {
-                passEl.textContent = '記録なし';
-                passEl.className = 'pass-badge pending';
-            } else if (report.passed) {
-                passEl.textContent = '合格 ✅';
-                passEl.className = 'pass-badge passed';
-            } else {
-                passEl.textContent = '不合格';
-                passEl.className = 'pass-badge failed';
-            }
-        }
-
-        // 人事評価ポイント
-        const hrEl = document.getElementById('monthly-hr-points');
-        if (hrEl) hrEl.textContent = `${report.hrPoints || 0}点`;
-
-        // 記録件数
-        const recordsEl = document.getElementById('monthly-record-count');
-        if (recordsEl) recordsEl.textContent = `${report.totalRecords || 0}件（○${report.passCount || 0} / ×${report.failCount || 0}）`;
-
-        // 6観点内訳
-        const breakdown = document.getElementById('score-breakdown');
-        breakdown.innerHTML = report.breakdown.map(item => `
-      <div class="breakdown-item">
-        <span class="breakdown-name">${item.name}</span>
-        <div class="breakdown-bar">
-          <div class="breakdown-bar-fill" style="width: ${(item.score / item.max) * 100}%"></div>
-        </div>
-        <span class="breakdown-score">${item.score}/${item.max}</span>
-      </div>
-    `).join('');
-
-        // 改善アクション
+        // 古いUI要素（リングチャート等）を非表示化
+        const scoreRingCont = document.querySelector('.score-ring-container');
+        if (scoreRingCont) scoreRingCont.style.display = 'none';
+        const levelBadge = document.getElementById('monthly-level');
+        if (levelBadge) levelBadge.style.display = 'none';
+        const stats = document.querySelector('.monthly-stats');
+        if (stats) stats.style.display = 'none';
         const actionsList = document.getElementById('monthly-actions');
-        actionsList.innerHTML = (report.actions || []).map(a => `<li>${a}</li>`).join('');
+        if (actionsList && actionsList.parentElement) actionsList.parentElement.style.display = 'none';
+
+        // 評価シートUIの生成
+        const breakdown = document.getElementById('score-breakdown');
+        let html = `
+        <div class="eval-sheet">
+            <div class="eval-title">サービスの質向上委員会<br>スコアリング評価シート</div>
+            
+            <table class="eval-table">
+                <thead>
+                    <tr>
+                        <th>項目</th>
+                        <th>配点</th>
+                        <th>得点</th>
+                        <th>判定</th>
+                    </tr>
+                </thead>
+                <tbody>
+        `;
+
+        report.breakdown.forEach(item => {
+            html += `
+                    <tr>
+                        <td style="font-size: 0.8rem;">${item.name}</td>
+                        <td style="text-align:center;">${item.max}点</td>
+                        <td style="text-align:center; font-weight:bold; color: ${item.score === item.max ? 'var(--success)' : 'var(--danger)'}">${item.score}点</td>
+                        <td style="font-size: 0.8rem;">${item.judgement}</td>
+                    </tr>
+            `;
+        });
+
+        html += `
+                    <tr class="total-row">
+                        <td>合計</td>
+                        <td style="text-align:center;">100点</td>
+                        <td style="text-align:center;">${report.score}点</td>
+                        <td style="font-size: 0.85rem;">${report.level ? report.level.name : ''}</td>
+                    </tr>
+                </tbody>
+            </table>
+        `;
+
+        // 詳細セクションの生成
+        report.breakdown.forEach(item => {
+            html += `
+            <div class="eval-section">
+                <div class="eval-section-header">
+                    ${item.name}（${item.max}点満点） → <span class="score-label">${item.score}点</span>
+                </div>
+                
+                <div class="eval-box-title">【採点基準との照合】</div>
+                <table class="eval-table eval-criteria-table" style="margin-bottom:15px;">
+                    <thead>
+                        <tr>
+                            <th width="45">点数</th>
+                            <th>基準</th>
+                            <th width="45">判定</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            if (item.criteriaRef) {
+                item.criteriaRef.forEach(c => {
+                    html += `
+                        <tr>
+                            <td class="center">${c.pts}点</td>
+                            <td style="font-size:0.8rem">${c.desc}</td>
+                            <td class="center">${c.check ? '✅' : 'ー'}</td>
+                        </tr>
+                    `;
+                });
+            }
+
+            html += `
+                    </tbody>
+                </table>
+                
+                <div class="eval-box-title">【スタッフの記載内容】</div>
+                <div class="eval-content-text">${item.userContent ? item.userContent.replace(/\n/g, '<br>') : '（記載なし）'}</div>
+            `;
+
+            if (item.goodPoints && item.goodPoints.length > 0) {
+                html += `<div class="eval-good-points"><div class="eval-box-title">【良い点】</div>`;
+                item.goodPoints.forEach(p => {
+                    html += `<div class="eval-point-item"><span class="eval-point-icon">✅</span><span>${p}</span></div>`;
+                });
+                html += `</div>`;
+            }
+
+            if (item.badPoints && item.badPoints.length > 0) {
+                html += `<div class="eval-bad-points"><div class="eval-box-title">【不足している点】</div>`;
+                item.badPoints.forEach(p => {
+                    html += `<div class="eval-point-item"><span class="eval-point-icon">❌</span><span>${p}</span></div>`;
+                });
+                html += `</div>`;
+            }
+
+            if (item.improvement) {
+                html += `
+                <div class="eval-improve-box">
+                    <div class="eval-improve-title">【${item.max}点を取るための改善例】</div>
+                    <div style="font-size:0.85rem">${item.improvement}</div>
+                </div>
+                `;
+            }
+
+            html += `</div>`;
+        });
+
+        html += `</div>`; // end eval-sheet
+
+        breakdown.innerHTML = html;
 
         // 毎日の記録一覧を描画
         const recordsList = document.getElementById('monthly-records-list');
@@ -150,7 +317,7 @@ const Monthly = {
 
                 if (records && records.length > 0) {
                     recordsList.innerHTML = records.map(r => `
-                        <div class="card" style="margin-bottom: var(--space-sm); padding: var(--space-sm); border-left: 4px solid ${r.ai_judgement === '○' ? 'var(--success)' : 'var(--danger)'}">
+            < div class="card" style = "margin-bottom: var(--space-sm); padding: var(--space-sm); border-left: 4px solid ${r.ai_judgement === '○' ? 'var(--success)' : 'var(--danger)'}" >
                             <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
                                 <strong style="font-size:1.1rem">${r.date} <span style="font-weight:normal; font-size:0.9rem; color:var(--text-muted)">- ${r.target_name}さん</span></strong>
                                 <span class="stat-circle" style="font-weight:bold; color: ${r.ai_judgement === '○' ? 'var(--success)' : 'var(--danger)'}">${r.ai_judgement}</span>
@@ -163,9 +330,10 @@ const Monthly = {
                                 <strong>💡 AIからの改善アドバイス:</strong><br>
                                 ${r.improvement_example}
                             </div>
-                            ` : ''}
-                        </div>
-                    `).join('');
+                            ` : ''
+                        }
+                        </div >
+    `).join('');
                 } else {
                     recordsList.innerHTML = '<p class="empty-state">今月の記録はありません</p>';
                 }

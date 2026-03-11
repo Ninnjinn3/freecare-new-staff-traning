@@ -2308,3 +2308,141 @@ body {
   font-weight: 600;
   cursor: pointer;
 }
+
+/* =========================================
+   Scoring Evaluation Sheet UI (Monthly Report)
+   ========================================= */
+.eval-sheet {
+  background: #fff;
+  color: #333;
+  padding: 1.5rem 1rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-family: "Noto Sans JP", Arial, sans-serif;
+  font-size: 0.85rem;
+  line-height: 1.6;
+  margin-bottom: var(--space-xl);
+}
+
+.eval-title {
+  text-align: center;
+  color: #3b5998;
+  font-size: 1.2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.eval-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 25px;
+  background: #fff;
+}
+
+.eval-table th,
+.eval-table td {
+  border: 1px solid #ccc;
+  padding: 8px 6px;
+  text-align: left;
+}
+
+.eval-table th {
+  background: #3b5998;
+  color: #fff;
+  font-weight: bold;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.eval-table .total-row td {
+  background: #3b5998;
+  color: #fff;
+  font-weight: bold;
+}
+
+.eval-section {
+  margin-top: 30px;
+}
+
+.eval-section-header {
+  color: #3b5998;
+  font-weight: bold;
+  font-size: 1rem;
+  margin-bottom: 15px;
+}
+
+.eval-section-header .score-label {
+  color: #c62828;
+  font-weight: bold;
+}
+
+.eval-criteria-table th {
+  background: #3b5998;
+  color: white;
+  text-align: center;
+}
+
+.eval-criteria-table td.center {
+  text-align: center;
+}
+
+.eval-box {
+  background: #fdfdfd;
+  border: 1px solid #eee;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+}
+
+.eval-box-title {
+  font-weight: bold;
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+}
+
+.eval-content-text {
+  font-size: 0.85rem;
+  background: #fff;
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  font-style: italic;
+  color: #555;
+}
+
+.eval-good-points {
+  color: #2e7d32;
+  margin-bottom: 15px;
+}
+
+.eval-bad-points {
+  color: #c62828;
+  margin-bottom: 15px;
+}
+
+.eval-point-item {
+  display: flex;
+  align-items: flex-start;
+  margin-bottom: 4px;
+}
+
+.eval-point-icon {
+  margin-right: 6px;
+  font-weight: bold;
+}
+
+.eval-improve-box {
+  background: #e8f5e9;
+  padding: 12px;
+  border: 1px dashed #4caf50;
+  border-radius: 4px;
+  margin-top: 15px;
+  color: #1b5e20;
+}
+
+.eval-improve-title {
+  font-weight: bold;
+  margin-bottom: 5px;
+  color: #2e7d32;
+}
