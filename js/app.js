@@ -487,10 +487,9 @@ async function loadHistory() {
         }
 
         listEl.innerHTML = records.map(r => `
-        <div class="history-item" style="margin-bottom: 12px; padding: 12px; background: white; border-radius: 8px; border-left: 4px solid ${r.ai_judgement === '○' ? 'var(--success)' : 'var(--danger)'}; box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
+        <div class="history-item" style="margin-bottom: 12px; padding: 12px; background: white; border-radius: 8px; border-left: 4px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
           <div class="history-item-header" style="display:flex; justify-content:space-between; margin-bottom: 8px;">
             <strong style="font-size:1.1rem; color:var(--text);">${r.date || '--'} <span style="font-size:0.9rem; font-weight:normal; color:#666;">[${r.stepLabel}] - ${r.target_name || ''}さん</span></strong>
-            <span class="history-judgement" style="font-weight:bold; color: ${r.ai_judgement === '○' ? 'var(--success)' : 'var(--danger)'}">${r.ai_judgement || '-'}</span>
           </div>
           <div class="history-text" style="font-size:0.95rem; line-height:1.4; color:#333;">${r.text || ''}</div>
         </div>
