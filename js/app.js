@@ -157,30 +157,36 @@ function initHome() {
 
 // ===== 対象者ドロップダウン =====
 async function initTargetDropdown() {
-    const select = document.getElementById('home-target-select');
-    if (!select) return;
+    const selects = [
+        document.getElementById('home-target-select'),
+        document.getElementById('step1-target')
+    ];
 
     try {
         const targets = await getTargetList(true); // Supabaseから最新を取得
-        // オプションを再描画
-        select.innerHTML = '<option value="">── 介護対象者を選択してください ──</option>';
-        targets.forEach(t => {
-            const opt = document.createElement('option');
-            opt.value = t.id || t.db_id;
-            opt.textContent = t.name + (t.care_level ? `（${t.care_level}）` : '');
-            opt.dataset.name = t.name;
-            opt.dataset.level = t.care_level || '';
-            select.appendChild(opt);
+
+        selects.forEach(select => {
+            if (!select) return;
+            // オプションを再描画
+            select.innerHTML = '<option value="">── 介護対象者を選択してください ──</option>';
+            targets.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.id || t.db_id;
+                opt.textContent = t.name + (t.care_level ? `（${t.care_level}）` : '');
+                opt.dataset.name = t.name;
+                opt.dataset.level = t.care_level || '';
+                select.appendChild(opt);
+            });
+
+            // 既に選択済みなら復元
+            if (selectedTarget) {
+                select.value = selectedTarget.id || selectedTarget.db_id || '';
+            }
+
+            if (targets.length === 0) {
+                select.innerHTML = '<option value="">※ まずは対象者を新規追加してください</option>';
+            }
         });
-
-        // 既に選択済みなら復元
-        if (selectedTarget) {
-            select.value = selectedTarget.id || selectedTarget.db_id || '';
-        }
-
-        if (targets.length === 0) {
-            select.innerHTML = '<option value="">※ まずは対象者を新規追加してください</option>';
-        }
     } catch (e) {
         console.error('対象者ドロップダウン読み込みエラー:', e);
     }
@@ -188,8 +194,22 @@ async function initTargetDropdown() {
 
 function onTargetSelectChange(selectEl) {
     const selectedId = selectEl.value;
+
+    // 他のドロップダウンの同期
+    const selects = [
+        document.getElementById('home-target-select'),
+        document.getElementById('step1-target')
+    ];
+    selects.forEach(s => {
+        if (s && s !== selectEl) {
+            s.value = selectedId;
+        }
+    });
+
     if (!selectedId) {
         selectedTarget = null;
+        document.getElementById('home-selected-target') && renderSelectedTarget(document.getElementById('home-selected-target'), null);
+        document.getElementById('step1-selected-target') && renderSelectedTarget(document.getElementById('step1-selected-target'), null);
         return;
     }
     const opt = selectEl.options[selectEl.selectedIndex];
@@ -199,20 +219,34 @@ function onTargetSelectChange(selectEl) {
         name: opt.dataset.name || opt.textContent,
         care_level: opt.dataset.level || ''
     };
+
+    const homeSelected = document.getElementById('home-selected-target');
+    if (homeSelected) renderSelectedTarget(homeSelected, selectedTarget);
+
+    // STEP1ではカード表示を無くしてスッキリさせることも可能ですが、念のため元通り表示します。
+    // （不要なら消しても良いですが現状維持）
+
     showToast(`${selectedTarget.name}さんを選択しました ✅`);
 }
 
 function clearSelectedTarget() {
     selectedTarget = null;
-    const sel = document.getElementById('home-target-select');
-    if (sel) sel.value = '';
+    const selects = [
+        document.getElementById('home-target-select'),
+        document.getElementById('step1-target')
+    ];
+    selects.forEach(s => {
+        if (s) s.value = '';
+    });
     showToast('対象者の選択を解除しました');
 }
 
 // ===== STEP画面用 対象者オートコンプリート =====
-const stepSelectedTargets = {}; // { step1: null, step2: null, step3: null }
+const stepSelectedTargets = {}; // { step2: null, step3: null }
 
 async function initStepAutocomplete(stepName) {
+    // step1はドロップダウンに移行したため除外
+    if (stepName === 'step1') return;
     const input = document.getElementById(`${stepName}-target-input`);
     const dropdown = document.getElementById(`${stepName}-target-dropdown`);
     const selectedContainer = document.getElementById(`${stepName}-selected-target`);

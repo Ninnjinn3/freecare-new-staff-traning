@@ -200,11 +200,12 @@
           <input type="date" id="step1-date" required>
         </div>
         <div class="form-group">
-          <label for="step1-target-input">利用者名（対象者）</label>
+          <label for="step1-target">介護対象者</label>
           <div class="autocomplete-wrapper">
-            <input type="text" class="autocomplete-input" id="step1-target-input" placeholder="名前を入力して検索..."
-              autocomplete="off">
-            <div class="autocomplete-dropdown" id="step1-target-dropdown"></div>
+            <select id="step1-target" onchange="onTargetSelectChange(this)"
+              style="width:100%; padding:10px 12px; border-radius:var(--radius); border:2px solid var(--border); font-size:1rem; background:var(--surface); color:var(--text); margin-bottom:var(--space-sm);">
+              <option value="">── 介護対象者を選択してください ──</option>
+            </select>
           </div>
           <div id="step1-selected-target" style="margin-top: var(--space-sm)"></div>
         </div>
@@ -1169,11 +1170,11 @@
   <script src="js/step2.js?v=5"></script>
   <script src="js/step3.js?v=5"></script>
   <script src="js/step4.js?v=5"></script>
-  <script src="js/monthly.js?v=14"></script>
-  <script src="js/admin.js?v=14"></script>
-  <script src="js/exec.js?v=14"></script>
-  <script src="js/api.js?v=14"></script>
-  <script src="js/app.js?v=14"></script>
+  <script src="js/monthly.js?v=15"></script>
+  <script src="js/admin.js?v=15"></script>
+  <script src="js/exec.js?v=15"></script>
+  <script src="js/api.js?v=15"></script>
+  <script src="js/app.js?v=15"></script>
 </body>
 
 </html>
