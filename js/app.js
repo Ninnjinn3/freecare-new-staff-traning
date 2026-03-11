@@ -1105,3 +1105,117 @@ async function updateAssessment(event) {
     }
 }
 
+// ===== 設定画面の制御 =====
+const Settings = {
+    init: function () {
+        const user = Auth.getUser();
+        if (!user) return;
+
+        // UI表示の更新
+        const s = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val || '--'; };
+        s('settings-user-name', user.name + ' さん');
+        s('settings-user-id', 'ID: ' + user.staff_id);
+
+        const roles = { staff: '新人研修利用者', admin: '管理者', exec: '運営本部' };
+        s('settings-user-role', roles[user.role] || user.role);
+
+        // 管理者限定セクション
+        const adminOnly = document.getElementById('settings-admin-only');
+        if (adminOnly) {
+            adminOnly.style.display = (user.role === 'admin') ? 'block' : 'none';
+        }
+
+        // テーマトグルの状態反映
+        const isDark = document.body.classList.contains('dark-theme');
+        const toggle = document.getElementById('theme-toggle');
+        if (toggle) toggle.checked = isDark;
+    },
+
+    toggleTheme: function (isDark) {
+        if (isDark) {
+            document.body.classList.add('dark-theme');
+            localStorage.setItem('fc_theme', 'dark');
+        } else {
+            document.body.classList.remove('dark-theme');
+            localStorage.setItem('fc_theme', 'light');
+        }
+    },
+
+    openPasswordModal: function () {
+        document.getElementById('password-modal')?.classList.add('active');
+    },
+
+    closePasswordModal: function () {
+        document.getElementById('password-modal')?.classList.remove('active');
+        document.querySelector('.pw-form')?.reset();
+    },
+
+    changePassword: async function (event) {
+        event.preventDefault();
+        const current = document.getElementById('pw-current').value;
+        const newPw = document.getElementById('pw-new').value;
+        const confirm = document.getElementById('pw-confirm').value;
+
+        if (newPw !== confirm) {
+            showToast('新しいパスワードが一致しません');
+            return;
+        }
+
+        const user = Auth.getUser();
+        if (!user) return;
+
+        try {
+            // パスワード更新（staffsテーブルのpasswordカラムを更新）
+            const { error } = await window.supabase
+                .from('staffs')
+                .update({ password: newPw })
+                .eq('staff_id', user.staff_id)
+                .eq('password', current); // 現在のパスワードが一致する場合のみ更新
+
+            if (error) throw error;
+
+            showToast('パスワードを更新しました ✅');
+            this.closePasswordModal();
+        } catch (e) {
+            console.error('Password change failed:', e);
+            showToast('更新に失敗しました。現在のパスワードが正しいか確認してください。');
+        }
+    }
+};
+
+// navigateTo から呼ばれるラッパー
+function initSettings() {
+    Settings.init();
+}
+
+// 削除確認の表示・非表示（既存のグローバル関数を調整）
+function showDeleteConfirm() {
+    const banner = document.getElementById('delete-confirm-banner');
+    if (banner) banner.classList.add('show');
+}
+function hideDeleteConfirm() {
+    const banner = document.getElementById('delete-confirm-banner');
+    if (banner) banner.classList.remove('show');
+}
+async function executeDeleteAccount() {
+    const user = Auth.getUser();
+    if (!user) return;
+    try {
+        const { error } = await window.supabase.from('staffs').update({ is_active: false, left_at: new Date().toISOString() }).eq('staff_id', user.staff_id);
+        if (error) throw error;
+        showToast('アカウントを削除しました');
+        handleLogout();
+    } catch (e) {
+        showToast('削除エラー: ' + e.message);
+    }
+}
+
+// アプリ起動時のテーマ適用
+(function () {
+    const savedTheme = localStorage.getItem('fc_theme');
+    if (savedTheme === 'dark') {
+        document.body.classList.add('dark-theme');
+    }
+})();
+
+

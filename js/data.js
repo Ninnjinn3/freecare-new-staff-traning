@@ -126,18 +126,23 @@ const PASS_RULES = {
   firstAttemptScore: 80,       // 初回は80点以上で合格
   subsequentPerfectStreak: 2,  // 2回目以降は連続100点回数
   subsequentPerfectScore: 100, // 100点
-  stagnationMonths: 8,         // 8ヶ月同一STEP滞在でペナルティ
+  stagnationMonths: 6,         // 6ヶ月同一STEP滞在でペナルティ
   stagnationPenalty: 2         // 人事評価2点減点（繰返し）
 };
 
 // 人事評価との連動ポイント
 const HR_POINTS_MAP = [
-  { step: 1, score: 100, hrPoints: 2, label: '気付100点' },
-  { step: 1, score: 100, hrPoints: 4, label: '気付き100点' },
-  { step: 2, score: 80, hrPoints: 6, label: '仮説80点' },
-  { step: 2, score: 100, hrPoints: 8, label: '仮説100点' },
-  { step: 2, score: 100, hrPoints: 8, label: '仮説100点' },
-  { step: 4, score: null, hrPoints: 10, label: '症例報告②' }
+  { step: 1, score: 80, streak: 0, hrPoints: 4, label: '気付き80点' },
+  { step: 1, score: 100, streak: 1, hrPoints: 6, label: '気付き100点①' },
+  { step: 1, score: 100, streak: 2, hrPoints: 6, label: '気付き100点②' },
+  { step: 2, score: 80, streak: 0, hrPoints: 6, label: '仮説80点' },
+  { step: 2, score: 100, streak: 1, hrPoints: 8, label: '仮説100点①' },
+  { step: 2, score: 100, streak: 2, hrPoints: 8, label: '仮説100点②' },
+  { step: 3, score: 80, streak: 0, hrPoints: 8, label: '振り返り80点' },
+  { step: 3, score: 100, streak: 1, hrPoints: 10, label: '振返100点①' },
+  { step: 3, score: 100, streak: 2, hrPoints: 10, label: '振返100点②' },
+  { step: 4, count: 1, hrPoints: 10, label: '症例報告①' },
+  { step: 4, count: 2, hrPoints: 10, label: '症例報告②' }
 ];
 
 // デモ用スタッフデータ

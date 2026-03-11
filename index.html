@@ -847,30 +847,147 @@
         <h2 class="step-title">⚙️ 設定</h2>
       </div>
 
-      <div class="settings-section">
-        <div class="settings-user-info">
-          <div class="settings-label">ログイン中</div>
-          <div class="settings-value" id="settings-user-name">--</div>
-          <div class="settings-sub" id="settings-user-id">--</div>
+      <!-- アカウント設定 -->
+      <div class="settings-group">
+        <div class="settings-group-title">アカウント管理</div>
+        <div class="settings-card">
+          <div class="settings-item">
+            <div class="settings-item-label">
+              <span class="settings-item-title" id="settings-user-name">--</span>
+              <span class="settings-item-desc" id="settings-user-role">--</span>
+            </div>
+            <div class="settings-item-action">
+              <span style="font-size:0.8rem; color:var(--text-muted);" id="settings-user-id">--</span>
+            </div>
+          </div>
+          <div class="settings-item settings-item-clickable" onclick="Settings.openPasswordModal()">
+            <div class="settings-item-label">
+              <span class="settings-item-title">パスワード変更</span>
+              <span class="settings-item-desc">セキュリティ向上のため定期的な変更を推奨します</span>
+            </div>
+            <div class="settings-item-action">鍵 🔐</div>
+          </div>
         </div>
-
-        <div class="settings-divider"></div>
-
-        <button class="btn-danger-full" onclick="showDeleteConfirm()">
-          🗑️ アカウントを削除する
-        </button>
       </div>
 
-      <!-- 削除確認バナー -->
-      <div class="delete-confirm-banner" id="delete-confirm-banner">
-        <div class="delete-confirm-content">
-          <div class="delete-confirm-icon">⚠️</div>
-          <h3>本当に削除しますか？</h3>
-          <p>アカウントを削除すると、<strong>退職扱い</strong>となり、今後ログインできなくなります。<br>これまでの研修記録は管理者側で引き続き確認できます。</p>
-          <div class="delete-confirm-buttons">
-            <button class="btn-danger-full" onclick="executeDeleteAccount()">はい、削除します</button>
-            <button class="btn-cancel" onclick="hideDeleteConfirm()">いいえ、やめます</button>
+      <!-- アプリ設定 -->
+      <div class="settings-group">
+        <div class="settings-group-title">アプリ設定</div>
+        <div class="settings-card">
+          <div class="settings-item">
+            <div class="settings-item-label">
+              <span class="settings-item-title">ダークモード</span>
+              <span class="settings-item-desc">目に優しい暗い背景に切り替えます</span>
+            </div>
+            <div class="settings-item-action">
+              <label class="switch">
+                <input type="checkbox" id="theme-toggle" onchange="Settings.toggleTheme(this.checked)">
+                <span class="slider"></span>
+              </label>
+            </div>
           </div>
+          <div class="settings-item">
+            <div class="settings-item-label">
+              <span class="settings-item-title">通知リマインダー</span>
+              <span class="settings-item-desc">提出期限が近づくと通知します（β版）</span>
+            </div>
+            <div class="settings-item-action">
+              <label class="switch">
+                <input type="checkbox" checked disabled>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 管理者のみ表示 -->
+      <div id="settings-admin-only" class="settings-group" style="display: none;">
+        <div class="settings-group-title">管理者設定</div>
+        <div class="settings-card">
+          <div class="settings-item settings-item-clickable" onclick="showToast('データ出力機能は現在準備中です ⏳')">
+            <div class="settings-item-label">
+              <span class="settings-item-title">研修データ出力 (CSV)</span>
+              <span class="settings-item-desc">全スタッフの進捗状況を書き出します</span>
+            </div>
+            <div class="settings-item-action">📥</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- その他 -->
+      <div class="settings-group">
+        <div class="settings-group-title">その他</div>
+        <div class="settings-card">
+          <div class="settings-item settings-item-clickable" onclick="navigateTo('screen-help')">
+            <div class="settings-item-label">
+              <span class="settings-item-title">ヘルプ・FAQ</span>
+              <span class="settings-item-desc">困ったときはこちらを確認してください</span>
+            </div>
+            <div class="settings-item-action">？</div>
+          </div>
+          <div class="settings-item">
+            <div class="settings-item-label">
+              <span class="settings-item-title">バージョン</span>
+              <span class="settings-item-desc">1.4.2 (Stable)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 危険ゾーン -->
+      <div class="settings-group" style="margin-top: 40px;">
+        <div class="settings-group-title" style="color: var(--danger);">DANGER ZONE</div>
+        <div class="settings-card settings-danger-card">
+          <div class="settings-item">
+            <div class="settings-item-label">
+              <span class="settings-item-title" style="color:var(--danger)">アカウントを削除する</span>
+              <span class="settings-item-desc">退職時以外は実行しないでください</span>
+            </div>
+            <div class="settings-item-action">
+              <button class="btn-danger-link" onclick="showDeleteConfirm()">削除</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <button class="btn btn-secondary btn-full" style="margin-top: 20px" onclick="handleLogout()">🚪 ログアウト</button>
+    </div>
+
+    <!-- パスワード変更モーダル -->
+    <div class="modal-overlay" id="password-modal">
+      <div class="modal-content">
+        <button class="modal-close" onclick="Settings.closePasswordModal()">×</button>
+        <div class="modal-header">
+          <h3 class="modal-title">パスワード変更</h3>
+        </div>
+        <form class="pw-form" onsubmit="Settings.changePassword(event)">
+          <div class="form-group">
+            <label>現在のパスワード</label>
+            <input type="password" id="pw-current" required>
+          </div>
+          <div class="form-group">
+            <label>新しいパスワード</label>
+            <input type="password" id="pw-new" required minlength="6">
+          </div>
+          <div class="form-group">
+            <label>新しいパスワード（確認）</label>
+            <input type="password" id="pw-confirm" required minlength="6">
+          </div>
+          <button type="submit" class="btn btn-primary btn-full">更新する</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- 削除確認バナー -->
+    <div class="delete-confirm-banner" id="delete-confirm-banner">
+      <div class="delete-confirm-content">
+        <div class="delete-confirm-icon">⚠️</div>
+        <h3>本当に削除しますか？</h3>
+        <p>アカウントを削除すると、<strong>退職扱い</strong>となり、今後ログインできなくなります。<br>これまでの研修記録は管理者側で引き続き確認できます。</p>
+        <div class="delete-confirm-buttons">
+          <button class="btn-danger-full" onclick="executeDeleteAccount()">はい、削除します</button>
+          <button class="btn-cancel" onclick="hideDeleteConfirm()">いいえ、やめます</button>
         </div>
       </div>
     </div>
