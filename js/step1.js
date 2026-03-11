@@ -171,9 +171,9 @@ async function submitStep1(event) {
         char_count: notice.length,
         ai_judgement: aiResult.judgement,
         ai_comment: aiResult.short_comment,
-        good_points: aiResult.good_points,
-        missing_points: aiResult.missing_points,
-        improvement_example: aiResult.improvement_example
+        ai_good_points: aiResult.good_points,
+        ai_missing: aiResult.missing_points,
+        ai_improve: aiResult.improvement_example
     });
 
     btn.disabled = false;
