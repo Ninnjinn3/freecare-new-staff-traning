@@ -227,6 +227,8 @@ ${s3Text}
 ]`;
 
 
+    console.log(`Evaluating Monthly AI for Staff:${step1[0]?.staff_id || ' unknown'}. Records: S1:${step1.length}, S2:${step2.length}, S3:${step3.length}`);
+
     const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
     const response = await fetch(url, {
         method: 'POST',
@@ -237,14 +239,34 @@ ${s3Text}
         })
     });
 
-    if (!response.ok) throw new Error('API Error ' + response.statusText);
+    if (!response.ok) {
+        const err = await response.text();
+        console.error('Gemini API Error details:', err);
+        throw new Error('API Error ' + response.statusText);
+    }
     const json = await response.json();
     const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-    if (!text) throw new Error('No text returned from AI');
+    if (!text) {
+        console.error('Empty response from Gemini:', JSON.stringify(json));
+        throw new Error('No text returned from AI');
+    }
 
-    let cleanText = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-    let parsed = JSON.parse(cleanText);
-    return parsed;
+    try {
+        // もし JSON 以外のテキストが混ざっていた場合のための抽出
+        let cleanText = text.trim();
+        const jsonStart = cleanText.indexOf('[');
+        const jsonEnd = cleanText.lastIndexOf(']');
+        if (jsonStart !== -1 && jsonEnd !== -1) {
+            cleanText = cleanText.substring(jsonStart, jsonEnd + 1);
+        }
+        
+        let parsed = JSON.parse(cleanText);
+        console.log('AI Evaluation Success. Items count:', parsed.length);
+        return parsed;
+    } catch (e) {
+        console.error('JSON Parse Error. Raw text:', text);
+        throw e;
+    }
 }
 
 function calcScore(max, rate) {

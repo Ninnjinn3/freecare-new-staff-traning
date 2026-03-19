@@ -320,12 +320,23 @@ const Monthly = {
                         const isPass = r.ai_judgement === '○';
                         const bc = isPass ? 'var(--success)' : 'var(--danger)';
                         let adv = '';
+                        
+                        // 良い点の処理（JSONB/配列対応）
+                        let goodPointsText = '';
                         if (r.ai_good_points) {
-                            adv += '<div style="margin-top:10px;padding:8px;background:rgba(76,175,80,0.1);border-radius:6px;font-size:0.85rem;"><strong style="color:var(--success)">✅ 良い点：</strong><br>' + r.ai_good_points + '</div>';
+                            const gps = Array.isArray(r.ai_good_points) ? r.ai_good_points : [r.ai_good_points];
+                            goodPointsText = gps.filter(p => p).join('、');
                         }
-                        if (r.improvement_example) {
-                            adv += '<div style="margin-top:8px;padding:8px;background:' + (isPass ? 'rgba(33,150,243,0.08)' : '#ffebee') + ';border-radius:6px;font-size:0.85rem;"><strong style="color:' + (isPass ? 'var(--primary)' : '#b71c1c') + '">💡 ' + (isPass ? 'さらに良くするには：' : '改善アドバイス：') + '</strong><br>' + r.improvement_example + '</div>';
+                        if (goodPointsText) {
+                            adv += '<div style="margin-top:10px;padding:8px;background:rgba(76,175,80,0.1);border-radius:6px;font-size:0.85rem;"><strong style="color:var(--success)">✅ 良い点：</strong><br>' + goodPointsText + '</div>';
                         }
+                        
+                        // 改善アドバイスの処理（ai_improve カラムを使用）
+                        const improveText = r.ai_improve || r.improvement_example || '';
+                        if (improveText) {
+                            adv += '<div style="margin-top:8px;padding:8px;background:' + (isPass ? 'rgba(33,150,243,0.08)' : '#ffebee') + ';border-radius:6px;font-size:0.85rem;"><strong style="color:' + (isPass ? 'var(--primary)' : '#b71c1c') + '">💡 ' + (isPass ? 'さらに良くするには：' : '改善アドバイス：') + '</strong><br>' + improveText + '</div>';
+                        }
+                        
                         if (!adv) {
                             adv = '<p style="font-size:0.85rem;color:var(--text-muted);margin-top:8px;">AIのフィードバックはありません</p>';
                         }
