@@ -232,8 +232,8 @@ ${s3Text}
     console.log(`Evaluating Monthly AI for Staff:${step1[0]?.staff_id || ' unknown'}. Records: S1:${step1.length}, S2:${step2.length}, S3:${step3.length}`);
 
     // 月次要約は複雑なため、より高性能な gemini-1.5-pro を使用し、安全フィルターも緩和する
-    const modelName = 'gemini-1.5-pro'; 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+    const modelName = 'gemini-1.5-flash'; 
+    const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
     
     const requestBody = {
         contents: [{ parts: [{ text: prompt }] }],
