@@ -356,12 +356,13 @@ window.Admin = {
             <div class="card" style="padding: 1rem; border-left: 4px solid var(--primary); background: #fdfdfd;">
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
                     <div style="font-weight: bold; font-size: 0.95rem;">
-                        ${item.type === 'file' ? '📄' : '💬'} ${item.title}
+                        ${item.type === 'file' ? '📄' : (item.type === 'url' ? '🔗' : '💬')} ${item.title}
                     </div>
                     <button onclick="Admin.deleteKnowledge('${item.id}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size: 0.8rem;">削除</button>
                 </div>
+                ${item.url ? `<div style="margin-bottom: 0.5rem;"><a href="${item.url}" target="_blank" style="font-size: 0.8rem; color: var(--primary); text-decoration: underline; word-break: break-all;">${item.url}</a></div>` : ''}
                 <div style="font-size: 0.85rem; color: var(--text-main); line-height: 1.5; max-height: 100px; overflow-y: auto;">
-                    ${item.content.replace(/\n/g, '<br>')}
+                    ${(item.content || '').replace(/\n/g, '<br>')}
                 </div>
                 <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; text-align: right;">
                     習得日: ${new Date(item.created_at).toLocaleDateString()}
@@ -393,12 +394,13 @@ window.Admin = {
     async learnAI() {
         const text = document.getElementById('ai-study-text')?.value?.trim();
         const fileInput = document.getElementById('ai-study-file');
+        const urlInput = document.getElementById('ai-study-url');
         const titleInput = document.getElementById('ai-study-title');
         let title = titleInput?.value?.trim();
         const btn = document.getElementById('btn-ai-learn');
 
-        if (!text && (!fileInput || !fileInput.files[0])) {
-            showToast('メッセージを入力するか、ファイルを選択してください');
+        if (!text && (!fileInput || !fileInput.files[0]) && (!urlInput || !urlInput.value.trim())) {
+            showToast('メッセージを入力するか、ファイル/URLを指定してください');
             return;
         }
 
@@ -410,6 +412,14 @@ window.Admin = {
                 title: title || 'カスタム指示',
                 content: text
             };
+
+            // URLがある場合
+            if (urlInput && urlInput.value.trim()) {
+                payload.type = 'url';
+                payload.url = urlInput.value.trim();
+                payload.title = title || 'Google Drive / 外部URL';
+                payload.content = text; // メッセージもあれば添える
+            }
 
             // ファイルがある場合
             if (fileInput && fileInput.files[0]) {
@@ -433,6 +443,7 @@ window.Admin = {
                 // クリア
                 if (document.getElementById('ai-study-text')) document.getElementById('ai-study-text').value = '';
                 if (fileInput) fileInput.value = '';
+                if (urlInput) urlInput.value = '';
                 if (titleInput) titleInput.value = '';
                 this.loadKnowledgeList();
             } else {

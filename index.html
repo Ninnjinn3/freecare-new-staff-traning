@@ -1307,12 +1307,19 @@
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
               <div>
                 <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: bold;">PDF / Word ファイル</label>
-                <input type="file" id="ai-study-file" accept=".pdf,.doc,.docx,.txt" style="font-size: 0.8rem;">
+                <input type="file" id="ai-study-file" accept=".pdf,.doc,.docx,.txt" style="font-size: 0.8rem; width: 100%;">
               </div>
               <div>
-                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: bold;">タイトル（管理用）</label>
-                <input type="text" id="ai-study-title" placeholder="ファイル名や見出し" style="width: 100%; padding: 0.4rem; border: 1px solid var(--border); border-radius: 4px;">
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: bold;">Google Drive / 外部リンク</label>
+                <input type="url" id="ai-study-url" placeholder="https://drive.google.com/..." 
+                  style="width: 100%; padding: 0.4rem; border: 1px solid var(--border); border-radius: 4px; font-size: 0.8rem;">
               </div>
+            </div>
+
+            <!-- タイトル -->
+            <div>
+              <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: bold;">タイトル（管理用）</label>
+              <input type="text" id="ai-study-title" placeholder="ファイル名や見出し" style="width: 100%; padding: 0.4rem; border: 1px solid var(--border); border-radius: 4px;">
             </div>
 
             <button class="btn-primary" onclick="Admin.learnAI()" id="btn-ai-learn" style="padding: 0.8rem;">AIに学習させる 🤖</button>
@@ -1411,11 +1418,11 @@
   <script src="js/step2.js?v=5"></script>
   <script src="js/step3.js?v=5"></script>
   <script src="js/step4.js?v=5"></script>
-  <script src="js/monthly.js?v=22"></script>
-  <script src="js/admin-core.js?v=22"></script>
-  <script src="js/exec.js?v=22"></script>
-  <script src="js/api.js?v=22"></script>
-  <script src="js/app.js?v=22"></script>
+  <script src="js/monthly.js?v=25"></script>
+  <script src="js/admin-core.js?v=25"></script>
+  <script src="js/exec.js?v=25"></script>
+  <script src="js/api.js?v=25"></script>
+  <script src="js/app.js?v=25"></script>
 </body>
 
 </html>

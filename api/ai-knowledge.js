@@ -26,7 +26,7 @@ export default async function handler(req, res) {
         }
 
         if (req.method === 'POST') {
-            const { action, type, title, content, fileBase64, mimeType, id } = req.body;
+            const { action, type, title, content, url, fileBase64, mimeType, id } = req.body;
 
             if (action === 'delete') {
                 const { error } = await supabase.from('ai_knowledge').delete().eq('id', id);
@@ -41,11 +41,16 @@ export default async function handler(req, res) {
                 finalContent = await extractTextWithGemini(apiKey, fileBase64, mimeType);
             }
 
+            // URLの場合、コンテンツの先頭にURLを付与（AIが参照できるように）
+            if (type === 'url' && url) {
+                finalContent = `[参照先URL: ${url}]\n\n${content || ''}`;
+            }
+
             const { data, error } = await supabase.from('ai_knowledge').insert({
                 type,
                 title,
                 content: finalContent,
-                metadata: { mimeType, fileName: title }
+                metadata: { mimeType, fileName: title, url: url }
             }).select();
 
             if (error) throw error;
