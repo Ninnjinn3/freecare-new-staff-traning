@@ -463,7 +463,11 @@ function showAdminTab(tab) {
     document.querySelectorAll('.admin-section').forEach(s => s.hidden = true);
 
     document.getElementById(`admin-tab-${tab}`).classList.add('active');
-    document.getElementById(`admin-${tab}-section`).hidden = false;
+    const section = document.getElementById(`admin-${tab}-section`);
+    if (section) {
+        section.hidden = false;
+        section.style.display = 'block';
+    }
 
     // 初回データ取得
     if ((tab === 'progress' || tab === 'alerts') && !Admin.data) {
