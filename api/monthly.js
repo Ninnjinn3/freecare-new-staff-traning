@@ -229,36 +229,50 @@ ${s3Text}
 
     console.log(`Evaluating Monthly AI for Staff:${step1[0]?.staff_id || ' unknown'}. Records: S1:${step1.length}, S2:${step2.length}, S3:${step3.length}`);
 
-    // judge.js で成功している gemini-2.5-flash (または 1.5/2.0) に合わせる
-    const modelName = 'gemini-1.5-flash'; // 念のため安定版の1.5-flashを使用
+    // 月次要約は複雑なため、より高性能な gemini-1.5-pro を使用し、安全フィルターも緩和する
+    const modelName = 'gemini-1.5-pro'; 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
     
+    const requestBody = {
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: { 
+            temperature: 0.2, 
+            responseMimeType: "application/json" 
+        },
+        safetySettings: [
+            { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
+            { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
+            { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
+            { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
+        ]
+    };
+
     const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { 
-                temperature: 0.2, 
-                responseMimeType: "application/json" 
-            }
-        })
+        body: JSON.stringify(requestBody)
     });
 
     if (!response.ok) {
-        const err = await response.text();
-        console.error('Gemini API Error details:', err);
-        throw new Error('API Error ' + response.statusText);
+        const errText = await response.text();
+        console.error('Gemini API Error details:', errText);
+        let errorMsg = `API Error ${response.status}`;
+        try {
+            const errJson = JSON.parse(errText);
+            errorMsg = errJson.error?.message || errorMsg;
+        } catch(e) {}
+        throw new Error(errorMsg);
     }
     const json = await response.json();
     const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!text) {
-        console.error('Empty response from Gemini:', JSON.stringify(json));
-        throw new Error('No text returned from AI');
+        // 安全フィルター等で空で返ってきた場合のチェック
+        const finishReason = json.candidates?.[0]?.finishReason;
+        console.error('Empty response from Gemini. Reason:', finishReason, 'Full JSON:', JSON.stringify(json));
+        throw new Error(`AI回答が空です（理由: ${finishReason || '不明'}）`);
     }
 
     try {
-        // もし JSON 以外のテキストが混ざっていた場合のための抽出
         let cleanText = text.trim();
         const jsonStart = cleanText.indexOf('{');
         const jsonEnd = cleanText.lastIndexOf('}');
