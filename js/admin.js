@@ -3,7 +3,7 @@
    スタッフ進捗一覧・アラート・スタッフ管理
    ============================================ */
 
-const Admin = {
+window.Admin = {
     data: null,
 
     // ===== ダッシュボード読み込み =====
@@ -458,7 +458,7 @@ const Admin = {
 };
 
 // タブ切替
-function showAdminTab(tab) {
+window.showAdminTab = function(tab) {
     document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
     document.querySelectorAll('.admin-section').forEach(s => s.hidden = true);
 
@@ -481,7 +481,7 @@ function showAdminTab(tab) {
     }
 }
 
-function setText(id, text) {
+window.setText = function(id, text) {
     const el = document.getElementById(id);
     if (el) el.textContent = text;
 }
