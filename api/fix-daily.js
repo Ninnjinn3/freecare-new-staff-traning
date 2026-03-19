@@ -15,12 +15,13 @@ export default async function handler(req, res) {
 
     try {
         // 1) 修正が必要な（ai_improve が空、または ai_comment が不完全な）レコードを取得
+        // 全期間の記録を対象にする（year_month フィルターを解除）
         const { data: records, error } = await supabase
             .from('daily_step1')
             .select('*')
             .eq('staff_id', staff_id)
-            .eq('year_month', year_month || new Date().toISOString().slice(0, 7))
-            .or('ai_improve.eq."",ai_improve.is.null,ai_comment.ilike.%{%'); // AIのJSONがそのままなものも含める
+            .or('ai_improve.eq."",ai_improve.is.null,ai_comment.ilike.%AIのフィードバックはありません%,ai_comment.ilike.%{%') 
+            .order('date', { ascending: false });
 
         if (error) throw error;
         if (!records || records.length === 0) {

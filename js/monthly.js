@@ -176,26 +176,34 @@ const Monthly = {
 
     // 月次評価画面描画
     async render() {
-        // ローディング表示
-        const scoreEl = document.getElementById('monthly-score');
-        if (scoreEl) scoreEl.textContent = '...';
+        // ローディング開始（既存のコンテンツがある場合は非表示にしない）
+        const breakdownEl = document.getElementById('score-breakdown');
+        const hasExistingContent = breakdownEl && breakdownEl.innerHTML.trim() !== '';
+
+        if (!hasExistingContent) {
+            const scoreEl = document.getElementById('monthly-score');
+            if (scoreEl) scoreEl.textContent = '...';
+            // 初回読み込み時のみ古いUI要素を隠す
+            this.toggleLegacyUI(false);
+        } else {
+            // すでに内容がある場合は、右上に小さなインジケータを出す等の工夫（今回はシンプルに既存維持）
+            const btn = document.querySelector('button[onclick="repairPastRecords()"]');
+            if (btn) btn.textContent = '🛠️ 更新中...';
+        }
 
         // API経由で実データを取得
         const report = await this.calculate();
+        
+        // インジケータを戻す
+        const repairBtn = document.querySelector('button[onclick="repairPastRecords()"]');
+        if (repairBtn) repairBtn.textContent = '🛠️ 記録を修復';
+
         if (!report) return;
 
-        // 古いUI要素（リングチャート等）を非表示化
-        const scoreRingCont = document.querySelector('.score-ring-container');
-        if (scoreRingCont) scoreRingCont.style.display = 'none';
-        const levelBadge = document.getElementById('monthly-level');
-        if (levelBadge) levelBadge.style.display = 'none';
-        const stats = document.querySelector('.monthly-stats');
-        if (stats) stats.style.display = 'none';
-        const actionsList = document.getElementById('monthly-actions');
-        if (actionsList && actionsList.parentElement) actionsList.parentElement.style.display = 'none';
+        // レガシーUI（古いDuolingo風パーツ）を隠す
+        this.toggleLegacyUI(false);
 
         // 評価シートUIの生成
-        const breakdown = document.getElementById('score-breakdown');
         let html = `
         <div class="eval-sheet">
             <div class="eval-title">サービスの質向上委員会<br>スコアリング評価シート</div>
@@ -304,7 +312,10 @@ const Monthly = {
 
         html += `</div>`; // end eval-sheet
 
-        breakdown.innerHTML = html;
+        const bRoot = document.getElementById('score-breakdown');
+         if (bRoot) {
+             bRoot.innerHTML = html;
+         }
 
         // 毎日の記録一覧を描画
         const recordsList = document.getElementById('monthly-records-list');
@@ -358,6 +369,26 @@ const Monthly = {
                 recordsList.innerHTML = '<p class="empty-state">記録の取得に失敗しました</p>';
             }
         }
+    },
+ 
+    // レガシーUI（Duolingo風パーツ）の表示切り替え
+    toggleLegacyUI(show) {
+        const elements = [
+            '.score-ring-container',
+            '#monthly-level',
+            '.monthly-stats',
+            '#monthly-actions'
+        ];
+        elements.forEach(selector => {
+            const el = selector.startsWith('#') ? document.getElementById(selector.slice(1)) : document.querySelector(selector);
+            if (el) {
+                if (selector === '#monthly-actions') {
+                    if (el.parentElement) el.parentElement.style.display = show ? 'block' : 'none';
+                } else {
+                    el.style.display = show ? 'flex' : 'none';
+                }
+            }
+        });
     }
 };
 
