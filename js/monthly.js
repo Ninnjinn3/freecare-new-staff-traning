@@ -241,6 +241,15 @@ const Monthly = {
                 </tbody>
             </table>
         `;
+        
+        if (report.applied_knowledge && report.applied_knowledge.trim() !== "") {
+            html += `
+            <div class="eval-section" style="background: #f0effc; border: 1px solid #6c5ce7; border-radius: 8px; padding: 1rem; margin-bottom: 20px;">
+                <div style="color: #6c5ce7; font-weight: bold; font-size: 0.95rem; margin-bottom: 0.5rem;">📍 施設固有ルールの適用（今月の学習内容）</div>
+                <div style="font-size: 0.85rem; color: #4834d4; line-height: 1.6;">${report.applied_knowledge.replace(/\n/g, '<br>')}</div>
+            </div>
+            `;
+        }
 
         // 詳細セクションの生成
         report.breakdown.forEach(item => {

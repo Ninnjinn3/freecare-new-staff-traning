@@ -90,7 +90,8 @@ ${customRules || '特になし'}
   "short_comment": "200文字程度のまとめ",
   "good_points": ["良い点1", "良い点2"],
   "missing_points": ["不足点1"],
-  "improvement_example": "改善アドバイス"
+  "improvement_example": "改善アドバイス",
+  "applied_knowledge": "活用した施設固有ルールや知識があれば簡潔に記載（なければ空文字）"
 }
 `;
 

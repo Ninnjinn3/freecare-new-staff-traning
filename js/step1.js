@@ -244,5 +244,17 @@ function showResult(result) {
         improveSection.hidden = true;
     }
 
+    // Applied Knowledge
+    const knowledgeSection = document.getElementById('result-knowledge');
+    const knowledgeText = document.getElementById('result-knowledge-text');
+    if (result.applied_knowledge && result.applied_knowledge.trim() !== "") {
+        if (knowledgeSection && knowledgeText) {
+            knowledgeSection.hidden = false;
+            knowledgeText.textContent = result.applied_knowledge;
+        }
+    } else {
+        if (knowledgeSection) knowledgeSection.hidden = true;
+    }
+
     navigateTo('screen-result');
 }

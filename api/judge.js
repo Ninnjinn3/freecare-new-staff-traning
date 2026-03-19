@@ -107,7 +107,10 @@ function parseGeminiResponse(text) {
         if (start !== -1 && end !== -1) {
             cleanText = cleanText.substring(start, end + 1);
         }
-        return JSON.parse(cleanText);
+        const result = JSON.parse(cleanText);
+        // デフォルト値の保証
+        if (!result.applied_knowledge) result.applied_knowledge = "";
+        return result;
     } catch (e) {
         console.error('JSON Parse Error in judge.js:', e, 'Raw text:', text);
         return {
@@ -208,7 +211,8 @@ const JSON_FORMAT = `
   "short_comment": "総評（1〜2文）",
   "good_points": ["良い点1", "良い点2"],
   "missing_points": ["不足点1", "不足点2"],
-  "improvement_example": "【添削方式】入力文をコピーし足りない部分を【】で補った文"
+  "improvement_example": "【添削方式】入力文をコピーし足りない部分を【】で補った文",
+  "applied_knowledge": "今回の判定に活用した施設固有ルールや知識があれば簡潔に記載（なければ空文字）"
 }
 `;
 
