@@ -316,24 +316,29 @@ const Monthly = {
                 const records = await API.getStep1Records(user.staff_id, cycle.yearMonth);
 
                 if (records && records.length > 0) {
-                    recordsList.innerHTML = records.map(r => `
-                        <div class="card" style="margin-bottom: var(--space-sm); padding: var(--space-sm); border-left: 4px solid ${r.ai_judgement === '○' ? 'var(--success)' : 'var(--danger)'}">
-                            <div style="display:flex; justify-content:space-between; margin-bottom: 8px;">
-                                <strong style="font-size:1.1rem">${r.date} <span style="font-weight:normal; font-size:0.9rem; color:var(--text-muted)">- ${r.target_name}さん</span></strong>
-                                <span class="stat-circle" style="font-weight:bold; color: ${r.ai_judgement === '○' ? 'var(--success)' : 'var(--danger)'}">${r.ai_judgement}</span>
-                            </div>
-                            <div style="font-size: 0.95rem; color: var(--text); margin-bottom: 8px; line-height: 1.5;">
-                                ${r.notice_text}
-                            </div>
-                            ${r.ai_judgement === '×' && r.improvement_example ? `
-                            <div style="font-size: 0.85rem; color: #b71c1c; background: #ffebee; padding: 8px; border-radius: 4px; margin-top: 8px;">
-                                <strong>💡 AIからの改善アドバイス:</strong><br>
-                                ${r.improvement_example}
-                            </div>
-                            ` : ''
+                    recordsList.innerHTML = records.map((r, idx) => {
+                        const isPass = r.ai_judgement === '○';
+                        const bc = isPass ? 'var(--success)' : 'var(--danger)';
+                        let adv = '';
+                        if (r.ai_good_points) {
+                            adv += '<div style="margin-top:10px;padding:8px;background:rgba(76,175,80,0.1);border-radius:6px;font-size:0.85rem;"><strong style="color:var(--success)">✅ 良い点：</strong><br>' + r.ai_good_points + '</div>';
                         }
-                        </div>
-    `).join('');
+                        if (r.improvement_example) {
+                            adv += '<div style="margin-top:8px;padding:8px;background:' + (isPass ? 'rgba(33,150,243,0.08)' : '#ffebee') + ';border-radius:6px;font-size:0.85rem;"><strong style="color:' + (isPass ? 'var(--primary)' : '#b71c1c') + '">💡 ' + (isPass ? 'さらに良くするには：' : '改善アドバイス：') + '</strong><br>' + r.improvement_example + '</div>';
+                        }
+                        if (!adv) {
+                            adv = '<p style="font-size:0.85rem;color:var(--text-muted);margin-top:8px;">AIのフィードバックはありません</p>';
+                        }
+                        return '<div class="card" style="margin-bottom:var(--space-sm);padding:0;border-left:4px solid ' + bc + ';overflow:hidden;">' +
+                            '<div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-sm);cursor:pointer;" onclick="var d=this.nextElementSibling;d.hidden=!d.hidden;this.querySelector(\'.rtg\').textContent=d.hidden?\'▼\':\'▲\';">' +
+                            '<div><strong style="font-size:1rem">' + r.date + '</strong><span style="font-weight:normal;font-size:0.9rem;color:var(--text-muted)"> - ' + r.target_name + 'さん</span></div>' +
+                            '<div style="display:flex;align-items:center;gap:12px;"><span style="font-weight:bold;color:' + bc + ';font-size:1.1rem">' + (r.ai_judgement||'－') + '</span><span class="rtg" style="font-size:0.8rem;color:var(--text-muted)">▼</span></div>' +
+                            '</div>' +
+                            '<div hidden style="padding:0 var(--space-sm) var(--space-sm);border-top:1px solid var(--border);">' +
+                            '<p style="font-size:0.95rem;color:var(--text);line-height:1.6;margin-top:10px;white-space:pre-wrap;">' + r.notice_text + '</p>' +
+                            adv +
+                            '</div></div>';
+                    }).join('');
                 } else {
                     recordsList.innerHTML = '<p class="empty-state">今月の記録はありません</p>';
                 }
