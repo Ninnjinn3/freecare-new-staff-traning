@@ -49,19 +49,21 @@ export default async function handler(req, res) {
         let breakdown = [];
         let isAIEvaluated = false;
 
+        let aiError = null;
         if (GEMINI_API_KEY) {
             try {
                 breakdown = await evaluateMonthlyWithAI(step1Records, step2Records, step3Records, GEMINI_API_KEY);
-                if (breakdown && breakdown.length === 6) {
+                if (breakdown && (breakdown.length === 6 || breakdown.length >= 6)) {
                     isAIEvaluated = true;
                 }
             } catch (e) {
                 console.error('AI evaluation failed, falling back to basic calculation:', e);
+                aiError = e.message;
             }
         }
 
         if (!isAIEvaluated || !breakdown || breakdown.length < 6) {
-            breakdown = calculateBreakdown(step1Records, step2Records, step3Records, !!GEMINI_API_KEY);
+            breakdown = calculateBreakdown(step1Records, step2Records, step3Records, aiError || (GEMINI_API_KEY ? "AI回答が不完全です" : false));
         }
 
         const score = breakdown.reduce((sum, b) => sum + (b.score || 0), 0);

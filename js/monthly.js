@@ -360,3 +360,49 @@ const Monthly = {
         }
     }
 };
+
+// 履歴の修復（AIの解析失敗等で空欄になっているものを再判定）
+async function repairPastRecords() {
+    const user = Auth.getUser();
+    const cycle = DB.getCurrentCycle();
+    if (!user) return;
+
+    if (!confirm('AIの解析に失敗した過去の記録を再抽出しますか？\n（数分かかる場合があります）')) return;
+
+    // ボタンの状態を変更
+    const btn = document.querySelector('button[onclick="repairPastRecords()"]');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '🛠️ 修復中...';
+    }
+
+    try {
+        const resp = await fetch('/api/fix-daily', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                staff_id: user.staff_id,
+                year_month: cycle.yearMonth
+            })
+        });
+
+        if (resp.ok) {
+            const result = await resp.json();
+            alert(`修復完了: ${result.count}件の記録を再評価しました。`);
+            // 画画を再描画
+            if (typeof Monthly !== 'undefined' && Monthly.render) {
+                Monthly.render();
+            }
+        } else {
+            throw new Error('修復に失敗しました');
+        }
+    } catch (e) {
+        alert('エラー: ' + e.message);
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '🛠️ 記録を修復';
+        }
+    }
+}
+
