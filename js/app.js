@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    app.js — メインアプリケーション制御
    SPA画面遷移・初期化・ホーム画面ロジック
    ============================================ */
@@ -539,27 +539,8 @@ function loadVideoTasks() {
     }).join('');
 }
 
-// ===== 管理者画面 =====
-async function initAdmin() {
-    await Admin.load();
-    await renderAdminTargetList();
-}
 
-function showAdminTab(tab) {
-    // タブ切替
-    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-    document.getElementById(`admin-tab-${tab}`).classList.add('active');
-
-    // セクション切替
-    document.getElementById('admin-targets-section').hidden = (tab !== 'targets');
-    document.getElementById('admin-staff-section').hidden = (tab !== 'staff');
-    document.getElementById('admin-progress-section').hidden = (tab !== 'progress');
-    document.getElementById('admin-alerts-section').hidden = (tab !== 'alerts');
-
-    if (tab === 'staff') {
-        Admin.loadStaffList();
-    }
-}
+// 管理者画面の初期化プロパティなどは admin.js に集約
 
 async function renderAdminTargetList() {
     const list = document.getElementById('admin-target-list');
