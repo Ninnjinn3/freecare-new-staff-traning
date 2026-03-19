@@ -205,37 +205,46 @@ ${s3Text}
   - 例(STEP1の場合): "「なんか調子悪そう」という気付きが1件ありました。" や "「田中様がフロアであいさつを呼びかけたが視線を合わせず返答もなかった」という観察が記録されていました。"
   - 絶対に空文字または(記載なし)を出力しないでください。記録がない場合でも「この月はSTEP○に記録が見当たりませんでした。」と記載すること。
 - 採点基準のcheckは、スタッフの実際のレベルに最も近い基準1つだけtrueにしてください。
-- JSON配列形式で出力してください。マークダウン装飾は含めず、生のJSON文字列のみを出力すること。
-[
-  {
-    "name": "気づいた変化の明確さ",
-    "key": "change_clarity",
-    "max": 15,
-    "score": 10,
-    "judgement": "適切な気付きができています",
-    "userContent": "（スタッフの実際の記録を引用・要約した文章を必ず記入すること）",
-    "goodPoints": ["良い点1", "良い点2"],
-    "badPoints": ["不十分な点"],
-    "improvement": "次満点を取るための具体的な助言",
-    "criteriaRef": [
-      { "pts": 15, "desc": "「いつ、どこで、誰が、どうなった」＋普段との違いが明確に記載されている", "check": false },
-      { "pts": 10, "desc": "変化は書かれているが「普段との違い」など一要素が欠けている", "check": true },
-      { "pts": 5, "desc": "漠然とした変化のみ。（例：様子がおかしい）", "check": false }
-    ]
-  },
-  ...（全6項目、順番通りに出力してください）
-]`;
+- JSON形式で、以下のキーを持つオブジェクトとして出力してください。
+{
+  "breakdown": [
+    {
+      "name": "気づいた変化の明確さ",
+      "key": "change_clarity",
+      "max": 15,
+      "score": 10,
+      "judgement": "適切な気付きができています",
+      "userContent": "（スタッフの実際の記録を引用・要約した文章を必ず記入すること）",
+      "goodPoints": ["良い点1", "良い点2"],
+      "badPoints": ["不十分な点"],
+      "improvement": "次満点を取るための具体的な助言",
+      "criteriaRef": [
+        { "pts": 15, "desc": "「いつ、どこで、誰が、どうなった」＋普段との違いが明確に記載されている", "check": false },
+        { "pts": 10, "desc": "変化は書かれているが「普段との違い」など一要素がけている", "check": true },
+        { "pts": 5, "desc": "漠然とした変化のみ。（例：様子がおかしい）", "check": false }
+      ]
+    },
+    ...（全6項目を配列に含める）
+  ]
+}
+マークダウン装飾は含めず、純粋なJSON文字列のみを出力すること。`;
 
 
     console.log(`Evaluating Monthly AI for Staff:${step1[0]?.staff_id || ' unknown'}. Records: S1:${step1.length}, S2:${step2.length}, S3:${step3.length}`);
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // judge.js で成功している gemini-2.5-flash (または 1.5/2.0) に合わせる
+    const modelName = 'gemini-1.5-flash'; // 念のため安定版の1.5-flashを使用
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+    
     const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            contents: [{ role: 'user', parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.1, responseMimeType: "application/json" }
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { 
+                temperature: 0.2, 
+                responseMimeType: "application/json" 
+            }
         })
     });
 
@@ -254,15 +263,23 @@ ${s3Text}
     try {
         // もし JSON 以外のテキストが混ざっていた場合のための抽出
         let cleanText = text.trim();
-        const jsonStart = cleanText.indexOf('[');
-        const jsonEnd = cleanText.lastIndexOf(']');
+        const jsonStart = cleanText.indexOf('{');
+        const jsonEnd = cleanText.lastIndexOf('}');
         if (jsonStart !== -1 && jsonEnd !== -1) {
             cleanText = cleanText.substring(jsonStart, jsonEnd + 1);
         }
         
-        let parsed = JSON.parse(cleanText);
-        console.log('AI Evaluation Success. Items count:', parsed.length);
-        return parsed;
+        let parsedData = JSON.parse(cleanText);
+        // オブジェクトの中に breakdown 配列があるか確認
+        let breakdown = parsedData.breakdown || (Array.isArray(parsedData) ? parsedData : null);
+        
+        if (!breakdown || !Array.isArray(breakdown)) {
+            console.error('Invalid breakdown structure:', parsedData);
+            throw new Error('Invalid breakdown structure returned from AI');
+        }
+
+        console.log('AI Evaluation Success. Items count:', breakdown.length);
+        return breakdown;
     } catch (e) {
         console.error('JSON Parse Error. Raw text:', text);
         throw e;
