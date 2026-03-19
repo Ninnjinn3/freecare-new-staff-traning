@@ -231,12 +231,29 @@ ${s3Text}
 
     console.log(`Evaluating Monthly AI for Staff:${step1[0]?.staff_id || ' unknown'}. Records: S1:${step1.length}, S2:${step2.length}, S3:${step3.length}`);
 
+    // 施設固有の知識を取得
+    const { data: knowledge } = await supabase
+        .from('ai_knowledge')
+        .select('title, content');
+    const customRules = (knowledge || []).map(k => `【${k.title}】: ${k.content}`).join('\n');
+
     // 月次要約は複雑なため、より高性能な gemini-1.5-pro を使用し、安全フィルターも緩和する
     const modelName = 'gemini-1.5-flash'; 
     const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
     
+    // プロンプトに知識を注入
+    const fullPrompt = `
+以下の指示と施設固有のルールに従って、スタッフの1ヶ月の活動を要約し、多角的な視点から評価（採点）を行ってください。
+
+【施設固有の特別ルール・知識】:
+${customRules || '特になし'}
+
+----------------------------
+${prompt}
+`;
+
     const requestBody = {
-        contents: [{ parts: [{ text: prompt }] }],
+        contents: [{ parts: [{ text: fullPrompt }] }],
         generationConfig: { 
             temperature: 0.2, 
             responseMimeType: "application/json" 

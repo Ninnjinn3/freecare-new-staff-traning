@@ -34,7 +34,7 @@ export default async function handler(req, res) {
         for (const record of records) {
             try {
                 // Gemini APIを呼び出して再評価
-                const aiResult = await callGeminiJudge(apiKey, record);
+                const aiResult = await callGeminiJudge(apiKey, record, supabase);
                 
                 // DB更新
                 const { error: updateError } = await supabase
@@ -65,9 +65,20 @@ export default async function handler(req, res) {
     }
 }
 
-async function callGeminiJudge(apiKey, record) {
+async function callGeminiJudge(apiKey, record, supabase) {
+    // 施設固有の知識を取得
+    const { data: knowledge } = await supabase
+        .from('ai_knowledge')
+        .select('title, content');
+    const customRules = (knowledge || []).map(k => `【${k.title}】: ${k.content}`).join('\n');
+
     const prompt = `
-以下の介護記録を評価し、JSON形式で返してください。
+以下の指示と施設固有のルールに従って、介護記録を評価し、JSON形式で返してください。
+
+【施設固有の特別ルール・知識】:
+${customRules || '特になし'}
+
+----------------------------
 【日付】: ${record.date}
 【対象者】: ${record.target_name || '未指定'}
 【気付き】: ${record.notice_text}

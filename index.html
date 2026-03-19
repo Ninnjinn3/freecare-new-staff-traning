@@ -1287,21 +1287,42 @@
         </div>
       </div>
  
-      <!-- AI学習セクション（プレースホルダー） -->
+      <!-- AI学習セクション -->
       <div class="admin-section" id="admin-ai-study-section" hidden>
-        <div class="admin-section-title">🤖 AI学習・設定（開発中）</div>
-        <div class="card" style="padding: 2.5rem 1.5rem; text-align: center; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-          <div style="font-size: 3rem; margin-bottom: 1rem;">🏗️</div>
-          <h3 style="margin-bottom: 1rem; color: var(--primary);">AIカスタマイズ機能（後日実装）</h3>
-          <p style="font-size: 0.95rem; line-height: 1.6; color: var(--text-main); margin-bottom: 2rem;">
-            ルールブックや過去の優良事例（PDF/テキスト）をアップロードすることで、<br>
-            施設独自の採点基準やアドバイスをAIに直接学習させることが可能になります。
-          </p>
-          <div style="border: 2px dashed var(--border); padding: 3rem 1.5rem; border-radius: 12px; background: #fafafa; color: var(--text-muted); margin-bottom: 1.5rem;">
-            <p style="font-weight: bold; margin-bottom: 0.5rem;">ここにファイルをドロップして追加</p>
-            <p style="font-size: 0.8rem;">(対応予定: PDF, Word, CSV, TXT)</p>
+        <div class="admin-section-title">🤖 AI学習・設定</div>
+        
+        <!-- 学習入力エリア -->
+        <div class="card" style="padding: 1.5rem; margin-bottom: 1.5rem; background: white; border-radius: 12px;">
+          <h4 style="margin-bottom: 0.8rem; color: var(--primary);">新規知識の追加</h4>
+          
+          <div style="display: flex; flex-direction: column; gap: 1rem;">
+            <!-- テキスト入力 -->
+            <div>
+              <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: bold;">メッセージ・ルール入力</label>
+              <textarea id="ai-study-text" placeholder="例：『Aさんは〇〇が苦手なので、評価時には配慮をしてください』『新しい採点基準：〇〇が含まれない場合は不合格とする』" 
+                style="width: 100%; height: 100px; padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem;"></textarea>
+            </div>
+
+            <!-- ファイル・リンク -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: bold;">PDF / Word ファイル</label>
+                <input type="file" id="ai-study-file" accept=".pdf,.doc,.docx,.txt" style="font-size: 0.8rem;">
+              </div>
+              <div>
+                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: bold;">タイトル（管理用）</label>
+                <input type="text" id="ai-study-title" placeholder="ファイル名や見出し" style="width: 100%; padding: 0.4rem; border: 1px solid var(--border); border-radius: 4px;">
+              </div>
+            </div>
+
+            <button class="btn-primary" onclick="Admin.learnAI()" id="btn-ai-learn" style="padding: 0.8rem;">AIに学習させる 🤖</button>
           </div>
-          <p style="color: var(--text-muted); font-size: 0.85rem;">※この機能は現在開発中です。実装までしばらくお待ちください。</p>
+        </div>
+
+        <!-- 学習済みナレッジ一覧 -->
+        <div class="admin-section-title">📚 現在の学習済み知識</div>
+        <div id="ai-knowledge-list" class="knowledge-list" style="display: flex; flex-direction: column; gap: 0.8rem;">
+          <p class="empty-state">読み込み中...</p>
         </div>
       </div>
     </div>

@@ -323,6 +323,137 @@ const Admin = {
         } catch (e) {
             showToast('削除に失敗しました: ' + e.message);
         }
+    },
+
+    // ===== AI学習・ナレッジ管理 =====
+
+    // ナレッジ一覧取得
+    async loadKnowledgeList() {
+        const list = document.getElementById('ai-knowledge-list');
+        if (!list) return;
+
+        try {
+            const resp = await fetch('/api/ai-knowledge');
+            if (resp.ok) {
+                const data = await resp.json();
+                this.renderKnowledgeList(data);
+            }
+        } catch (e) {
+            console.error('ナレッジ取得失敗:', e);
+        }
+    },
+
+    renderKnowledgeList(items) {
+        const list = document.getElementById('ai-knowledge-list');
+        if (!list) return;
+
+        if (items.length === 0) {
+            list.innerHTML = '<p class="empty-state">学習済みの知識はありません</p>';
+            return;
+        }
+
+        list.innerHTML = items.map(item => `
+            <div class="card" style="padding: 1rem; border-left: 4px solid var(--primary); background: #fdfdfd;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
+                    <div style="font-weight: bold; font-size: 0.95rem;">
+                        ${item.type === 'file' ? '📄' : '💬'} ${item.title}
+                    </div>
+                    <button onclick="Admin.deleteKnowledge('${item.id}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size: 0.8rem;">削除</button>
+                </div>
+                <div style="font-size: 0.85rem; color: var(--text-main); line-height: 1.5; max-height: 100px; overflow-y: auto;">
+                    ${item.content.replace(/\n/g, '<br>')}
+                </div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; text-align: right;">
+                    習得日: ${new Date(item.created_at).toLocaleDateString()}
+                </div>
+            </div>
+        `).join('');
+    },
+
+    // 知識の削除
+    async deleteKnowledge(id) {
+        if (!confirm('この知識をAIの記憶から削除しますか？')) return;
+
+        try {
+            const resp = await fetch('/api/ai-knowledge', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'delete', id })
+            });
+            if (resp.ok) {
+                showToast('知識を削除しました');
+                this.loadKnowledgeList();
+            }
+        } catch (e) {
+            showToast('削除に失敗しました');
+        }
+    },
+
+    // AIに学習させる
+    async learnAI() {
+        const text = document.getElementById('ai-study-text')?.value?.trim();
+        const fileInput = document.getElementById('ai-study-file');
+        const titleInput = document.getElementById('ai-study-title');
+        let title = titleInput?.value?.trim();
+        const btn = document.getElementById('btn-ai-learn');
+
+        if (!text && (!fileInput || !fileInput.files[0])) {
+            showToast('メッセージを入力するか、ファイルを選択してください');
+            return;
+        }
+
+        if (btn) { btn.disabled = true; btn.textContent = 'AIが学習中... 🧠'; }
+
+        try {
+            let payload = {
+                type: 'text',
+                title: title || 'カスタム指示',
+                content: text
+            };
+
+            // ファイルがある場合
+            if (fileInput && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                const base64 = await this.toBase64(file);
+                payload.type = 'file';
+                payload.title = title || file.name;
+                payload.fileBase64 = base64.split(',')[1];
+                payload.mimeType = file.type || 'application/pdf';
+                payload.content = text; // メッセージもあれば添える
+            }
+
+            const resp = await fetch('/api/ai-knowledge', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            if (resp.ok) {
+                showToast('AIが新しい知識を習得しました！ ✨');
+                // クリア
+                if (document.getElementById('ai-study-text')) document.getElementById('ai-study-text').value = '';
+                if (fileInput) fileInput.value = '';
+                if (titleInput) titleInput.value = '';
+                this.loadKnowledgeList();
+            } else {
+                const err = await resp.json();
+                showToast('学習に失敗しました: ' + (err.error || 'Unknown error'));
+            }
+        } catch (e) {
+            console.error(e);
+            showToast('エラーが発生しました: ' + e.message);
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = 'AIに学習させる 🤖'; }
+        }
+    },
+
+    toBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
     }
 };
 
@@ -340,6 +471,9 @@ function showAdminTab(tab) {
     }
     if (tab === 'staff') {
         Admin.loadStaffList();
+    }
+    if (tab === 'ai-study') {
+        Admin.loadKnowledgeList();
     }
 }
 

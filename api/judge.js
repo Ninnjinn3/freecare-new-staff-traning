@@ -41,7 +41,13 @@ export default async function handler(req, res) {
     }
 
     try {
-        const geminiResponse = await callGemini(GEMINI_API_KEY, prompt);
+        // 施設固有の知識を取得
+        const { data: knowledge } = await supabase
+            .from('ai_knowledge')
+            .select('title, content');
+        const customRules = (knowledge || []).map(k => `【${k.title}】: ${k.content}`).join('\n');
+
+        const geminiResponse = await callGemini(GEMINI_API_KEY, prompt, customRules);
         const result = parseGeminiResponse(geminiResponse);
         return res.status(200).json(result);
     } catch (error) {
@@ -51,14 +57,24 @@ export default async function handler(req, res) {
 }
 
 // ===== Gemini API 呼び出し =====
-async function callGemini(apiKey, prompt) {
+async function callGemini(apiKey, prompt, customRules = '') {
     const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+
+    const fullPrompt = `
+以下の指示に従って、介護記録の採点を行ってください。
+
+【施設固有の特別ルール・知識】:
+${customRules || '特になし'}
+
+----------------------------
+${prompt}
+`;
 
     const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
+            contents: [{ parts: [{ text: fullPrompt }] }],
             generationConfig: {
                 temperature: 0.3,
                 maxOutputTokens: 1024,
