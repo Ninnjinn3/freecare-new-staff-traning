@@ -60,8 +60,8 @@ export default async function handler(req, res) {
             }
         }
 
-        if (!isAIEvaluated || !breakdown || breakdown.length === 0) {
-            breakdown = calculateBreakdown(step1Records, step2Records, step3Records);
+        if (!isAIEvaluated || !breakdown || breakdown.length < 6) {
+            breakdown = calculateBreakdown(step1Records, step2Records, step3Records, !!GEMINI_API_KEY);
         }
 
         const score = breakdown.reduce((sum, b) => sum + (b.score || 0), 0);
@@ -140,25 +140,22 @@ async function supabaseUpsert(url, key, table, record) {
 }
 
 // ===== 6観点スコア算出 =====
-function calculateBreakdown(step1, step2, step3) {
+function calculateBreakdown(step1, step2, step3, isError = false) {
     const allRecords = [...step1, ...step2, ...step3];
-
-    // ai_good_points / ai_missing からスコア推定
-    // ○の記録は高スコア、×は低スコアとして按分
     const passRate = allRecords.filter(r => r.ai_judgement === '○').length / Math.max(allRecords.length, 1);
-
-    // STEP別の重み: STEP1は観点1重視、STEP2は観点2-3重視、STEP3は観点5-6重視
     const step1Rate = step1.length > 0 ? step1.filter(r => r.ai_judgement === '○').length / step1.length : 0;
     const step2Rate = step2.length > 0 ? step2.filter(r => r.ai_judgement === '○').length / step2.length : 0;
     const step3Rate = step3.length > 0 ? step3.filter(r => r.ai_judgement === '○').length / step3.length : 0;
 
+    const errorNote = isError ? "【注意】AI要約の生成に失敗しました。基本的なスコアのみ表示しています。" : "（AI評価が有効になっていません）";
+
     return [
-        { name: '気づいた変化の明確さ', key: 'change_clarity', score: calcScore(15, step1Rate || passRate), max: 15 },
-        { name: '要因の多層的分析', key: 'multi_factor', score: calcScore(20, step2Rate || passRate), max: 20 },
-        { name: '要因の関連性と優先順位', key: 'priority', score: calcScore(15, step2Rate || passRate), max: 15 },
-        { name: '検証計画の論理性', key: 'verification', score: calcScore(15, avg(step2Rate, step3Rate) || passRate), max: 15 },
-        { name: '支援計画の実効性', key: 'support_plan', score: calcScore(20, step3Rate || passRate), max: 20 },
-        { name: '振り返り・修正力', key: 'reflection', score: calcScore(15, step3Rate || passRate), max: 15 }
+        { name: '気づいた変化の明確さ', key: 'change_clarity', score: calcScore(15, step1Rate || passRate), max: 15, userContent: errorNote },
+        { name: '要因の多層的分析', key: 'multi_factor', score: calcScore(20, step2Rate || passRate), max: 20, userContent: errorNote },
+        { name: '要因の関連性と優先順位', key: 'priority', score: calcScore(15, step2Rate || passRate), max: 15, userContent: errorNote },
+        { name: '検証計画の論理性', key: 'verification', score: calcScore(15, avg(step2Rate, step3Rate) || passRate), max: 15, userContent: errorNote },
+        { name: '支援計画の実効性', key: 'support_plan', score: calcScore(20, step3Rate || passRate), max: 20, userContent: errorNote },
+        { name: '振り返り・修正力', key: 'reflection', score: calcScore(15, step3Rate || passRate), max: 15, userContent: errorNote }
     ];
 }
 

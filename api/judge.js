@@ -84,16 +84,23 @@ async function callGemini(apiKey, prompt) {
 // ===== レスポンスパース =====
 function parseGeminiResponse(text) {
     try {
-        const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-        return JSON.parse(cleaned);
+        let cleanText = text.trim();
+        // ```json や ``` などの装飾を除去し、純粋な { } の中身を抽出
+        const start = cleanText.indexOf('{');
+        const end = cleanText.lastIndexOf('}');
+        if (start !== -1 && end !== -1) {
+            cleanText = cleanText.substring(start, end + 1);
+        }
+        return JSON.parse(cleanText);
     } catch (e) {
+        console.error('JSON Parse Error in judge.js:', e, 'Raw text:', text);
         return {
-            judgement: '○',
-            score: 60,
-            short_comment: text.substring(0, 200),
+            judgement: '☓',
+            score: 0,
+            short_comment: 'AI評価の解析に失敗しました。記録内容を具体的に修正して再送してください。',
             good_points: [],
-            missing_points: [],
-            improvement_example: ''
+            missing_points: ['エラー: AI解析失敗'],
+            improvement_example: '申し訳ありません。AIの回答形式が正しくなかったため、再度送信をお試しください。内容に「いつ・どこで・誰が・どう変化したか」をより詳しく含めると成功しやすくなります。'
         };
     }
 }
