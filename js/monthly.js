@@ -196,6 +196,9 @@ const Monthly = {
 
         try {
             const user = Auth.getUser();
+
+            // レガシーUIを隠す（確実に最初に実行）
+            this.toggleLegacyUI(false);
             
             // 自動再評価の判定
             const autoForce = localStorage.getItem(`needs_reeval_${currentTarget}`) === 'true';
@@ -214,7 +217,11 @@ const Monthly = {
             await this.renderDailyRecords(currentTarget);
 
             // 再評価（自動または手動）が必要な場合
-            const needsReeval = !reportData || (Array.isArray(reportData) && reportData.some(b => !b.comment || b.comment.includes('AIのフィードバックはありません')));
+            const needsReeval = !reportData || (Array.isArray(reportData) && reportData.some(b => 
+                !b.comment || 
+                b.comment.includes('AIのフィードバックはありません') || 
+                b.comment.includes('AI要約の生成に失敗しました')
+            ));
 
             if (needsReeval || force) {
                 // UI上のインジケータ表示
@@ -234,9 +241,6 @@ const Monthly = {
                     showToast('最新の記録に基づき、AI評価を更新しました ✨');
                 }
             }
-            
-            // レガシーUIを隠す
-            this.toggleLegacyUI(false);
 
         } catch (e) {
             console.error('Monthly Render Error:', e);

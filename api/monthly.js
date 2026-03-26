@@ -239,8 +239,8 @@ ${s3Text}
     const knowledge = await supabaseSelect(SUPABASE_URL, SUPABASE_KEY, 'ai_knowledge', 'select=title,content');
     const customRules = (knowledge || []).map(k => `【${k.title}】: ${k.content}`).join('\n');
 
-    // 月次要約は複雑なため、より高性能な gemini-1.5-pro を使用し、安全フィルターも緩和する
-    const modelName = 'gemini-1.5-flash'; 
+    // 月次要約は複雑であり、詳細なフィードバックを生成するため、より高性能な gemini-1.5-pro を使用する
+    const modelName = 'gemini-1.5-pro'; 
     const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
     
     // プロンプトに知識を注入
