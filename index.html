@@ -406,6 +406,13 @@
         <h2 class="step-title">月次評価</h2>
         <button class="btn-link" onclick="repairPastRecords()" style="font-size:0.8rem; margin-left:auto; color:var(--text-muted);">🛠️ 記録を修復</button>
       </div>
+
+      <!-- 月次選択ドロップダウン -->
+      <div style="margin-bottom: var(--space-md);">
+        <select id="monthly-month-select" onchange="Monthly.render(this.value)"
+          style="width:100%; padding:10px 12px; border-radius:var(--radius); border:2px solid var(--border); font-size:1rem; background:var(--surface); color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+        </select>
+      </div>
       <div class="monthly-report" id="monthly-report">
         <div class="score-ring-container">
           <div class="score-ring" id="score-ring">
