@@ -12,12 +12,42 @@ const Step2 = {
         dateInput.value = new Date().toISOString().split('T')[0];
         this.populateTargets();
 
+        // 提出期限チェックのセットアップ
+        this.setupDateValidation();
+
         // 仮説カードを3つ初期表示
         hypothesisCount = 0;
         document.getElementById('step2-hypotheses-container').innerHTML = '';
         for (let i = 0; i < MIN_HYPOTHESES; i++) {
             addHypothesisCard();
         }
+    },
+
+    setupDateValidation() {
+        const dateInput = document.getElementById('step2-date');
+        const submitBtn = document.getElementById('step2-submit-btn');
+        const checkDeadline = () => {
+            if (!dateInput.value) return;
+            const cycle = DB.getCurrentCycle(new Date(), dateInput.value);
+            const monthEl = document.getElementById('step2-month');
+            if (monthEl) monthEl.textContent = `${cycle.yearMonth} サイクル`;
+
+            if (cycle.isPastDeadline) {
+                if(submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = '提出期限を過ぎています';
+                    submitBtn.style.opacity = '0.5';
+                }
+            } else {
+                if(submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = '送信して判定を受ける';
+                    submitBtn.style.opacity = '1';
+                }
+            }
+        };
+        dateInput.addEventListener('change', checkDeadline);
+        checkDeadline(); // 初期実行
     },
 
     populateTargets() {
@@ -173,6 +203,17 @@ async function submitStep2(event) {
     const btn = document.getElementById('step2-submit-btn');
     if (btn) { btn.disabled = true; btn.textContent = '判定中...'; }
 
+    // 期限チェック
+    const cycle = DB.getCurrentCycle(new Date(), date);
+    if (cycle.isPastDeadline) {
+        showToast('提出期限を過ぎているため保存できません。');
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '送信して判定を受ける';
+        }
+        return;
+    }
+
     // 仮説データ収集
     const hypotheses = [];
     const cards = document.querySelectorAll('.hypothesis-card');
@@ -211,7 +252,6 @@ async function submitStep2(event) {
     if (btn) { btn.disabled = false; btn.textContent = '送信して判定を受ける'; }
 
     // Supabaseにバックグラウンド保存
-    const cycle = DB.getCurrentCycle();
     API.saveStep2({
         staff_id: user.staff_id,
         target_id: target.id || null,

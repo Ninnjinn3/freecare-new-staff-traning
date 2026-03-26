@@ -60,41 +60,51 @@ const DB = {
     },
 
     // --- 月次サイクル算出 ---
-    getCurrentCycle(refDate = new Date()) {
-        const day = refDate.getDate();
-        const year = refDate.getFullYear();
-        const month = refDate.getMonth(); // 0-indexed
-
-        let cycleYear, cycleMonth;
-
-        if (day >= MONTHLY_CYCLE.inputStart) {
-            // 26日以降 → 翌月のサイクル
-            cycleMonth = month + 1;
-            cycleYear = year;
-            if (cycleMonth > 11) {
-                cycleMonth = 0;
-                cycleYear++;
-            }
-        } else {
-            // 1〜25日 → 当月のサイクル
-            cycleMonth = month;
-            cycleYear = year;
+    getCurrentCycle(refDate = new Date(), forceDate = null) {
+        let dateToUse = refDate;
+        
+        // forceDateが指定された場合（ユーザーがカレンダーで日付を選んだ場合）
+        // その日付自身の月をサイクルとする
+        if (forceDate) {
+            dateToUse = new Date(forceDate);
+        } else if (refDate.getDate() <= 10) {
+            // ホーム画面等のデフォルト動作:
+            // 10日までは「前月分の提出期限（今月10日）」が来ていないため、前月をアクティブサイクルとする
+            dateToUse = new Date(refDate);
+            dateToUse.setMonth(dateToUse.getMonth() - 1);
         }
+        
+        const year = dateToUse.getFullYear();
+        const month = dateToUse.getMonth(); // 0-indexed
 
+        const cycleYear = year;
+        const cycleMonth = month;
         const yearMonth = `${cycleYear}-${String(cycleMonth + 1).padStart(2, '0')}`;
-
-        // 入力期限日
-        const deadlineDate = new Date(cycleYear, cycleMonth, MONTHLY_CYCLE.inputEnd);
-        const daysLeft = Math.ceil((deadlineDate - refDate) / (1000 * 60 * 60 * 24));
-
+        
+        // 提出期限は「翌月の10日」
+        let deadlineYear = cycleYear;
+        let deadlineMonth = cycleMonth + 1;
+        if (deadlineMonth > 11) {
+            deadlineMonth = 0;
+            deadlineYear++;
+        }
+        const deadlineDate = new Date(deadlineYear, deadlineMonth, MONTHLY_CYCLE.inputEnd);
+        
+        // refDate（今日）からの残日数を計算（forceDateからではない点に注意）
+        const today = new Date(refDate);
+        today.setHours(0,0,0,0);
+        const daysLeft = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
+        const isPastDeadline = daysLeft < 0;
+        
         // フェーズ判定
-        let phase;
-        if (day >= MONTHLY_CYCLE.inputStart || day <= MONTHLY_CYCLE.inputEnd) {
-            phase = 'input';
-        } else if (day >= MONTHLY_CYCLE.evalStart && day <= MONTHLY_CYCLE.evalEnd) {
-            phase = 'evaluation';
-        } else {
-            phase = 'feedback';
+        let phase = 'input';
+        const currentDay = refDate.getDate();
+        if (isPastDeadline) {
+            if (currentDay >= MONTHLY_CYCLE.evalStart && currentDay <= MONTHLY_CYCLE.evalEnd) {
+                phase = 'evaluation';
+            } else {
+                phase = 'feedback';
+            }
         }
 
         return {
@@ -104,7 +114,8 @@ const DB = {
             phase,
             deadlineDate,
             daysLeft: Math.max(0, daysLeft),
-            deadlineStr: `${cycleMonth + 1}月${MONTHLY_CYCLE.inputEnd}日`
+            deadlineStr: `${deadlineMonth + 1}月${MONTHLY_CYCLE.inputEnd}日`,
+            isPastDeadline
         };
     },
 

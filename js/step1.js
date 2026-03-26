@@ -17,12 +17,36 @@ const Step1 = {
             document.getElementById('step1-char-count').textContent = textarea.value.length;
         });
 
-        // 月表示
-        const cycle = DB.getCurrentCycle();
-        document.getElementById('step1-month').textContent = `${cycle.yearMonth} サイクル`;
+        // 提出期限チェックのセットアップ
+        this.setupDateValidation();
 
         // 今月サマリ更新
         this.updateSummary();
+    },
+
+    setupDateValidation() {
+        const dateInput = document.getElementById('step1-date');
+        const submitBtn = document.getElementById('step1-submit-btn');
+        
+        const checkDeadline = () => {
+            if (!dateInput.value) return;
+            const cycle = DB.getCurrentCycle(new Date(), dateInput.value);
+            const monthEl = document.getElementById('step1-month');
+            if (monthEl) monthEl.textContent = `${cycle.yearMonth} サイクル`;
+
+            if (cycle.isPastDeadline) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = '提出期限を過ぎています';
+                submitBtn.style.opacity = '0.5';
+            } else {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '送信して判定を受ける';
+                submitBtn.style.opacity = '1';
+            }
+        };
+
+        dateInput.addEventListener('change', checkDeadline);
+        checkDeadline(); // 初期実行
     },
 
     populateTargets() {
@@ -160,7 +184,14 @@ async function submitStep1(event) {
     }
 
     // Supabaseに保存
-    const cycle = DB.getCurrentCycle();
+    const cycle = DB.getCurrentCycle(new Date(), date);
+    if (cycle.isPastDeadline) {
+        showToast('提出期限を過ぎているため保存できません。');
+        btn.disabled = false;
+        btn.textContent = '送信して判定を受ける';
+        return;
+    }
+
     const isSaved = await API.saveStep1({
         staff_id: user.staff_id,
         target_id: target.id || null,
