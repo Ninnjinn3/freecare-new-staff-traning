@@ -11,18 +11,22 @@ async function navigateTo(screenId) {
         target.classList.add('active');
         window.scrollTo(0, 0);
 
-        // 運営本部(exec) または 特定管理者(admin & dual_access) の場合、モード切り替えスイッチを表示
+        // 運営本部(exec) または 管理者(admin) の場合、モード切り替えスイッチを表示
         const user = Auth.getUser();
         const switcher = document.getElementById('exec-mode-switcher');
         if (switcher) {
             const isExec = user && user.role === 'exec';
-            const isDualAdmin = user && user.role === 'admin' && Auth.DUAL_ACCESS_ADMINS.includes(user.staff_id);
+            const isAdmin = user && user.role === 'admin';
             
-            if ((isExec || isDualAdmin) && screenId !== 'screen-role-select' && screenId !== 'screen-login') {
+            if ((isExec || isAdmin) && screenId !== 'screen-role-select' && screenId !== 'screen-login') {
                 switcher.style.display = 'flex';
-                // 本部ボタンの表示制御
+                // 本部ボタンの表示制御（運営本部のみ表示）
                 const execBtn = switcher.querySelector('button[title="運営本部画面"]');
                 if (execBtn) execBtn.style.display = isExec ? 'inline-block' : 'none';
+                
+                // 管理者ボタンの表示制御（管理者・運営本部が利用可能）
+                const adminBtn = switcher.querySelector('button[title="管理者画面"]');
+                if (adminBtn) adminBtn.style.display = (isExec || isAdmin) ? 'inline-block' : 'none';
             } else {
                 switcher.style.display = 'none';
             }
@@ -118,11 +122,23 @@ async function handleLogin(event) {
     if (result.success) {
         errorEl.hidden = true;
 
-        // ロール別にリダイレクト
-        switch (result.user.role) {
-            case 'staff': navigateTo('screen-home'); break;
-            case 'admin': navigateTo('screen-admin'); break;
-            case 'exec': navigateTo('screen-exec'); break;
+        // パワーユーザー（運営本部・管理者）の場合、選択したロールのボタンに応じた画面へ直接遷移
+         const isExec = result.user.role === 'exec' || result.user.staff_id.startsWith('1');
+        const isAdmin = result.user.role === 'admin' || Auth.DUAL_ACCESS_ADMINS.includes(result.user.staff_id);
+        const selected = Auth.getSelectedRole();
+        
+        if (isExec) {
+            // 本部は3つのどこへでも遷移可能
+            if (selected === 'staff') navigateTo('screen-home');
+            else if (selected === 'admin') navigateTo('screen-admin');
+            else navigateTo('screen-exec');
+        } else if (isAdmin) {
+            // 管理者は「新人」か「管理」のいずれか
+            if (selected === 'staff') navigateTo('screen-home');
+            else navigateTo('screen-admin');
+        } else {
+            // 一般スタッフはスタッフ画面へ
+            navigateTo('screen-home');
         }
     } else {
         errorEl.textContent = result.error;
