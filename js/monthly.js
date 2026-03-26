@@ -5,11 +5,11 @@
 
 const Monthly = {
     // 月次スコア算出（API経由で実データから算出）
-    async calculate() {
+    async calculate(targetMonthStr = null) {
         const user = Auth.getUser();
         if (!user) return null;
 
-        const cycle = DB.getCurrentCycle();
+        const cycle = targetMonthStr ? { yearMonth: targetMonthStr } : DB.getCurrentCycle();
 
         try {
             const resp = await fetch('/api/monthly', {
@@ -175,7 +175,7 @@ const Monthly = {
     },
 
     // 月次評価画面描画
-    async render() {
+    async render(targetMonthStr = null) {
         // ローディング開始（既存のコンテンツがある場合は非表示にしない）
         const breakdownEl = document.getElementById('score-breakdown');
         const hasExistingContent = breakdownEl && breakdownEl.innerHTML.trim() !== '';
@@ -186,13 +186,32 @@ const Monthly = {
             // 初回読み込み時のみ古いUI要素を隠す
             this.toggleLegacyUI(false);
         } else {
-            // すでに内容がある場合は、右上に小さなインジケータを出す等の工夫（今回はシンプルに既存維持）
+            // すでに内容がある場合は更新中インジケータ
             const btn = document.querySelector('button[onclick="repairPastRecords()"]');
             if (btn) btn.textContent = '🛠️ 更新中...';
         }
 
+        // 月選択ドロップダウンの初期化
+        const selectEl = document.getElementById('monthly-month-select');
+        const activeCycleStr = DB.getCurrentCycle().yearMonth;
+        const currentTarget = targetMonthStr || activeCycleStr;
+
+        if (selectEl && selectEl.options.length === 0) {
+            // 直近6ヶ月を生成
+            const [y, m] = activeCycleStr.split('-').map(Number);
+            for (let i = 0; i < 6; i++) {
+                let d = new Date(y, m - 1 - i, 1);
+                let ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+                let opt = document.createElement('option');
+                opt.value = ym;
+                opt.textContent = `${d.getFullYear()}年${d.getMonth() + 1}月度 評価`;
+                selectEl.appendChild(opt);
+            }
+            selectEl.value = currentTarget;
+        }
+
         // API経由で実データを取得
-        const report = await this.calculate();
+        const report = await this.calculate(currentTarget);
         
         // インジケータを戻す
         const repairBtn = document.querySelector('button[onclick="repairPastRecords()"]');
@@ -287,8 +306,10 @@ const Monthly = {
                     </tbody>
                 </table>
                 <div style="font-size:0.8rem; color:#666; margin-bottom:15px;">※上記は評価基準の一部抜粋です。完全な基準はヘルプやマニュアルをご参照ください。</div>
-                <div class="eval-box-title">【スタッフの記載内容】</div>
+                <div class="eval-box-title">【対象となるスタッフの記載内容】</div>
                 <div class="eval-content-text">${item.userContent ? item.userContent.replace(/\n/g, '<br>') : '（記載なし）'}</div>
+                <div class="eval-box-title" style="margin-top: 15px;">【AIからの総評】</div>
+                <div class="eval-content-text" style="color: #2d3436; font-weight: 500;">${item.comment ? item.comment.replace(/\n/g, '<br>') : (item.judgement || '（記載なし）')}</div>
             `;
 
             if (item.goodPoints && item.goodPoints.length > 0) {
@@ -332,8 +353,7 @@ const Monthly = {
             recordsList.innerHTML = '<p style="text-align:center;color:var(--text-muted)">読み込み中...</p>';
             try {
                 const user = Auth.getUser();
-                const cycle = DB.getCurrentCycle();
-                const records = await API.getStep1Records(user.staff_id, cycle.yearMonth);
+                const records = await API.getStep1Records(user.staff_id, currentTarget);
 
                 if (records && records.length > 0) {
                     recordsList.innerHTML = records.map((r, idx) => {

@@ -152,12 +152,12 @@ function calculateBreakdown(step1, step2, step3, isError = false) {
     const errorNote = isError ? "【注意】AI要約の生成に失敗しました。基本的なスコアのみ表示しています。" : "（AI評価が有効になっていません）";
 
     return [
-        { name: '気づいた変化の明確さ', key: 'change_clarity', score: calcScore(15, step1Rate || passRate), max: 15, userContent: errorNote },
-        { name: '要因の多層的分析', key: 'multi_factor', score: calcScore(20, step2Rate || passRate), max: 20, userContent: errorNote },
-        { name: '要因の関連性と優先順位', key: 'priority', score: calcScore(15, step2Rate || passRate), max: 15, userContent: errorNote },
-        { name: '検証計画の論理性', key: 'verification', score: calcScore(15, avg(step2Rate, step3Rate) || passRate), max: 15, userContent: errorNote },
-        { name: '支援計画の実効性', key: 'support_plan', score: calcScore(20, step3Rate || passRate), max: 20, userContent: errorNote },
-        { name: '振り返り・修正力', key: 'reflection', score: calcScore(15, step3Rate || passRate), max: 15, userContent: errorNote }
+        { name: '気づいた変化の明確さ', key: 'change_clarity', score: calcScore(15, step1Rate || passRate), max: 15, userContent: errorNote, comment: errorNote },
+        { name: '要因の多層的分析', key: 'multi_factor', score: calcScore(20, step2Rate || passRate), max: 20, userContent: errorNote, comment: errorNote },
+        { name: '要因の関連性と優先順位', key: 'priority', score: calcScore(15, step2Rate || passRate), max: 15, userContent: errorNote, comment: errorNote },
+        { name: '検証計画の論理性', key: 'verification', score: calcScore(15, avg(step2Rate, step3Rate) || passRate), max: 15, userContent: errorNote, comment: errorNote },
+        { name: '支援計画の実効性', key: 'support_plan', score: calcScore(20, step3Rate || passRate), max: 20, userContent: errorNote, comment: errorNote },
+        { name: '振り返り・修正力', key: 'reflection', score: calcScore(15, step3Rate || passRate), max: 15, userContent: errorNote, comment: errorNote }
     ];
 }
 
@@ -203,6 +203,7 @@ ${s3Text}
 - "userContent" フィールドには、その観点の評価根拠となったスタッフの記録テキストから、最もよく（もしくは課題として）当てはまる具体的な記録内容を1〜3文で必ず引用・要約してください。
   - 例(STEP1の場合): "「なんか調子悪そう」という気付きが1件ありました。" や "「田中様がフロアであいさつを呼びかけたが視線を合わせず返答もなかった」という観察が記録されていました。"
   - 絶対に空文字または(記載なし)を出力しないでください。記録がない場合でも「この月はSTEP○に記録が見当たりませんでした。」と記載すること。
+- "comment" フィールドには、対象スタッフの記録を的確に評価する「具体的な総評」を3〜4文の長めの文章で記述してください。対象者の強み、改善の伸びしろなどを含め、説得力を持たせてください。
 - 採点基準のcheckは、スタッフの実際のレベルに最も近い基準1つだけtrueにしてください。
 - JSON形式で、以下のキーを持つオブジェクトとして出力してください。
 {
@@ -213,13 +214,14 @@ ${s3Text}
       "max": 15,
       "score": 10,
       "judgement": "適切な気付きができています",
+      "comment": "（ここに当該観点のスタッフのパフォーマンス、強みや課題について、3〜4文程度の詳細な総評を記述してください）",
       "userContent": "（スタッフの実際の記録を引用・要約した文章を必ず記入すること）",
       "goodPoints": ["良い点1", "良い点2"],
       "badPoints": ["不十分な点"],
       "improvement": "次満点を取るための具体的な助言",
       "criteriaRef": [
         { "pts": 15, "desc": "「いつ、どこで、誰が、どうなった」＋普段との違いが明確に記載されている", "check": false },
-        { "pts": 10, "desc": "変化は書かれているが「普段との違い」など一要素がけている", "check": true },
+        { "pts": 10, "desc": "変化は書かれているが「普段との違い」など一要素が欠けている", "check": true },
         { "pts": 5, "desc": "漠然とした変化のみ。（例：様子がおかしい）", "check": false }
       ]
     },
