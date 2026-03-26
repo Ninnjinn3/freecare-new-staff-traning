@@ -37,6 +37,8 @@ const API = {
                 .single();
 
             if (staff) {
+                // IDの1桁目が1なら運営本部扱い
+                if (staffId.startsWith('1')) staff.role = 'exec';
                 Auth.currentUser = staff;
                 sessionStorage.setItem('fc_current_user', JSON.stringify(staff));
                 return { success: true, user: staff };
@@ -53,6 +55,8 @@ const API = {
             .maybeSingle();
 
         if (staffFromDb) {
+            // IDの1桁目が1なら運営本部扱い
+            if (staffId.startsWith('1')) staffFromDb.role = 'exec';
             Auth.currentUser = staffFromDb;
             sessionStorage.setItem('fc_current_user', JSON.stringify(staffFromDb));
             return { success: true, user: staffFromDb };

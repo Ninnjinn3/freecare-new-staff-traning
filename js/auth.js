@@ -26,10 +26,15 @@ const Auth = {
             return { success: false, error: 'IDまたはパスワードが正しくありません' };
         }
 
-        // ロールチェック
-        const selectedRole = this.getSelectedRole();
-        if (selectedRole !== staff.role) {
-            return { success: false, error: `この職員IDは「${this._roleLabel(staff.role)}」のアカウントです` };
+        // ロールチェック (IDの1桁目が1なら運営本部扱い＆全てパス)
+        const isPowerUser = staffId.startsWith('1');
+        if (isPowerUser) {
+            staff.role = 'exec';
+        } else {
+            const selectedRole = this.getSelectedRole();
+            if (selectedRole !== staff.role) {
+                return { success: false, error: `この職員IDは「${this._roleLabel(staff.role)}」のアカウントです` };
+            }
         }
 
         this.currentUser = staff;

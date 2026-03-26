@@ -10,6 +10,13 @@ async function navigateTo(screenId) {
     if (target) {
         target.classList.add('active');
         window.scrollTo(0, 0);
+
+        // 運営本部(exec)ロールの場合、モード切り替えスイッチを表示
+        const user = Auth.getUser();
+        const switcher = document.getElementById('exec-mode-switcher');
+        if (switcher) {
+            switcher.style.display = (user && user.role === 'exec' && screenId !== 'screen-role-select' && screenId !== 'screen-login') ? 'flex' : 'none';
+        }
     }
 
     // 画面ごとの初期化
@@ -138,6 +145,8 @@ function togglePasswordVisibility() {
 function handleLogout() {
     Auth.logout();
     document.getElementById('login-form').reset();
+    const switcher = document.getElementById('exec-mode-switcher');
+    if (switcher) switcher.style.display = 'none';
     navigateTo('screen-role-select');
 }
 

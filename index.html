@@ -1461,6 +1461,16 @@
     </div>
   </section>
 
+  <!-- 運営本部用 モード切り替えスイッチ -->
+  <div id="exec-mode-switcher" class="exec-mode-switcher" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); 
+       background:rgba(255,255,255,0.95); border:1px solid var(--border); border-radius:30px; padding:6px 15px; 
+       box-shadow:0 10px 25px rgba(0,0,0,0.15); z-index:9999; backdrop-filter:blur(8px); gap:12px; align-items:center;">
+    <span style="font-size:0.75rem; color:#666; font-weight:bold; margin-right:-4px;">モード:</span>
+    <button onclick="navigateTo('screen-home')" style="border:none; background:none; font-size:1.1rem; cursor:pointer;" title="新人研修利用者画面">👤</button>
+    <button onclick="navigateTo('screen-admin')" style="border:none; background:none; font-size:1.1rem; cursor:pointer;" title="管理者画面">👔</button>
+    <button onclick="navigateTo('screen-exec')" style="border:none; background:none; font-size:1.1rem; cursor:pointer;" title="運営本部画面">🏢</button>
+  </div>
+
   <!-- Scripts -->
   <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
