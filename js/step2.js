@@ -120,6 +120,50 @@ const Step2 = {
         }
 
         return result;
+    },
+
+    // 編集モード起動
+    enterEditMode(record) {
+        document.getElementById('step2-date').value = record.date;
+        document.getElementById('step2-change').value = record.change_noticed;
+        document.getElementById('step2-priority-reason').value = record.priority_reason;
+        document.getElementById('step2-expected-change').value = record.expected_change;
+
+        // 既存のカードをクリア
+        hypothesisCount = 0;
+        document.getElementById('step2-hypotheses-container').innerHTML = '';
+
+        // カードを追加して値をセット
+        if (record.hypotheses_json && Array.isArray(record.hypotheses_json)) {
+            record.hypotheses_json.forEach((h, i) => {
+                addHypothesisCard();
+                const num = i + 1;
+                const card = document.getElementById(`hypothesis-${num}`);
+                if (card) {
+                    const why1 = card.querySelector(`[name="h${num}_why1"]`);
+                    const why2 = card.querySelector(`[name="h${num}_why2"]`);
+                    const why3 = card.querySelector(`[name="h${num}_why3"]`);
+                    const support = card.querySelector(`[name="h${num}_support"]`);
+                    const priority = card.querySelector(`[name="h${num}_priority"]`);
+                    
+                    if (why1) why1.value = h.why1 || '';
+                    if (why2) why2.value = h.why2 || '';
+                    if (why3) why3.value = h.why3 || '';
+                    if (support) support.value = h.support || '';
+                    if (priority) priority.value = h.priority || '';
+                }
+            });
+        }
+        
+        // 対象者セット
+        if (typeof setStepSelectedTarget === 'function') {
+            setStepSelectedTarget('step2', { id: record.target_id, name: record.target_name });
+        }
+
+        const submitBtn = document.getElementById('step2-submit-btn');
+        if (submitBtn) submitBtn.textContent = '修正して再判定を受ける';
+        
+        showToast('編集モード：内容を修正してください');
     }
 };
 
@@ -200,12 +244,18 @@ async function submitStep2(event) {
         return;
     }
 
+    // 編集中のレコードID取得
+    const editingId = window.editingRecord?.step === 2 ? window.editingRecord.id : null;
+
     const btn = document.getElementById('step2-submit-btn');
-    if (btn) { btn.disabled = true; btn.textContent = '判定中...'; }
+    if (btn) { 
+        btn.disabled = true; 
+        btn.textContent = editingId ? '更新中...' : 'AI判定中...'; 
+    }
 
     // 期限チェック
     const cycle = DB.getCurrentCycle(new Date(), date);
-    if (cycle.isPastDeadline) {
+    if (cycle.isPastDeadline && !editingId) {
         showToast('提出期限を過ぎているため保存できません。');
         if (btn) {
             btn.disabled = false;
@@ -251,8 +301,8 @@ async function submitStep2(event) {
     showResult(aiResult);
     if (btn) { btn.disabled = false; btn.textContent = '送信して判定を受ける'; }
 
-    // Supabaseにバックグラウンド保存
-    API.saveStep2({
+    // 保存用データ準備
+    const payload = {
         staff_id: user.staff_id,
         target_id: target.id || null,
         target_name: target.name,
@@ -264,8 +314,19 @@ async function submitStep2(event) {
         expected_change: expectedChange,
         ai_judgement: aiResult.judgement,
         ai_comment: aiResult.short_comment
-    }).then(() => showToast('記録を保存しました ✅'))
-        .catch(e => { console.error(e); showToast('保存に失敗しました'); });
+    };
+
+    let savePromise;
+    if (editingId) {
+        savePromise = API.updateStep2(editingId, payload).then(() => {
+            showToast('記録を更新しました ✅');
+            window.editingRecord = null; // 編集完了
+        });
+    } else {
+        savePromise = API.saveStep2(payload).then(() => showToast('記録を保存しました ✅'));
+    }
+
+    savePromise.catch(e => { console.error(e); showToast('保存に失敗しました'); });
 
     // フォームリセットは合格時のみ
     if (aiResult.judgement === '○') {

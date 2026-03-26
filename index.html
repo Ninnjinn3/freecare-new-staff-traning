@@ -408,10 +408,14 @@
       </div>
 
       <!-- 月次選択ドロップダウン -->
-      <div style="margin-bottom: var(--space-md);">
+      <div style="margin-bottom: var(--space-md); display: flex; gap: 10px; align-items: center;">
         <select id="monthly-month-select" onchange="Monthly.render(this.value)"
-          style="width:100%; padding:10px 12px; border-radius:var(--radius); border:2px solid var(--border); font-size:1rem; background:var(--surface); color:var(--text); box-shadow:0 1px 3px rgba(0,0,0,0.05);">
+          style="flex: 1; padding: 10px 12px; border-radius: var(--radius); border: 2px solid var(--border); font-size: 1rem; background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
         </select>
+        <button id="monthly-reeval-btn" class="btn-secondary" onclick="Monthly.forceReevaluate()" 
+          style="padding: 10px 15px; font-size: 0.9rem; border-radius: var(--radius); white-space: nowrap; background: #f0effc; color: #6c5ce7; border: 1px solid #6c5ce7;">
+          🪄 再評価
+        </button>
       </div>
       <div class="monthly-report" id="monthly-report">
         <div class="score-ring-container">

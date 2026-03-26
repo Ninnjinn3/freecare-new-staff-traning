@@ -176,293 +176,306 @@ const Monthly = {
 
     // 月次評価画面描画
     async render(targetMonthStr = null) {
-        // ローディング開始（既存のコンテンツがある場合は非表示にしない）
-        const breakdownEl = document.getElementById('score-breakdown');
-        const hasExistingContent = breakdownEl && breakdownEl.innerHTML.trim() !== '';
-
-        if (!hasExistingContent) {
-            const scoreEl = document.getElementById('monthly-score');
-            if (scoreEl) scoreEl.textContent = '...';
-            // 初回読み込み時のみ古いUI要素を隠す
-            this.toggleLegacyUI(false);
-        } else {
-            // すでに内容がある場合は更新中インジケータ
-            const btn = document.querySelector('button[onclick="repairPastRecords()"]');
-            if (btn) btn.textContent = '🛠️ 更新中...';
-        }
-
         // 月選択ドロップダウンの初期化
         const selectEl = document.getElementById('monthly-month-select');
         const activeCycleStr = DB.getCurrentCycle().yearMonth;
         const currentTarget = targetMonthStr || activeCycleStr;
 
         if (selectEl && selectEl.options.length === 0) {
-            // 直近6ヶ月を生成
-            const [y, m] = activeCycleStr.split('-').map(Number);
-            for (let i = 0; i < 6; i++) {
-                let d = new Date(y, m - 1 - i, 1);
-                let ym = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-                let opt = document.createElement('option');
-                opt.value = ym;
-                opt.textContent = `${d.getFullYear()}年${d.getMonth() + 1}月度 評価`;
-                selectEl.appendChild(opt);
-            }
+            const options = DB.getCycleOptions(6);
+            selectEl.innerHTML = options.map(opt => `<option value="${opt.value}" ${opt.value === currentTarget ? 'selected' : ''}>${opt.label}</option>`).join('');
             selectEl.value = currentTarget;
         }
 
-        // API経由で実データを取得
-        const report = await this.calculate(currentTarget);
-        
-        // インジケータを戻す
-        const repairBtn = document.querySelector('button[onclick="repairPastRecords()"]');
-        if (repairBtn) repairBtn.textContent = '🛠️ 記録を修復';
+        const container = document.getElementById('monthly-report');
+        if (!container) return;
 
-        if (!report) return;
+        // ローディング表示
+        container.style.opacity = '0.5';
+        container.style.pointerEvents = 'none';
 
-        // レガシーUI（古いDuolingo風パーツ）を隠す
-        this.toggleLegacyUI(false);
+        try {
+            const user = Auth.getUser();
+            const force = window.forceReevaluating === true;
+            if (force) window.forceReevaluating = false;
 
-        // 評価シートUIの生成
-        let html = `
-        <div class="eval-sheet">
-            <div class="eval-title">サービスの質向上委員会<br>スコアリング評価シート</div>
+            // キャッシュ取得
+            const data = await API.getMonthlyEvaluation(user.staff_id, currentTarget, force);
             
+            let reportData = data ? data.breakdown_json : null;
+            let score = data ? data.score : 0;
+            let passed = data ? data.passed : false;
+
+            // データがない、または詳細(comment)が不足している場合は再計算
+            const needsReeval = !reportData || (Array.isArray(reportData) && reportData.some(b => !b.comment || b.comment.includes('AIのフィードバックはありません')));
+
+            if (needsReeval || force) {
+                console.log('Fetching new monthly evaluation...');
+                const newData = await Monthly.calculate(currentTarget);
+                if (newData) {
+                    reportData = newData.breakdown;
+                    score = newData.score;
+                    passed = newData.passed;
+                }
+            }
+            
+            // 描画実行
+            this.renderEvaluation(reportData, score, passed);
+            await this.renderDailyRecords(currentTarget);
+            
+            // レガシーUIを隠す
+            this.toggleLegacyUI(false);
+
+        } catch (e) {
+            console.error('Monthly Render Error:', e);
+            showToast('データの取得に失敗しました');
+        } finally {
+            container.style.opacity = '1';
+            container.style.pointerEvents = 'auto';
+        }
+    },
+
+    // 6項目の評価描画
+    renderEvaluation(breakdown, totalScore, passed) {
+        if (!breakdown || !Array.isArray(breakdown)) return;
+
+        const scoreEl = document.getElementById('monthly-score');
+        const ring = document.getElementById('score-ring');
+        const statusEl = document.getElementById('monthly-pass-status');
+
+        if (scoreEl) scoreEl.textContent = totalScore;
+        if (ring) {
+            ring.style.borderColor = passed ? 'var(--success)' : 'var(--danger)';
+            ring.style.boxShadow = passed ? '0 0 20px rgba(76, 175, 80, 0.2)' : '0 0 20px rgba(244, 67, 54, 0.2)';
+        }
+        if (statusEl) {
+            statusEl.textContent = passed ? '合格' : '不合格';
+            statusEl.style.color = passed ? 'var(--success)' : 'var(--danger)';
+        }
+
+        const bRoot = document.getElementById('score-breakdown');
+        if (!bRoot) return;
+
+        let html = '<div class="evaluation-sheet">';
+        
+        // サマリーテーブルを追加（以前の形式を継承）
+        html += `
+            <div class="eval-title">サービスの質向上委員会<br>スコアリング評価シート</div>
             <table class="eval-table">
                 <thead>
-                    <tr>
-                        <th>項目</th>
-                        <th>配点</th>
-                        <th>得点</th>
-                        <th>判定</th>
-                    </tr>
+                    <tr><th>項目</th><th>配点</th><th>得点</th><th>判定</th></tr>
                 </thead>
                 <tbody>
         `;
-
-        report.breakdown.forEach(item => {
+        breakdown.forEach(item => {
             html += `
-                    <tr>
-                        <td style="font-size: 0.8rem;">${item.name}</td>
-                        <td style="text-align:center;">${item.max}点</td>
-                        <td style="text-align:center; font-weight:bold; color: ${item.score === item.max ? 'var(--success)' : 'var(--danger)'}">${item.score}点</td>
-                        <td style="font-size: 0.8rem;">${item.judgement || '-'}</td>
-                    </tr>
+                <tr>
+                    <td>${item.name}</td>
+                    <td class="center">${item.max}点</td>
+                    <td class="center" style="font-weight:bold; color: ${item.score === item.max ? 'var(--success)' : 'var(--danger)'}">${item.score}点</td>
+                    <td>${item.judgement || '-'}</td>
+                </tr>
             `;
         });
-
         html += `
-                    <tr class="total-row">
-                        <td>合計</td>
-                        <td style="text-align:center;">100点</td>
-                        <td style="text-align:center;">${report.score}点</td>
-                        <td style="font-size: 0.85rem;">${report.level ? report.level.name : ''}</td>
-                    </tr>
-                </tbody>
-            </table>
+                <tr class="total-row">
+                    <td>合計</td>
+                    <td class="center">100点</td>
+                    <td class="center">${totalScore}点</td>
+                    <td>${passed ? '合格' : '不合格'}</td>
+                </tr>
+            </tbody></table>
         `;
-        
-        if (report.applied_knowledge && report.applied_knowledge.trim() !== "") {
-            html += `
-            <div class="eval-section" style="background: #f0effc; border: 1px solid #6c5ce7; border-radius: 8px; padding: 1rem; margin-bottom: 20px;">
-                <div style="color: #6c5ce7; font-weight: bold; font-size: 0.95rem; margin-bottom: 0.5rem;">📍 施設固有ルールの適用（今月の学習内容）</div>
-                <div style="font-size: 0.85rem; color: #4834d4; line-height: 1.6;">${report.applied_knowledge.replace(/\n/g, '<br>')}</div>
-            </div>
-            `;
-        }
 
-        // 詳細セクションの生成
-        report.breakdown.forEach(item => {
+        // 各項目の詳細カード
+        breakdown.forEach((item, index) => {
+            const scorePercent = (item.score / item.max) * 100;
+            const barColor = scorePercent >= 80 ? 'var(--success)' : (scorePercent >= 50 ? 'var(--warning)' : 'var(--danger)');
+
             html += `
-            <div class="eval-section">
-                <div class="eval-section-header">
-                    ${item.name}（${item.max}点満点） → <span class="score-label">${item.score}点</span>
+                <div class="eval-item-card card" style="margin-top: 25px; border-top: 4px solid ${barColor};">
+                    <div class="eval-item-header">
+                        <h4 class="eval-item-title">${item.name} (${item.max}点満点) → <span style="color:${barColor}; font-weight:bold;">${item.score}点</span></h4>
+                    </div>
+                    
+                    <div class="criteria-list" style="margin-top: 10px;">
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">【採点基準との照合】</p>
+                        <table class="criteria-table">
+                            <thead>
+                                <tr><th>点数</th><th>基準</th><th>判定</th></tr>
+                            </thead>
+                            <tbody>
+                                ${(item.criteriaRef || []).map(c => `
+                                    <tr class="${c.check ? 'is-selected' : ''}">
+                                        <td class="center">${c.pts}</td>
+                                        <td>${c.desc}</td>
+                                        <td class="center">${c.check ? '✅' : ''}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="eval-content-section" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
+                        <div class="eval-box-title">【対象となるスタッフの記載内容】</div>
+                        <div class="eval-content-text">${(item.userContent || '（記載なし）').replace(/\n/g, '<br>')}</div>
+                        
+                        <div class="eval-box-title" style="margin-top: 15px;">【AIからの総評】</div>
+                        <div class="eval-content-text" style="color: #2d3436; font-weight: 500;">${item.comment ? item.comment.replace(/\n/g, '<br>') : (item.judgement || '（記載なし）')}</div>
+                    </div>
                 </div>
-                
-                <div class="eval-box-title">【採点基準との照合】</div>
-                <table class="eval-table eval-criteria-table" style="margin-bottom:15px;">
-                    <thead>
-                        <tr>
-                            <th width="45">点数</th>
-                            <th>基準</th>
-                            <th width="45">判定</th>
-                        </tr>
-                    </thead>
-                    <tbody>
             `;
-
-            if (item.criteriaRef) {
-                item.criteriaRef.forEach(c => {
-                    html += `
-                        <tr>
-                            <td class="center">${c.pts || '-'}点</td>
-                            <td style="font-size:0.8rem">${c.desc || ''}</td>
-                            <td class="center">${c.check ? '✅' : 'ー'}</td>
-                        </tr>
-                    `;
-                });
-            }
-
-            html += `
-                    </tbody>
-                </table>
-                <div style="font-size:0.8rem; color:#666; margin-bottom:15px;">※上記は評価基準の一部抜粋です。完全な基準はヘルプやマニュアルをご参照ください。</div>
-                <div class="eval-box-title">【対象となるスタッフの記載内容】</div>
-                <div class="eval-content-text">${item.userContent ? item.userContent.replace(/\n/g, '<br>') : '（記載なし）'}</div>
-                <div class="eval-box-title" style="margin-top: 15px;">【AIからの総評】</div>
-                <div class="eval-content-text" style="color: #2d3436; font-weight: 500;">${item.comment ? item.comment.replace(/\n/g, '<br>') : (item.judgement || '（記載なし）')}</div>
-            `;
-
-            if (item.goodPoints && item.goodPoints.length > 0) {
-                html += `<div class="eval-good-points"><div class="eval-box-title">【良い点】</div>`;
-                item.goodPoints.forEach(p => {
-                    html += `<div class="eval-point-item"><span class="eval-point-icon">✅</span><span>${p}</span></div>`;
-                });
-                html += `</div>`;
-            }
-
-            if (item.badPoints && item.badPoints.length > 0) {
-                html += `<div class="eval-bad-points"><div class="eval-box-title">【不足している点】</div>`;
-                item.badPoints.forEach(p => {
-                    html += `<div class="eval-point-item"><span class="eval-point-icon">❌</span><span>${p}</span></div>`;
-                });
-                html += `</div>`;
-            }
-
-            if (item.improvement) {
-                html += `
-                <div class="eval-improve-box">
-                    <div class="eval-improve-title">【改善点・アドバイス】</div>
-                    <div style="font-size:0.85rem">${item.improvement.replace(/\n/g, '<br>')}</div>
-                </div>
-                `;
-            }
-
-            html += `</div>`;
         });
+        html += '</div>';
+        bRoot.innerHTML = html;
+    },
 
-        html += `</div>`; // end eval-sheet
-
-        const bRoot = document.getElementById('score-breakdown');
-         if (bRoot) {
-             bRoot.innerHTML = html;
-         }
-
-        // 毎日の記録一覧を描画
+    // 毎日の記録一覧を描画
+    async renderDailyRecords(currentTarget) {
         const recordsList = document.getElementById('monthly-records-list');
-        if (recordsList) {
-            recordsList.innerHTML = '<p style="text-align:center;color:var(--text-muted)">読み込み中...</p>';
-            try {
-                const user = Auth.getUser();
-                const records = await API.getStep1Records(user.staff_id, currentTarget);
+        if (!recordsList) return;
 
-                if (records && records.length > 0) {
-                    recordsList.innerHTML = records.map((r, idx) => {
-                        const isPass = r.ai_judgement === '○';
-                        const bc = isPass ? 'var(--success)' : 'var(--danger)';
-                        let adv = '';
-                        
-                        // 良い点の処理（JSONB/配列対応）
-                        let goodPointsText = '';
-                        if (r.ai_good_points) {
-                            const gps = Array.isArray(r.ai_good_points) ? r.ai_good_points : [r.ai_good_points];
-                            goodPointsText = gps.filter(p => p).join('、');
-                        }
-                        if (goodPointsText) {
-                            adv += '<div style="margin-top:10px;padding:8px;background:rgba(76,175,80,0.1);border-radius:6px;font-size:0.85rem;"><strong style="color:var(--success)">✅ 良い点：</strong><br>' + goodPointsText + '</div>';
-                        }
-                        
-                        // 改善アドバイスの処理（ai_improve カラムを使用）
-                        const improveText = r.ai_improve || r.improvement_example || '';
-                        if (improveText) {
-                            adv += '<div style="margin-top:8px;padding:8px;background:' + (isPass ? 'rgba(33,150,243,0.08)' : '#ffebee') + ';border-radius:6px;font-size:0.85rem;"><strong style="color:' + (isPass ? 'var(--primary)' : '#b71c1c') + '">💡 ' + (isPass ? 'さらに良くするには：' : '改善アドバイス：') + '</strong><br>' + improveText + '</div>';
-                        }
-                        
-                        if (!adv) {
-                            adv = '<p style="font-size:0.85rem;color:var(--text-muted);margin-top:8px;">AIのフィードバックはありません</p>';
-                        }
-                        return '<div class="card" style="margin-bottom:var(--space-sm);padding:0;border-left:4px solid ' + bc + ';overflow:hidden;">' +
-                            '<div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-sm);cursor:pointer;" onclick="var d=this.nextElementSibling;d.hidden=!d.hidden;this.querySelector(\'.rtg\').textContent=d.hidden?\'▼\':\'▲\';">' +
-                            '<div><strong style="font-size:1rem">' + r.date + '</strong><span style="font-weight:normal;font-size:0.9rem;color:var(--text-muted)"> - ' + r.target_name + 'さん</span></div>' +
-                            '<div style="display:flex;align-items:center;gap:12px;"><span style="font-weight:bold;color:' + bc + ';font-size:1.1rem">' + (r.ai_judgement||'－') + '</span><span class="rtg" style="font-size:0.8rem;color:var(--text-muted)">▼</span></div>' +
-                            '</div>' +
-                            '<div hidden style="padding:0 var(--space-sm) var(--space-sm);border-top:1px solid var(--border);">' +
-                            '<p style="font-size:0.95rem;color:var(--text);line-height:1.6;margin-top:10px;white-space:pre-wrap;">' + r.notice_text + '</p>' +
-                            adv +
-                            '</div></div>';
-                    }).join('');
-                } else {
-                    recordsList.innerHTML = '<p class="empty-state">今月の記録はありません</p>';
-                }
-            } catch (e) {
-                console.error('記録一覧取得エラー:', e);
-                recordsList.innerHTML = '<p class="empty-state">記録の取得に失敗しました</p>';
+        recordsList.innerHTML = '<p style="text-align:center;color:var(--text-muted)">読み込み中...</p>';
+        try {
+            const user = Auth.getUser();
+            const [s1, s2, s3] = await Promise.all([
+                API.getStep1Records(user.staff_id, currentTarget),
+                API.getStep2Records(user.staff_id, currentTarget),
+                API.getStep3Records(user.staff_id, currentTarget)
+            ]);
+
+            const allRecords = [
+                ...s1.map(r => ({ ...r, step: 1 })),
+                ...s2.map(r => ({ ...r, step: 2 })),
+                ...s3.map(r => ({ ...r, step: 3 }))
+            ].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            if (allRecords.length > 0) {
+                recordsList.innerHTML = allRecords.map((r, idx) => {
+                    const isPass = r.ai_judgement === '○';
+                    const bc = isPass ? 'var(--success)' : 'var(--danger)';
+                    
+                    // 提出期限内かチェック（翌月10日まで）
+                    const recordCycle = DB.getCurrentCycle(new Date(), r.date);
+                    const canEdit = !recordCycle.isPastDeadline;
+
+                    let editBtn = '';
+                    if (canEdit) {
+                        editBtn = `<button class="btn-link" onclick="Monthly.editRecord(${r.step}, '${r.id}')" style="font-size:0.8rem; color:var(--primary); padding:4px 8px; border:1px solid var(--primary); border-radius:4px; cursor:pointer;">編集する</button>`;
+                    }
+
+                    let content = '';
+                    if (r.step === 1) content = r.notice_text;
+                    else if (r.step === 2) content = `【仮説】${r.hypothesis}<br>【理由】${r.reason}`;
+                    else content = `【支援】${r.support_done}<br>【結果】${r.result}`;
+
+                    return `<div class="card" style="margin-bottom:var(--space-sm);padding:0;border-left:4px solid ${bc};overflow:hidden;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-sm);cursor:pointer;" onclick="var d=this.nextElementSibling;d.hidden=!d.hidden;this.querySelector('.rtg').textContent=d.hidden?'▼':'▲';">
+                            <div>
+                                <strong style="font-size:1rem">${r.date}</strong>
+                                <span style="font-weight:normal;font-size:0.9rem;color:var(--text-muted)"> - STEP${r.step} (${r.target_name || '対象者なし'})</span>
+                            </div>
+                            <div style="display:flex;align-items:center;gap:12px;">
+                                ${editBtn}
+                                <span style="font-weight:bold;color:${bc};font-size:1.1rem">${r.ai_judgement||'－'}</span>
+                                <span class="rtg" style="font-size:0.8rem;color:var(--text-muted)">▼</span>
+                            </div>
+                        </div>
+                        <div hidden style="padding:0 var(--space-sm) var(--space-sm);border-top:1px solid var(--border);">
+                            <p style="font-size:0.95rem;color:var(--text);line-height:1.6;margin-top:10px;white-space:pre-wrap;">${content}</p>
+                        </div>
+                    </div>`;
+                }).join('');
+            } else {
+                recordsList.innerHTML = '<p class="empty-state">この月の記録はありません</p>';
             }
+        } catch (e) {
+            console.error('記録一覧取得エラー:', e);
+            recordsList.innerHTML = '<p class="empty-state">記録の取得に失敗しました</p>';
         }
     },
- 
-    // レガシーUI（Duolingo風パーツ）の表示切り替え
+
+    // 編集モードへの移行
+    async editRecord(step, id) {
+        showToast('読み込み中...');
+        try {
+            const user = Auth.getUser();
+            let record = null;
+            if (step === 1) {
+                const records = await API.getStep1Records(user.staff_id);
+                record = records.find(r => r.id === id);
+            } else if (step === 2) {
+                const records = await API.getStep2Records(user.staff_id);
+                record = records.find(r => r.id === id);
+            } else if (step === 3) {
+                const records = await API.getStep3Records(user.staff_id);
+                record = records.find(r => r.id === id);
+            }
+
+            if (!record) throw new Error('Record not found');
+
+            // 編集用グローバル変数にセット
+            window.editingRecord = { step, id, data: record };
+            
+            // 画面遷移
+            navigateTo(`screen-step${step}`);
+            
+            // 各STEPの編集モード初期化を呼ぶ（画面遷移後に少し待つ）
+            setTimeout(() => {
+                if (step === 1) Step1.enterEditMode(record);
+                else if (step === 2) Step2.enterEditMode(record);
+                else if (step === 3) Step3.enterEditMode(record);
+            }, 100);
+
+        } catch (e) {
+            console.error('Edit Record Error:', e);
+            showToast('記録の読み込みに失敗しました');
+        }
+    },
+
+    // 再評価をリクエスト
+    async forceReevaluate() {
+        if (!confirm('最新の記録に基づき、AIによる月次評価（総評の生成含む）をやり直しますか？\n※1分ほど時間がかかる場合があります。')) return;
+        
+        window.forceReevaluating = true;
+        const monthSelect = document.getElementById('monthly-month-select');
+        this.render(monthSelect ? monthSelect.value : null);
+        showToast('再評価を開始しました 🪄');
+    },
+
+    // レガシーUIの表示切り替え
     toggleLegacyUI(show) {
-        const elements = [
-            '.score-ring-container',
-            '#monthly-level',
-            '.monthly-stats',
-            '#monthly-actions'
-        ];
+        const elements = ['.score-ring-container', '#monthly-level', '.monthly-stats', '#monthly-actions'];
         elements.forEach(selector => {
             const el = selector.startsWith('#') ? document.getElementById(selector.slice(1)) : document.querySelector(selector);
-            if (el) {
-                if (selector === '#monthly-actions') {
-                    if (el.parentElement) el.parentElement.style.display = show ? 'block' : 'none';
-                } else {
-                    el.style.display = show ? 'flex' : 'none';
-                }
-            }
+            if (el) el.style.display = show ? 'flex' : 'none';
         });
     }
 };
 
-// 履歴の修復（AIの解析失敗等で空欄になっているものを再判定）
+// 履歴の修復
 async function repairPastRecords() {
     const user = Auth.getUser();
-    const cycle = DB.getCurrentCycle();
     if (!user) return;
+    if (!confirm('AIの解析に失敗した過去の記録を再評価しますか？')) return;
 
-    if (!confirm('AIの解析に失敗した過去の記録を再抽出しますか？\n（数分かかる場合があります）')) return;
-
-    // ボタンの状態を変更
     const btn = document.querySelector('button[onclick="repairPastRecords()"]');
-    if (btn) {
-        btn.disabled = true;
-        btn.textContent = '🛠️ 修復中...';
-    }
+    if (btn) { btn.disabled = true; btn.textContent = '🛠️ 修復中...'; }
 
     try {
+        const cycle = DB.getCurrentCycle();
         const resp = await fetch('/api/fix-daily', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                staff_id: user.staff_id,
-                year_month: cycle.yearMonth
-            })
+            body: JSON.stringify({ staff_id: user.staff_id, year_month: cycle.yearMonth })
         });
 
         if (resp.ok) {
             const result = await resp.json();
-            alert(`修復完了: ${result.count}件の記録を再評価しました。`);
-            // 画画を再描画
-            if (typeof Monthly !== 'undefined' && Monthly.render) {
-                Monthly.render();
-            }
-        } else {
-            throw new Error('修復に失敗しました');
-        }
-    } catch (e) {
-        alert('エラー: ' + e.message);
-    } finally {
-        if (btn) {
-            btn.disabled = false;
-            btn.textContent = '🛠️ 記録を修復';
-        }
-    }
+            alert(`修復完了: ${result.count}件を再評価しました。`);
+            Monthly.render();
+        } else throw new Error('修復失敗');
+    } catch (e) { alert(e.message); }
+    finally { if (btn) { btn.disabled = false; btn.textContent = '🛠️ 記録を修復'; } }
 }
 

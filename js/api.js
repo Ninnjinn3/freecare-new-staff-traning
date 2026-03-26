@@ -118,6 +118,17 @@ const API = {
         return data;
     },
 
+    async updateStep1(id, updates) {
+        const { data, error } = await this.getSupabase()
+            .from('daily_step1')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+        if (error) { console.error('updateStep1:', error); throw error; }
+        return data;
+    },
+
     // ===== STEP2 =====
 
     async saveStep2(record) {
@@ -139,6 +150,17 @@ const API = {
         }
         const { data, error } = await query;
         if (error) { console.error('getStep2Records:', error); return []; }
+        return data;
+    },
+
+    async updateStep2(id, updates) {
+        const { data, error } = await this.getSupabase()
+            .from('step2_hypotheses')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+        if (error) { console.error('updateStep2:', error); throw error; }
         return data;
     },
 
@@ -166,17 +188,30 @@ const API = {
         return data;
     },
 
+    async updateStep3(id, updates) {
+        const { data, error } = await this.getSupabase()
+            .from('daily_step3')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+        if (error) { console.error('updateStep3:', error); throw error; }
+        return data;
+    },
+
     // ===== 月次評価 =====
 
-    async getMonthlyEvaluation(staffId, yearMonth) {
-        const { data, error } = await this.getSupabase()
-            .from('monthly_evaluations')
-            .select('*')
-            .eq('staff_id', staffId)
-            .eq('year_month', yearMonth)
-            .single();
-        if (error) return null;
-        return data;
+    async getMonthlyEvaluation(staffId, yearMonth, force = false) {
+        if (!force) {
+            const { data, error } = await this.getSupabase()
+                .from('monthly_evaluations')
+                .select('*')
+                .eq('staff_id', staffId)
+                .eq('year_month', yearMonth)
+                .single();
+            if (!error && data) return data;
+        }
+        return null;
     },
 
     async saveMonthlyEvaluation(record) {

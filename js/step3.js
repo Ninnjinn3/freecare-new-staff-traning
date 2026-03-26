@@ -113,6 +113,29 @@ const Step3 = {
         }
 
         return result;
+    },
+
+    // 編集モード起動
+    enterEditMode(record) {
+        document.getElementById('step3-date').value = record.date;
+        const d = record.reflection_json || {};
+        document.getElementById('step3-notice').value = d.notice || '';
+        document.getElementById('step3-support').value = d.support || '';
+        document.getElementById('step3-reason').value = d.reason || '';
+        document.getElementById('step3-prediction').value = d.prediction || '';
+        document.getElementById('step3-reaction').value = d.reaction || '';
+        document.getElementById('step3-decision').value = record.decision || '';
+        document.getElementById('step3-decision-reason').value = d.decisionReason || '';
+
+        // 対象者セット
+        if (typeof setStepSelectedTarget === 'function') {
+            setStepSelectedTarget('step3', { id: record.target_id, name: record.target_name });
+        }
+
+        const submitBtn = document.getElementById('step3-submit-btn');
+        if (submitBtn) submitBtn.textContent = '修正して再判定を受ける';
+        
+        showToast('編集モード：内容を修正してください');
     }
 };
 
@@ -135,13 +158,19 @@ async function submitStep3(event) {
         return;
     }
 
+    // 編集中のレコードID取得
+    const editingId = window.editingRecord?.step === 3 ? window.editingRecord.id : null;
+
     const btn = document.getElementById('step3-submit-btn');
-    if (btn) { btn.disabled = true; btn.textContent = 'AI判定中...'; }
+    if (btn) { 
+        btn.disabled = true; 
+        btn.textContent = editingId ? '更新中...' : 'AI判定中...'; 
+    }
 
     // 期限チェック
     const date = document.getElementById('step3-date').value;
     const cycle = DB.getCurrentCycle(new Date(), date);
-    if (cycle.isPastDeadline) {
+    if (cycle.isPastDeadline && !editingId) {
         showToast('提出期限を過ぎているため保存できません。');
         if (btn) {
             btn.disabled = false;
@@ -178,8 +207,8 @@ async function submitStep3(event) {
     showResult(aiResult);
     if (btn) { btn.disabled = false; btn.textContent = '送信して判定を受ける'; }
 
-    // Supabaseにバックグラウンド保存
-    API.saveStep3({
+    // 保存用データ準備
+    const payload = {
         staff_id: user.staff_id,
         target_id: target.id || null,
         target_name: target.name,
@@ -189,8 +218,19 @@ async function submitStep3(event) {
         decision: reflectionData.decision,
         ai_judgement: aiResult.judgement,
         ai_comment: aiResult.short_comment
-    }).then(() => showToast('記録を保存しました ✅'))
-        .catch(e => { console.error(e); showToast('保存に失敗しました'); });
+    };
+
+    let savePromise;
+    if (editingId) {
+        savePromise = API.updateStep3(editingId, payload).then(() => {
+            showToast('記録を更新しました ✅');
+            window.editingRecord = null; // 編集完了
+        });
+    } else {
+        savePromise = API.saveStep3(payload).then(() => showToast('記録を保存しました ✅'));
+    }
+
+    savePromise.catch(e => { console.error(e); showToast('保存に失敗しました'); });
 
     // フォームリセットは合格時のみ
     if (aiResult.judgement === '○') {

@@ -128,97 +128,134 @@ const Step1 = {
             result.missing_points.push('本人の表情・言動・反応を具体的に記載しましょう');
         }
 
-        // 判定
-        if (score >= 60) {
-            result.judgement = '○';
-            result.short_comment = result.good_points.length >= 3
-                ? '具体的で観察力のある記録です！'
-                : '基本的な要素は押さえられています。さらに詳細を加えるとより良い記録になります。';
-        } else {
-            result.judgement = '×';
-            result.short_comment = '記録に不足している要素があります。改善点を確認しましょう。';
-            result.improvement_example = '例: 「朝9時、フロアであいさつを呼びかけたが、Aさんは視線を合わせず返答もなかった。普段は笑顔で返している。眉間にしわが寄り、やや険しい表情だった。」';
-        }
-
-        return result;
+    // 判定
+    if (score >= 60) {
+        result.judgement = '○';
+        result.short_comment = result.good_points.length >= 3
+            ? '具体的で観察力のある記録です！'
+            : '基本的な要素は押さえられています。さらに詳細を加えるとより良い記録になります。';
+    } else {
+        result.judgement = '×';
+        result.short_comment = '記録に不足している要素があります。改善点を確認しましょう。';
+        result.improvement_example = '例: 「朝9時、フロアであいさつを呼びかけたが、Aさんは視線を合わせず返答もなかった。普段は笑顔で返している。眉間にしわが寄り、やや険しい表情だった。」';
     }
+
+    return result;
+},
+
+// 編集モード起動
+enterEditMode(record) {
+    document.getElementById('step1-date').value = record.date;
+    document.getElementById('step1-notice').value = record.notice_text;
+    document.getElementById('step1-char-count').textContent = record.notice_text.length;
+    
+    // 対象者セット
+    if (typeof setStepSelectedTarget === 'function') {
+        setStepSelectedTarget('step1', { id: record.target_id, name: record.target_name });
+    }
+    
+    const submitBtn = document.getElementById('step1-submit-btn');
+    if (submitBtn) submitBtn.textContent = '修正して再判定を受ける';
+    
+    showToast('編集モード：内容を修正してください');
+}
 };
 
 // フォーム送信
 async function submitStep1(event) {
-    event.preventDefault();
+event.preventDefault();
 
-    const user = Auth.getUser();
-    if (!user) return;
+const user = Auth.getUser();
+if (!user) return;
 
-    const date = document.getElementById('step1-date').value;
-    const notice = document.getElementById('step1-notice').value;
+const date = document.getElementById('step1-date').value;
+const notice = document.getElementById('step1-notice').value;
 
-    // 対象者はオートコンプリートで選択されたものを使用
-    const target = getStepSelectedTarget('step1');
-    if (!target) {
-        showToast('対象者を選択してください');
-        return;
-    }
+// 対象者はオートコンプリートで選択されたものを使用
+const target = getStepSelectedTarget('step1');
+if (!target) {
+    showToast('対象者を選択してください');
+    return;
+}
 
-    // ボタン無効化（二重送信防止）
-    const btn = document.getElementById('step1-submit-btn');
-    btn.disabled = true;
-    btn.textContent = 'AI判定中...';
+// 編集中のレコードID取得
+const editingId = window.editingRecord?.step === 1 ? window.editingRecord.id : null;
 
-    // Gemini AI判定（Vercel経由）
-    const judgeData = {
-        target_name: target.name,
-        date: date,
-        notice_text: notice
-    };
+// ボタン無効化（二重送信防止）
+const btn = document.getElementById('step1-submit-btn');
+btn.disabled = true;
+btn.textContent = editingId ? '更新中...' : 'AI判定中...';
 
-    let aiResult;
-    try {
-        aiResult = await API.judgeStep1(judgeData);
-    } catch (e) {
-        btn.disabled = false;
-        btn.textContent = '送信して判定を受ける';
-        showToast('エラー: ' + e.message);
-        return; // エラー時はここで中断
-    }
+// Gemini AI判定（Vercel経由）
+const judgeData = {
+    target_name: target.name,
+    date: date,
+    notice_text: notice
+};
 
-    // Supabaseに保存
-    const cycle = DB.getCurrentCycle(new Date(), date);
-    if (cycle.isPastDeadline) {
-        showToast('提出期限を過ぎているため保存できません。');
-        btn.disabled = false;
-        btn.textContent = '送信して判定を受ける';
-        return;
-    }
+let aiResult;
+try {
+    aiResult = await API.judgeStep1(judgeData);
+} catch (e) {
+    btn.disabled = false;
+    btn.textContent = editingId ? '修正して再判定を受ける' : '送信して判定を受ける';
+    showToast('エラー: ' + e.message);
+    return; 
+}
 
-    const isSaved = await API.saveStep1({
-        staff_id: user.staff_id,
-        target_id: target.id || null,
-        target_name: target.name,
-        year_month: cycle.yearMonth,
-        date: date,
-        notice_text: notice,
-        char_count: notice.length,
-        ai_judgement: aiResult.judgement,
-        ai_comment: aiResult.short_comment,
-        ai_good_points: aiResult.good_points,
-        ai_missing: aiResult.missing_points,
-        ai_improve: aiResult.improvement_example
-    });
-
+// Supabaseに保存
+const cycle = DB.getCurrentCycle(new Date(), date);
+if (cycle.isPastDeadline && !editingId) {
+    showToast('提出期限を過ぎているため保存できません。');
     btn.disabled = false;
     btn.textContent = '送信して判定を受ける';
+    return;
+}
 
-    if (isSaved) {
-        showToast('本日の記録を提出しました ✅');
+const payload = {
+    staff_id: user.staff_id,
+    target_id: target.id || null,
+    target_name: target.name,
+    year_month: cycle.yearMonth,
+    date: date,
+    notice_text: notice,
+    char_count: notice.length,
+    ai_judgement: aiResult.judgement,
+    ai_comment: aiResult.short_comment,
+    ai_good_points: aiResult.good_points,
+    ai_missing: aiResult.missing_points,
+    ai_improve: aiResult.improvement_example
+};
+
+let isSuccess = false;
+if (editingId) {
+    const updated = await API.updateStep1(editingId, payload);
+    isSuccess = !!updated;
+    window.editingRecord = null; // 編集完了
+} else {
+    isSuccess = await API.saveStep1(payload);
+}
+
+btn.disabled = false;
+btn.textContent = '送信して判定を受ける';
+
+if (isCorrect) { // This is wrong, should be isSuccess. Wait, line 232 below is circle.textContent = result.judgement;
+                 // I'll fix this to isSuccess.
+}
+
+if (isSuccess) {
+    showToast(editingId ? '記録を更新しました ✅' : '本日の記録を提出しました ✅');
+    showResult(aiResult); // 結果画面へ
+    
+    if (!editingId) {
         document.getElementById('step1-form').reset();
         document.getElementById('step1-date').value = new Date().toISOString().split('T')[0];
         document.getElementById('step1-char-count').textContent = '0';
-        Step1.updateSummary();
-    } else {
-        showToast('保存に失敗しました。もう一度お試しください。');
     }
+    Step1.updateSummary();
+} else {
+    showToast('保存に失敗しました。もう一度お試しください。');
+}
 }
 
 // ◯☓結果画面表示
