@@ -6,6 +6,9 @@ const Auth = {
     currentUser: null,
     selectedRole: null,
 
+    // 管理者権限を持つ特定ID（新人研修利用者画面も見れる）
+    DUAL_ACCESS_ADMINS: ['2012', '3001', '4001', '7006', '5000', '6001', '8001', '8002'],
+
     // ロール選択
     selectRole(role) {
         this.selectedRole = role;
@@ -26,10 +29,14 @@ const Auth = {
             return { success: false, error: 'IDまたはパスワードが正しくありません' };
         }
 
-        // ロールチェック (IDの1桁目が1なら運営本部扱い＆全てパス)
+        // ロールチェック (IDの1桁目が1なら運営本部扱い、特定リストなら管理者扱い＆全てパス)
         const isPowerUser = staffId.startsWith('1');
+        const isDualAdmin = this.DUAL_ACCESS_ADMINS.includes(staffId);
+        
         if (isPowerUser) {
             staff.role = 'exec';
+        } else if (isDualAdmin) {
+            staff.role = 'admin';
         } else {
             const selectedRole = this.getSelectedRole();
             if (selectedRole !== staff.role) {

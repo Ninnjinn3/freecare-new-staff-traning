@@ -39,6 +39,9 @@ const API = {
             if (staff) {
                 // IDの1桁目が1なら運営本部扱い
                 if (staffId.startsWith('1')) staff.role = 'exec';
+                // 特定のIDなら管理者扱い
+                else if (Auth.DUAL_ACCESS_ADMINS.includes(staffId)) staff.role = 'admin';
+                
                 Auth.currentUser = staff;
                 sessionStorage.setItem('fc_current_user', JSON.stringify(staff));
                 return { success: true, user: staff };
@@ -57,6 +60,9 @@ const API = {
         if (staffFromDb) {
             // IDの1桁目が1なら運営本部扱い
             if (staffId.startsWith('1')) staffFromDb.role = 'exec';
+            // 特定のIDなら管理者扱い
+            else if (Auth.DUAL_ACCESS_ADMINS.includes(staffId)) staffFromDb.role = 'admin';
+
             Auth.currentUser = staffFromDb;
             sessionStorage.setItem('fc_current_user', JSON.stringify(staffFromDb));
             return { success: true, user: staffFromDb };

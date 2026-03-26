@@ -11,11 +11,21 @@ async function navigateTo(screenId) {
         target.classList.add('active');
         window.scrollTo(0, 0);
 
-        // 運営本部(exec)ロールの場合、モード切り替えスイッチを表示
+        // 運営本部(exec) または 特定管理者(admin & dual_access) の場合、モード切り替えスイッチを表示
         const user = Auth.getUser();
         const switcher = document.getElementById('exec-mode-switcher');
         if (switcher) {
-            switcher.style.display = (user && user.role === 'exec' && screenId !== 'screen-role-select' && screenId !== 'screen-login') ? 'flex' : 'none';
+            const isExec = user && user.role === 'exec';
+            const isDualAdmin = user && user.role === 'admin' && Auth.DUAL_ACCESS_ADMINS.includes(user.staff_id);
+            
+            if ((isExec || isDualAdmin) && screenId !== 'screen-role-select' && screenId !== 'screen-login') {
+                switcher.style.display = 'flex';
+                // 本部ボタンの表示制御
+                const execBtn = switcher.querySelector('button[title="運営本部画面"]');
+                if (execBtn) execBtn.style.display = isExec ? 'inline-block' : 'none';
+            } else {
+                switcher.style.display = 'none';
+            }
         }
     }
 
