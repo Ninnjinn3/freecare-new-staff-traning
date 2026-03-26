@@ -366,7 +366,7 @@ function updateDeadlineAlert() {
     const alertCard = document.getElementById('deadline-alert');
 
     if (cycle.phase === 'input') {
-        deadlineEl.textContent = `${cycle.deadlineStr} あと${cycle.daysLeft}日`;
+        deadlineEl.innerHTML = `${cycle.deadlineStr}<span style="margin-left: 12px; font-weight: bold; color: #d9534f;">あと${cycle.daysLeft}日</span>`;
         alertCard.classList.toggle('alert-urgent', cycle.daysLeft <= 3);
     } else if (cycle.phase === 'evaluation') {
         deadlineEl.textContent = '評価期間中';
@@ -395,10 +395,17 @@ async function updateProgress(user, currentStep) {
     const circleDays = records.filter(r => r.ai_judgement === '○').length;
     const pct = Math.min(100, Math.round((writtenDays / minDays) * 100));
 
-    document.getElementById('home-progress-text').textContent = `${writtenDays}/${minDays}日`;
-    document.getElementById('home-progress-fill').style.width = pct + '%';
-    document.getElementById('home-written-days').textContent = writtenDays;
-    document.getElementById('home-circle-days').textContent = circleDays;
+    const textEl = document.getElementById('home-progress-text');
+    if (textEl) textEl.textContent = `${writtenDays}/${minDays}日`;
+    
+    const fillEl = document.getElementById('home-progress-fill');
+    if (fillEl) fillEl.style.width = pct + '%';
+    
+    const writtenEl = document.getElementById('home-written-days');
+    if (writtenEl) writtenEl.textContent = writtenDays;
+    
+    const circleEl = document.getElementById('home-circle-days');
+    if (circleEl) circleEl.textContent = circleDays;
 }
 
 // ===== STEPボタン状態 =====

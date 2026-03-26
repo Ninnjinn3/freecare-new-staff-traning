@@ -121,18 +121,16 @@
         </div>
       </div>
 
-      <!-- 進捗バー -->
-      <div class="card progress-card">
-        <div class="progress-header">
-          <span id="home-progress-title">遡り編集</span>
-          <span id="home-progress-text">0/6日</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="home-progress-fill" style="width: 0%"></div>
-        </div>
-        <div class="progress-detail">
-          <span>記載日数: <strong id="home-written-days">0</strong>日</span>
-          <span>◯日数: <strong id="home-circle-days">0</strong>日</span>
+      <!-- 送信済み課題修正ボタン (旧: 進捗バー) -->
+      <div class="card clickable-card" onclick="navigateTo('screen-monthly'); Monthly.render();" 
+           style="cursor: pointer; background: #f0f7ff; border: 2px solid #cce3ff; transition: transform 0.2s, box-shadow 0.2s; margin-bottom: var(--space-md); text-align: center; padding: 1.2rem;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+          <span style="font-size: 1.5rem;">📝</span>
+          <div style="text-align: left;">
+            <div style="font-weight: 800; font-size: 1.1rem; color: #0056b3;">送信済み課題修正</div>
+            <div style="font-size: 0.8rem; color: #666; margin-top: 2px;">提出した内容の確認・修正はこちら</div>
+          </div>
+          <span style="margin-left: auto; color: #0056b3; font-weight: bold;">＞</span>
         </div>
       </div>
 
