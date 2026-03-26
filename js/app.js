@@ -113,6 +113,19 @@ async function handleLogin(event) {
     }
 }
 
+// ===== パスワード表示切り替え =====
+function togglePasswordVisibility() {
+    const pwdInput = document.getElementById('login-password');
+    const toggleIcon = document.querySelector('.password-toggle');
+    if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+        toggleIcon.textContent = '🙈';
+    } else {
+        pwdInput.type = 'password';
+        toggleIcon.textContent = '👁️';
+    }
+}
+
 // ===== ログアウト =====
 function handleLogout() {
     Auth.logout();
@@ -1076,7 +1089,7 @@ async function updateAssessment(event) {
     };
 
     try {
-        const { error } = await window.supabase.from('care_targets').update(updatedData).eq('id', id);
+        const { error } = await window.fcSupabase.from('care_targets').update(updatedData).eq('id', id);
         if (error) throw error;
         cachedTargets = null;
         showToast(`${name} さんの情報を更新しました ✅`);
@@ -1147,8 +1160,8 @@ const Settings = {
 
         try {
             // パスワード更新（staffsテーブルのpasswordカラムを更新）
-            const { error } = await window.supabase
-                .from('staffs')
+            const { error } = await window.fcSupabase
+                .from('staff_master')
                 .update({ password: newPw })
                 .eq('staff_id', user.staff_id)
                 .eq('password', current); // 現在のパスワードが一致する場合のみ更新
@@ -1182,7 +1195,7 @@ async function executeDeleteAccount() {
     const user = Auth.getUser();
     if (!user) return;
     try {
-        const { error } = await window.supabase.from('staffs').update({ is_active: false, left_at: new Date().toISOString() }).eq('staff_id', user.staff_id);
+        const { error } = await window.fcSupabase.from('staff_master').update({ is_active: false, left_at: new Date().toISOString() }).eq('staff_id', user.staff_id);
         if (error) throw error;
         showToast('アカウントを削除しました');
         handleLogout();

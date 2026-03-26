@@ -230,11 +230,11 @@ ${s3Text}
 
 
     console.log(`Evaluating Monthly AI for Staff:${step1[0]?.staff_id || ' unknown'}. Records: S1:${step1.length}, S2:${step2.length}, S3:${step3.length}`);
-
+    
     // 施設固有の知識を取得
-    const { data: knowledge } = await supabase
-        .from('ai_knowledge')
-        .select('title, content');
+    const SUPABASE_URL = process.env.SUPABASE_URL || 'https://qpviuumvxnbwxutlccfx.supabase.co';
+    const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_vCIiY9zPof_k2CfWC4SLqA_uUNcQ6jo';
+    const knowledge = await supabaseSelect(SUPABASE_URL, SUPABASE_KEY, 'ai_knowledge', 'select=title,content');
     const customRules = (knowledge || []).map(k => `【${k.title}】: ${k.content}`).join('\n');
 
     // 月次要約は複雑なため、より高性能な gemini-1.5-pro を使用し、安全フィルターも緩和する

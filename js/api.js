@@ -4,57 +4,66 @@
    ============================================ */
 
 const API = {
+    // Supabaseインスタンスの取得（エラー対策）
+    getSupabase() {
+        const client = window.fcSupabase || window.supabaseInstance || window.supabase;
+        if (!client || typeof client.from !== 'function') {
+            throw new Error('Supabase client is not initialized. Please refresh the page.');
+        }
+        return client;
+    },
+
 
     // ===== 認証 =====
 
     async login(staffId, password) {
         const email = `${staffId}@freecare.local`;
 
-        // Supabase Auth でサインイン
-        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
-        if (authError) {
-            return { success: false, error: 'IDまたはパスワードが正しくありません' };
+        // 1) Supabase Auth でサインインを試行
+        const { data: authData, error: authError } = await this.getSupabase().auth.signInWithPassword({ email, password });
+        
+        if (!authError) {
+            // Auth成功：staff_masterから詳細情報を取得
+            const { data: staff, error: staffError } = await this.getSupabase()
+                .from('staff_master')
+                .select('*')
+                .eq('staff_id', staffId)
+                .single();
+
+            if (staff) {
+                Auth.currentUser = staff;
+                sessionStorage.setItem('fc_current_user', JSON.stringify(staff));
+                return { success: true, user: staff };
+            }
         }
 
-        // staff_masterからスタッフ情報を取得
-        const { data: staff, error: staffError } = await supabase
+        // 2) Auth失敗または不完全な場合：staff_masterを直接チェック（フォールバック）
+        // Supabase Authのレートリミットや未確認メール対策として実装
+        const { data: staffFromDb, error: dbError } = await this.getSupabase()
             .from('staff_master')
             .select('*')
             .eq('staff_id', staffId)
-            .single();
+            .eq('password', password)
+            .maybeSingle();
 
-        if (staffError || !staff) {
-            // staff_masterに見つからない場合はAuthメタデータから組み立て
-            const meta = authData.user?.user_metadata || {};
-            const fallbackUser = {
-                staff_id: staffId,
-                name: meta.name || staffId,
-                role: meta.role || 'staff',
-                facility_id: 'F001',
-                facility_name: 'グループホーム',
-                current_step: 1,
-                work_type: 'day'
-            };
-            Auth.currentUser = fallbackUser;
-            sessionStorage.setItem('fc_current_user', JSON.stringify(fallbackUser));
-            return { success: true, user: fallbackUser };
+        if (staffFromDb) {
+            Auth.currentUser = staffFromDb;
+            sessionStorage.setItem('fc_current_user', JSON.stringify(staffFromDb));
+            return { success: true, user: staffFromDb };
         }
 
-        // 正常パス
-        Auth.currentUser = staff;
-        sessionStorage.setItem('fc_current_user', JSON.stringify(staff));
-        return { success: true, user: staff };
+        return { success: false, error: 'IDまたはパスワードが正しくありません' };
     },
 
     async logout() {
-        await supabase.auth.signOut();
+        await this.getSupabase().auth.signOut();
         return Auth.logout();
     },
 
     // ===== 対象者（利用者） =====
 
     async getTargets(facilityId) {
-        const { data, error } = await supabase
+        const { data, error } = await this.getSupabase()
             .from('care_targets')
             .select('*')
             .eq('facility_id', facilityId)
@@ -65,7 +74,7 @@ const API = {
     },
 
     async addTarget(target) {
-        const { data, error } = await supabase
+        const { data, error } = await this.getSupabase()
             .from('care_targets')
             .insert(target)
             .select()
@@ -75,7 +84,7 @@ const API = {
     },
 
     async deleteTarget(id) {
-        const { error } = await supabase
+        const { error } = await this.getSupabase()
             .from('care_targets')
             .update({ is_active: false })
             .eq('id', id);
@@ -90,7 +99,7 @@ const API = {
         if (cleaned.target_id && !/^[0-9a-f-]{36}$/i.test(cleaned.target_id)) {
             cleaned.target_id = null;
         }
-        const { data, error } = await supabase
+        const { data, error } = await this.getSupabase()
             .from('daily_step1')
             .insert(cleaned)
             .select()
@@ -100,7 +109,7 @@ const API = {
     },
 
     async getStep1Records(staffId, yearMonth) {
-        let query = supabase.from('daily_step1').select('*').eq('staff_id', staffId).order('date', { ascending: false });
+        let query = this.getSupabase().from('daily_step1').select('*').eq('staff_id', staffId).order('date', { ascending: false });
         if (yearMonth) {
             query = query.eq('year_month', yearMonth);
         }
@@ -114,7 +123,7 @@ const API = {
     async saveStep2(record) {
         const cleaned = { ...record };
         if (cleaned.target_id && !/^[0-9a-f-]{36}$/i.test(cleaned.target_id)) cleaned.target_id = null;
-        const { data, error } = await supabase
+        const { data, error } = await this.getSupabase()
             .from('step2_hypotheses')
             .insert(cleaned)
             .select()
@@ -124,7 +133,7 @@ const API = {
     },
 
     async getStep2Records(staffId, yearMonth) {
-        let query = supabase.from('step2_hypotheses').select('*').eq('staff_id', staffId).order('date', { ascending: false });
+        let query = this.getSupabase().from('step2_hypotheses').select('*').eq('staff_id', staffId).order('date', { ascending: false });
         if (yearMonth) {
             query = query.eq('year_month', yearMonth);
         }
@@ -138,7 +147,7 @@ const API = {
     async saveStep3(record) {
         const cleaned = { ...record };
         if (cleaned.target_id && !/^[0-9a-f-]{36}$/i.test(cleaned.target_id)) cleaned.target_id = null;
-        const { data, error } = await supabase
+        const { data, error } = await this.getSupabase()
             .from('daily_step3')
             .insert(cleaned)
             .select()
@@ -148,7 +157,7 @@ const API = {
     },
 
     async getStep3Records(staffId, yearMonth) {
-        let query = supabase.from('daily_step3').select('*').eq('staff_id', staffId).order('date', { ascending: false });
+        let query = this.getSupabase().from('daily_step3').select('*').eq('staff_id', staffId).order('date', { ascending: false });
         if (yearMonth) {
             query = query.eq('year_month', yearMonth);
         }
@@ -160,7 +169,7 @@ const API = {
     // ===== 月次評価 =====
 
     async getMonthlyEvaluation(staffId, yearMonth) {
-        const { data, error } = await supabase
+        const { data, error } = await this.getSupabase()
             .from('monthly_evaluations')
             .select('*')
             .eq('staff_id', staffId)
@@ -171,7 +180,7 @@ const API = {
     },
 
     async saveMonthlyEvaluation(record) {
-        const { data, error } = await supabase
+        const { data, error } = await this.getSupabase()
             .from('monthly_evaluations')
             .upsert(record, { onConflict: 'staff_id,year_month' })
             .select()
@@ -183,7 +192,7 @@ const API = {
     // ===== 動画課題 =====
 
     async getVideoTasks(staffId) {
-        const { data, error } = await supabase
+        const { data, error } = await this.getSupabase()
             .from('video_tasks')
             .select('*')
             .eq('staff_id', staffId)
@@ -193,7 +202,7 @@ const API = {
     },
 
     async updateVideoTask(staffId, taskId, updates) {
-        const { error } = await supabase
+        const { error } = await this.getSupabase()
             .from('video_tasks')
             .upsert({ staff_id: staffId, task_id: taskId, ...updates }, { onConflict: 'staff_id,task_id' });
         return !error;
@@ -202,7 +211,7 @@ const API = {
     // ===== 管理者：スタッフ一覧 =====
 
     async getStaffList(facilityId) {
-        const { data, error } = await supabase
+        const { data, error } = await this.getSupabase()
             .from('staff_master')
             .select('*')
             .eq('facility_id', facilityId)

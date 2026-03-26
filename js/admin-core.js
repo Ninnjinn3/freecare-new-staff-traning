@@ -327,6 +327,9 @@ window.Admin = {
 
     // ===== AI学習・ナレッジ管理 =====
 
+    knowledgeItems: [],
+    currentFilter: 'all',
+
     // ナレッジ一覧取得
     async loadKnowledgeList() {
         const list = document.getElementById('ai-knowledge-list');
@@ -335,37 +338,135 @@ window.Admin = {
         try {
             const resp = await fetch('/api/ai-knowledge');
             if (resp.ok) {
-                const data = await resp.json();
-                this.renderKnowledgeList(data);
+                this.knowledgeItems = await resp.json();
+                this.renderKnowledgeList(this.knowledgeItems);
             }
         } catch (e) {
             console.error('ナレッジ取得失敗:', e);
         }
+
+        // 初回のみ初期化（リスナー等）
+        if (!this.aiStudyInitialized) {
+            this.initAIStudy();
+            this.aiStudyInitialized = true;
+        }
+    },
+
+    // AI学習UIの初期化（ドラッグ＆ドロップ、検索）
+    initAIStudy() {
+        const dropZone = document.getElementById('ai-drop-zone');
+        const fileInput = document.getElementById('ai-study-file');
+
+        if (dropZone && fileInput) {
+            // クリックでファイル選択
+            dropZone.onclick = () => fileInput.click();
+
+            // ドラッグ＆ドロップイベント
+            dropZone.ondragover = (e) => {
+                e.preventDefault();
+                dropZone.classList.add('dragover');
+            };
+            dropZone.ondragleave = () => dropZone.classList.remove('dragover');
+            dropZone.ondrop = (e) => {
+                e.preventDefault();
+                dropZone.classList.remove('dragover');
+                if (e.dataTransfer.files.length > 0) {
+                    this.handleFileSelect(e.dataTransfer.files[0]);
+                }
+            };
+
+            // ファイル入力の変更
+            fileInput.onchange = (e) => {
+                if (e.target.files.length > 0) {
+                    this.handleFileSelect(e.target.files[0]);
+                }
+            };
+        }
+    },
+
+    // ファイル選択時の処理
+    handleFileSelect(file) {
+        const info = document.getElementById('selected-file-info');
+        const nameEl = document.getElementById('selected-file-name');
+        const titleInput = document.getElementById('ai-study-title');
+        const contentArea = document.querySelector('.drop-zone-content');
+
+        if (info && nameEl) {
+            nameEl.textContent = `📄 ${file.name} (${(file.size / 1024).toFixed(1)} KB)`;
+            info.hidden = false;
+            if (contentArea) contentArea.style.opacity = '0.3';
+            
+            // タイトルが空ならファイル名をセット
+            if (titleInput && !titleInput.value) {
+                titleInput.value = file.name.split('.')[0];
+            }
+        }
+    },
+
+    // 選択ファイルのクリア
+    clearSelectedFile() {
+        const fileInput = document.getElementById('ai-study-file');
+        const info = document.getElementById('selected-file-info');
+        const contentArea = document.querySelector('.drop-zone-content');
+        if (fileInput) fileInput.value = '';
+        if (info) info.hidden = true;
+        if (contentArea) contentArea.style.opacity = '1';
+    },
+
+    // フィルタリング設定
+    setKnowledgeFilter(filter, el) {
+        this.currentFilter = filter;
+        document.querySelectorAll('#knowledge-filters .chip').forEach(c => c.classList.remove('active'));
+        if (el) el.classList.add('active');
+        this.filterKnowledge();
+    },
+
+    // 検索・フィルター実行
+    filterKnowledge() {
+        const query = document.getElementById('knowledge-search')?.value?.toLowerCase() || '';
+        
+        const filtered = this.knowledgeItems.filter(item => {
+            const matchesFilter = this.currentFilter === 'all' || item.type === this.currentFilter;
+            const matchesSearch = !query || 
+                (item.title || '').toLowerCase().includes(query) || 
+                (item.content || '').toLowerCase().includes(query);
+            return matchesFilter && matchesSearch;
+        });
+
+        this.renderKnowledgeList(filtered);
     },
 
     renderKnowledgeList(items) {
         const list = document.getElementById('ai-knowledge-list');
+        const countEl = document.getElementById('knowledge-count');
         if (!list) return;
 
+        if (countEl) countEl.textContent = `${items.length}件`;
+
         if (items.length === 0) {
-            list.innerHTML = '<p class="empty-state">学習済みの知識はありません</p>';
+            list.innerHTML = '<p class="empty-state">該当する知識はありません</p>';
             return;
         }
 
         list.innerHTML = items.map(item => `
-            <div class="card" style="padding: 1rem; border-left: 4px solid var(--primary); background: #fdfdfd;">
-                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.5rem;">
-                    <div style="font-weight: bold; font-size: 0.95rem;">
+            <div class="knowledge-card">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.6rem;">
+                    <div style="font-weight: bold; font-size: 1rem; color: var(--text-primary); line-height: 1.3;">
                         ${item.type === 'file' ? '📄' : (item.type === 'url' ? '🔗' : '💬')} ${item.title}
                     </div>
-                    <button onclick="Admin.deleteKnowledge('${item.id}')" style="background:none; border:none; color:var(--text-muted); cursor:pointer; font-size: 0.8rem;">削除</button>
                 </div>
-                ${item.url ? `<div style="margin-bottom: 0.5rem;"><a href="${item.url}" target="_blank" style="font-size: 0.8rem; color: var(--primary); text-decoration: underline; word-break: break-all;">${item.url}</a></div>` : ''}
-                <div style="font-size: 0.85rem; color: var(--text-main); line-height: 1.5; max-height: 100px; overflow-y: auto;">
+                ${item.url ? `
+                    <div style="margin-bottom: 0.8rem;">
+                        <a href="${item.url}" target="_blank" style="font-size: 0.8rem; color: var(--primary); text-decoration: none; display: flex; align-items: center; gap: 4px;">
+                            <span>🔗</span> <span style="text-decoration: underline; word-break: break-all;">${item.url}</span>
+                        </a>
+                    </div>` : ''}
+                <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.6; max-height: 120px; overflow-y: auto; background: #fcfcfc; padding: 0.5rem; border-radius: 6px; border: 1px solid #f0f0f0;">
                     ${(item.content || '').replace(/\n/g, '<br>')}
                 </div>
-                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; text-align: right;">
-                    習得日: ${new Date(item.created_at).toLocaleDateString()}
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; border-top: 1px solid #f5f5f5; pt: 0.8rem;">
+                    <span style="font-size: 0.75rem; color: var(--text-muted);">${new Date(item.created_at).toLocaleDateString()}</span>
+                    <button onclick="Admin.deleteKnowledge('${item.id}')" class="btn-text-sm">削除する</button>
                 </div>
             </div>
         `).join('');
@@ -442,9 +543,9 @@ window.Admin = {
                 showToast('AIが新しい知識を習得しました！ ✨');
                 // クリア
                 if (document.getElementById('ai-study-text')) document.getElementById('ai-study-text').value = '';
-                if (fileInput) fileInput.value = '';
                 if (urlInput) urlInput.value = '';
                 if (titleInput) titleInput.value = '';
+                this.clearSelectedFile();
                 this.loadKnowledgeList();
             } else {
                 const err = await resp.json();

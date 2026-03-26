@@ -2,8 +2,14 @@
    api/judge.js — Vercel サーバーレス関数
    Gemini API でAI採点を実行（6観点100点満点）
    ============================================ */
+import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req, res) {
+    const supabase = createClient(
+        process.env.SUPABASE_URL,
+        process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY
+    );
+
     // CORS 設定
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');

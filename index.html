@@ -12,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap"
     rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=33">
 </head>
 
 <body>
@@ -61,7 +61,10 @@
         </div>
         <div class="form-group">
           <label for="login-password">パスワード</label>
-          <input type="password" id="login-password" placeholder="パスワードを入力" required autocomplete="current-password">
+          <div class="password-wrapper">
+            <input type="password" id="login-password" placeholder="パスワードを入力" required autocomplete="current-password">
+            <span class="password-toggle" onclick="togglePasswordVisibility()">👁️</span>
+          </div>
         </div>
         <div id="login-error" class="error-message" hidden></div>
         <button type="submit" class="btn btn-primary btn-full">ログイン</button>
@@ -254,6 +257,10 @@
       </div>
       <div class="result-details">
         <p class="result-comment" id="result-comment"></p>
+        <div class="result-breakdown" id="result-breakdown" hidden>
+          <div class="breakdown-title">📊 採点の内訳</div>
+          <div class="breakdown-grid" id="result-breakdown-list"></div>
+        </div>
         <div class="result-section" id="result-good" hidden>
           <h4>✅ 良い点</h4>
           <ul id="result-good-list"></ul>
@@ -1295,44 +1302,77 @@
       <div class="admin-section" id="admin-ai-study-section" hidden>
         <div class="admin-section-title">🤖 AI学習・設定</div>
         
-        <!-- 学習入力エリア -->
-        <div class="card" style="padding: 1.5rem; margin-bottom: 1.5rem; background: white; border-radius: 12px;">
-          <h4 style="margin-bottom: 0.8rem; color: var(--primary);">新規知識の追加</h4>
+        <!-- 学習入力エリア (Premium Redesign) -->
+        <div class="card" style="padding: 1.5rem; margin-bottom: 2rem; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+          <h4 style="margin-bottom: 1rem; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+            <span>✨ 新規知識を覚えさせる</span>
+          </h4>
           
-          <div style="display: flex; flex-direction: column; gap: 1rem;">
-            <!-- テキスト入力 -->
-            <div>
-              <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: bold;">メッセージ・ルール入力</label>
-              <textarea id="ai-study-text" placeholder="例：『Aさんは〇〇が苦手なので、評価時には配慮をしてください』『新しい採点基準：〇〇が含まれない場合は不合格とする』" 
-                style="width: 100%; height: 100px; padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.9rem;"></textarea>
+          <div style="display: flex; flex-direction: column; gap: 1.2rem;">
+            <!-- ドラッグ＆ドロップゾーン -->
+            <div id="ai-drop-zone" class="drop-zone">
+              <div class="drop-zone-content">
+                <span class="drop-zone-icon">📤</span>
+                <p class="drop-zone-text">ファイルをドラッグ＆ドロップ<br><span style="font-size: 0.8rem; color: var(--text-muted);">または クリックして選択 (PDF, Word, TXT)</span></p>
+                <input type="file" id="ai-study-file" accept=".pdf,.doc,.docx,.txt" hidden>
+              </div>
+              <div id="selected-file-info" class="selected-file-info" hidden>
+                <span id="selected-file-name"></span>
+                <button type="button" class="btn-text-sm" onclick="Admin.clearSelectedFile()">取消</button>
+              </div>
             </div>
 
-            <!-- ファイル・リンク -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <!-- タイトル -->
               <div>
-                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: bold;">PDF / Word ファイル</label>
-                <input type="file" id="ai-study-file" accept=".pdf,.doc,.docx,.txt" style="font-size: 0.8rem; width: 100%;">
+                <label class="form-label-sm">タイトル（管理用）</label>
+                <input type="text" id="ai-study-title" placeholder="習得させる知識の名前" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 8px;">
               </div>
+              <!-- URL -->
               <div>
-                <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: bold;">Google Drive / 外部リンク</label>
-                <input type="url" id="ai-study-url" placeholder="https://drive.google.com/..." 
-                  style="width: 100%; padding: 0.4rem; border: 1px solid var(--border); border-radius: 4px; font-size: 0.8rem;">
+                <label class="form-label-sm">外部URL / ドライブ共有</label>
+                <input type="url" id="ai-study-url" placeholder="https://..." 
+                  style="width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 8px;">
               </div>
             </div>
 
-            <!-- タイトル -->
+            <!-- メッセージ -->
             <div>
-              <label style="display: block; margin-bottom: 0.5rem; font-size: 0.85rem; font-weight: bold;">タイトル（管理用）</label>
-              <input type="text" id="ai-study-title" placeholder="ファイル名や見出し" style="width: 100%; padding: 0.4rem; border: 1px solid var(--border); border-radius: 4px;">
+              <label class="form-label-sm">個別の指示・メッセージ</label>
+              <textarea id="ai-study-text" placeholder="例：『〇〇についての新しい採点基準です』『挨拶の有無を重視してください』" 
+                style="width: 100%; height: 80px; padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; resize: vertical;"></textarea>
             </div>
 
-            <button class="btn-primary" onclick="Admin.learnAI()" id="btn-ai-learn" style="padding: 0.8rem;">AIに学習させる 🤖</button>
+            <button class="btn btn-primary btn-full" onclick="Admin.learnAI()" id="btn-ai-learn" style="padding: 1rem; font-weight: bold; font-size: 1rem;">
+              AIに送り出す 🚀
+            </button>
+          </div>
+        </div>
+
+        <!-- 検索 & フィルター -->
+        <div style="margin-bottom: 1.5rem;">
+          <div style="display: flex; gap: 0.8rem; margin-bottom: 1rem; align-items: center;">
+            <div style="flex: 1; position: relative;">
+              <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);">🔍</span>
+              <input type="text" id="knowledge-search" placeholder="タイトルや内容で検索..." 
+                oninput="Admin.filterKnowledge()"
+                style="width: 100%; padding: 0.7rem 0.7rem 0.7rem 2.5rem; border: 1px solid var(--border); border-radius: 25px; font-size: 0.9rem; background: #f9f9f9;">
+            </div>
+          </div>
+          <div id="knowledge-filters" class="filter-chips">
+            <button class="chip active" onclick="Admin.setKnowledgeFilter('all', this)">すべて</button>
+            <button class="chip" onclick="Admin.setKnowledgeFilter('file', this)">📄 ファイル</button>
+            <button class="chip" onclick="Admin.setKnowledgeFilter('url', this)">🔗 URL</button>
+            <button class="chip" onclick="Admin.setKnowledgeFilter('text', this)">💬 メッセージ</button>
           </div>
         </div>
 
         <!-- 学習済みナレッジ一覧 -->
-        <div class="admin-section-title">📚 現在の学習済み知識</div>
-        <div id="ai-knowledge-list" class="knowledge-list" style="display: flex; flex-direction: column; gap: 0.8rem;">
+        <div class="admin-section-title" style="display: flex; align-items: center; gap: 8px;">
+          <span>📚 学習済みのナレッジ</span>
+          <span id="knowledge-count" style="font-size: 0.8rem; font-weight: normal; background: #eee; padding: 2px 8px; border-radius: 10px; color: #666;">-</span>
+        </div>
+        <div id="ai-knowledge-list" class="knowledge-grid">
           <p class="empty-state">読み込み中...</p>
         </div>
       </div>
@@ -1413,20 +1453,20 @@
   <!-- Scripts -->
   <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/supabase.js?v=4"></script>
+  <script src="js/supabase.js?v=33"></script>
   <!-- App Scripts -->
-  <script src="js/data.js?v=5"></script>
-  <script src="js/storage.js?v=5"></script>
-  <script src="js/auth.js?v=5"></script>
-  <script src="js/step1.js?v=5"></script>
-  <script src="js/step2.js?v=5"></script>
-  <script src="js/step3.js?v=5"></script>
-  <script src="js/step4.js?v=5"></script>
-  <script src="js/monthly.js?v=30"></script>
-  <script src="js/admin-core.js?v=30"></script>
-  <script src="js/exec.js?v=30"></script>
-  <script src="js/api.js?v=30"></script>
-  <script src="js/app.js?v=30"></script>
+  <script src="js/data.js?v=33"></script>
+  <script src="js/storage.js?v=33"></script>
+  <script src="js/auth.js?v=33"></script>
+  <script src="js/step1.js?v=33"></script>
+  <script src="js/step2.js?v=33"></script>
+  <script src="js/step3.js?v=33"></script>
+  <script src="js/step4.js?v=33"></script>
+  <script src="js/monthly.js?v=33"></script>
+  <script src="js/admin-core.js?v=33"></script>
+  <script src="js/exec.js?v=33"></script>
+  <script src="js/api.js?v=33"></script>
+  <script src="js/app.js?v=33"></script>
 </body>
 
 </html>

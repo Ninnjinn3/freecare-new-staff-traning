@@ -256,5 +256,38 @@ function showResult(result) {
         if (knowledgeSection) knowledgeSection.hidden = true;
     }
 
+    // Breakdown Visualization
+    const breakdownSection = document.getElementById('result-breakdown');
+    const breakdownList = document.getElementById('result-breakdown-list');
+    if (breakdownSection && breakdownList && result.breakdown) {
+        breakdownSection.hidden = false;
+        const labels = {
+            change_clarity: { name: '気づいた変化の明確さ', max: 15 },
+            multi_factor: { name: '要因の多層的分析', max: 20 },
+            priority: { name: '要因の関連性と優先順位', max: 15 },
+            verification: { name: '検証計画の論理性', max: 15 },
+            support_plan: { name: '支援計画の実効性', max: 20 },
+            reflection: { name: '振り返り・修正力', max: 15 }
+        };
+
+        breakdownList.innerHTML = Object.entries(labels).map(([key, info]) => {
+            const score = result.breakdown[key] || 0;
+            const pct = (score / info.max) * 100;
+            return `
+                <div class="breakdown-item">
+                    <div class="breakdown-header">
+                        <span class="breakdown-label">${info.name}</span>
+                        <span class="breakdown-score">${score} / ${info.max}</span>
+                    </div>
+                    <div class="breakdown-bar-bg">
+                        <div class="breakdown-bar-fill" style="width: ${pct}%"></div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } else if (breakdownSection) {
+        breakdownSection.hidden = true;
+    }
+
     navigateTo('screen-result');
 }
