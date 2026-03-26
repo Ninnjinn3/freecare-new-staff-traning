@@ -13,6 +13,12 @@ const API = {
         return client;
     },
 
+    // 月次評価の再計算が必要フラグを立てる
+    markNeedsMonthlyReeval(yearMonth) {
+        if (!yearMonth) return;
+        localStorage.setItem(`needs_reeval_${yearMonth}`, 'true');
+    },
+
 
     // ===== 認証 =====
 
@@ -105,6 +111,7 @@ const API = {
             .select()
             .single();
         if (error) { console.error('saveStep1:', error); throw error; }
+        this.markNeedsMonthlyReeval(record.year_month);
         return data;
     },
 
@@ -126,6 +133,12 @@ const API = {
             .select()
             .single();
         if (error) { console.error('updateStep1:', error); throw error; }
+        if (updates.year_month) this.markNeedsMonthlyReeval(updates.year_month);
+        else {
+            // IDから月を取得してフラグを立てる（本当はDBから引くべきだが、簡易的にlocalStorage等も検討）
+            // ここでは簡易的に現在のサイクルを対象にする
+            this.markNeedsMonthlyReeval(DB.getCurrentCycle().yearMonth);
+        }
         return data;
     },
 
@@ -140,6 +153,7 @@ const API = {
             .select()
             .single();
         if (error) { console.error('saveStep2:', error); throw error; }
+        this.markNeedsMonthlyReeval(record.year_month);
         return data;
     },
 
@@ -161,6 +175,8 @@ const API = {
             .select()
             .single();
         if (error) { console.error('updateStep2:', error); throw error; }
+        if (updates.year_month) this.markNeedsMonthlyReeval(updates.year_month);
+        else this.markNeedsMonthlyReeval(DB.getCurrentCycle().yearMonth);
         return data;
     },
 
@@ -175,6 +191,7 @@ const API = {
             .select()
             .single();
         if (error) { console.error('saveStep3:', error); throw error; }
+        this.markNeedsMonthlyReeval(record.year_month);
         return data;
     },
 
@@ -196,6 +213,8 @@ const API = {
             .select()
             .single();
         if (error) { console.error('updateStep3:', error); throw error; }
+        if (updates.year_month) this.markNeedsMonthlyReeval(updates.year_month);
+        else this.markNeedsMonthlyReeval(DB.getCurrentCycle().yearMonth);
         return data;
     },
 

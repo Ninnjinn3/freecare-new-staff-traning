@@ -196,32 +196,44 @@ const Monthly = {
 
         try {
             const user = Auth.getUser();
-            const force = window.forceReevaluating === true;
-            if (force) window.forceReevaluating = false;
+            
+            // 自動再評価の判定
+            const autoForce = localStorage.getItem(`needs_reeval_${currentTarget}`) === 'true';
+            const force = (window.forceReevaluating === true) || autoForce;
+            if (window.forceReevaluating === true) window.forceReevaluating = false;
 
-            // キャッシュ取得
-            const data = await API.getMonthlyEvaluation(user.staff_id, currentTarget, force);
+            // キャッシュ（現在の評価）を取得
+            const data = await API.getMonthlyEvaluation(user.staff_id, currentTarget);
             
             let reportData = data ? data.breakdown_json : null;
             let score = data ? data.score : 0;
             let passed = data ? data.passed : false;
 
-            // データがない、または詳細(comment)が不足している場合は再計算
+            // 描画実行（まずは現在のデータを出す）
+            this.renderEvaluation(reportData, score, passed);
+            await this.renderDailyRecords(currentTarget);
+
+            // 再評価（自動または手動）が必要な場合
             const needsReeval = !reportData || (Array.isArray(reportData) && reportData.some(b => !b.comment || b.comment.includes('AIのフィードバックはありません')));
 
             if (needsReeval || force) {
-                console.log('Fetching new monthly evaluation...');
+                // UI上のインジケータ表示
+                const statusEl = document.getElementById('monthly-pass-status');
+                if (statusEl) {
+                    statusEl.innerHTML += ' <span style="font-size:0.8rem; font-weight:normal; color:var(--text-muted)">(AI評価を最新化中...)</span>';
+                }
+                
+                console.log('Fetching new monthly evaluation (Background)...');
+                if (autoForce) localStorage.removeItem(`needs_reeval_${currentTarget}`);
+
+                // バックグラウンドで計算実行
                 const newData = await Monthly.calculate(currentTarget);
                 if (newData) {
-                    reportData = newData.breakdown;
-                    score = newData.score;
-                    passed = newData.passed;
+                    // 最新データで再描画
+                    this.renderEvaluation(newData.breakdown, newData.score, newData.passed);
+                    showToast('最新の記録に基づき、AI評価を更新しました ✨');
                 }
             }
-            
-            // 描画実行
-            this.renderEvaluation(reportData, score, passed);
-            await this.renderDailyRecords(currentTarget);
             
             // レガシーUIを隠す
             this.toggleLegacyUI(false);
