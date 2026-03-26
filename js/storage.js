@@ -61,36 +61,59 @@ const DB = {
 
     // --- 月次サイクル算出 ---
     getCurrentCycle(refDate = new Date(), forceDate = null) {
-        let dateToUse = refDate;
-        
-        // forceDateが指定された場合（ユーザーがカレンダーで日付を選んだ場合）
-        // その日付自身の月をサイクルとする
-        if (forceDate) {
-            dateToUse = new Date(forceDate);
-        } else if (refDate.getDate() <= 10) {
-            // ホーム画面等のデフォルト動作:
-            // 10日までは「前月分の提出期限（今月10日）」が来ていないため、前月をアクティブサイクルとする
-            dateToUse = new Date(refDate);
-            dateToUse.setMonth(dateToUse.getMonth() - 1);
+        // 1. ホーム画面などのデフォルトの「アクティブサイクル」を算出
+        // 毎月10日までは、前月分をアクティブとする
+        const activeDate = new Date(refDate);
+        if (activeDate.getDate() <= 10) {
+            activeDate.setMonth(activeDate.getMonth() - 1);
         }
         
-        const year = dateToUse.getFullYear();
-        const month = dateToUse.getMonth(); // 0-indexed
-
-        const cycleYear = year;
-        const cycleMonth = month;
-        const yearMonth = `${cycleYear}-${String(cycleMonth + 1).padStart(2, '0')}`;
+        let cycleYear = activeDate.getFullYear();
+        let cycleMonth = activeDate.getMonth(); // 0-indexed
+        let targetYearMonth = `${cycleYear}-${String(cycleMonth + 1).padStart(2, '0')}`;
         
-        // 提出期限は「翌月の10日」
+        // 2. forceDate(入力日付) が指定された場合、それがどの月に属するかを再判定
+        // 基本ルール: M月のサイクルは「M月1日 〜 M+1月10日」
+        if (forceDate) {
+            const inputDate = new Date(forceDate);
+            const inputYear = inputDate.getFullYear();
+            const inputMonth = inputDate.getMonth();
+            const inputDay = inputDate.getDate();
+            
+            if (inputDay <= 10) {
+                // 入力日が1日〜10日の場合（例：4月5日）
+                // この日付は「3月サイクル(期限4/10)」でも「4月サイクル(期限5/10)」でもあり得る重複期間。
+                // 現在のアクティブサイクルが「3月」なら3月に寄せ、それ以外なら「4月」に寄せる。
+                const prevMonthDate = new Date(inputYear, inputMonth - 1, 1);
+                const prevCycleStr = `${prevMonthDate.getFullYear()}-${String(prevMonthDate.getMonth() + 1).padStart(2, '0')}`;
+                const currCycleStr = `${inputYear}-${String(inputMonth + 1).padStart(2, '0')}`;
+                
+                if (targetYearMonth === prevCycleStr) {
+                    // そのまま (e.g. 2026-03 のまま)
+                } else {
+                    cycleYear = inputYear;
+                    cycleMonth = inputMonth;
+                    targetYearMonth = currCycleStr;
+                }
+            } else {
+                // 入力日が11日以降の場合は、確実にその月がサイクルとなる
+                cycleYear = inputYear;
+                cycleMonth = inputMonth;
+                targetYearMonth = `${cycleYear}-${String(cycleMonth + 1).padStart(2, '0')}`;
+            }
+        }
+        
+        // 3. 算出された targetYearMonth に対する「提出期限」を計算
         let deadlineYear = cycleYear;
         let deadlineMonth = cycleMonth + 1;
         if (deadlineMonth > 11) {
             deadlineMonth = 0;
             deadlineYear++;
         }
+        // 期限は M+1月の10日
         const deadlineDate = new Date(deadlineYear, deadlineMonth, MONTHLY_CYCLE.inputEnd);
         
-        // refDate（今日）からの残日数を計算（forceDateからではない点に注意）
+        // 4. refDate（今日）から見て、期限が過ぎているか判定
         const today = new Date(refDate);
         today.setHours(0,0,0,0);
         const daysLeft = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
@@ -108,7 +131,7 @@ const DB = {
         }
 
         return {
-            yearMonth,
+            yearMonth: targetYearMonth,
             cycleYear,
             cycleMonth: cycleMonth + 1,
             phase,
