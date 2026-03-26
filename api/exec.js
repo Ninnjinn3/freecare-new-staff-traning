@@ -29,9 +29,19 @@ export default async function handler(req, res) {
             sbSelect(SUPABASE_URL, SUPABASE_KEY, 'monthly_evaluations', `year_month=eq.${ym}`)
         ]);
 
-        // 拠点別集計
-        const facilityStats = facilities.filter(f => f.id !== 'HQ').map(facility => {
-            const staff = allStaff.filter(s => s.facility_id === facility.id);
+        // 拠点別集計 (ユーザー指定の7カテゴリー + その他)
+        const categories = [
+            { prefix: '2', name: 'グループホーム' },
+            { prefix: '3', name: '訪問看護（精神）' },
+            { prefix: '4', name: '三国' },
+            { prefix: '5', name: '就労B' },
+            { prefix: '6', name: 'デイサービス' },
+            { prefix: '7', name: '生活介護' },
+            { prefix: '8', name: '小児' }
+        ];
+
+        const facilityStats = categories.map(cat => {
+            const staff = allStaff.filter(s => s.staff_id.startsWith(cat.prefix));
             const staffIds = staff.map(s => s.staff_id);
 
             const s1 = step1All.filter(r => staffIds.includes(r.staff_id));
@@ -47,8 +57,8 @@ export default async function handler(req, res) {
             const avgScore = scores.length > 0 ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : 0;
 
             return {
-                id: facility.id,
-                name: facility.name,
+                id: cat.prefix,
+                name: cat.name,
                 staffCount: staff.length,
                 activeStaff: new Set(allRecords.map(r => r.staff_id)).size,
                 totalRecords,
@@ -58,7 +68,7 @@ export default async function handler(req, res) {
                     step1: staff.filter(s => s.current_step === 1).length,
                     step2: staff.filter(s => s.current_step === 2).length,
                     step3: staff.filter(s => s.current_step === 3).length,
-                    step4: staff.filter(s => s.current_step === 4).length
+                    step4: staff.filter(s => s.current_step >= 4).length
                 }
             };
         });

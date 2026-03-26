@@ -6,21 +6,39 @@
 window.Admin = {
     data: null,
 
+    // ===== ナビゲーション =====
+    switchPage(pageId) {
+        const pages = ['dashboard', 'staff', 'progress', 'alerts', 'ai'];
+        pages.forEach(p => {
+            const el = document.getElementById(`admin-page-${p}`);
+            if (el) el.style.display = (p === pageId) ? 'block' : 'none';
+            
+            const nav = document.getElementById(`nav-${p}`);
+            if (nav) nav.classList.toggle('active', p === pageId);
+        });
+
+        const titleMap = {
+            dashboard: '管理者ダッシュボード',
+            staff: 'ユーザ管理',
+            progress: '受講状況',
+            alerts: 'アラート一覧',
+            ai: 'AI学習設定'
+        };
+        const titleEl = document.getElementById('admin-header-title');
+        if (titleEl) titleEl.textContent = titleMap[pageId] || '管理者画面';
+
+        // ページに応じたデータロード
+        if (pageId === 'dashboard') this.load();
+        if (pageId === 'staff') this.loadStaffList();
+        if (pageId === 'progress') this.renderProgressList();
+        if (pageId === 'alerts') this.renderAlerts();
+        if (pageId === 'ai') this.loadKnowledgeList();
+    },
+
     // ===== ダッシュボード読み込み =====
     async load() {
         const user = Auth.getUser();
         if (!user) return;
-
-        // 運営本部ユーザーが閲覧している場合のボタン出し分け
-        const logoutBtn = document.getElementById('admin-logout-btn');
-        const backBtn = document.getElementById('admin-back-exec-btn');
-        if (user.role === 'exec') {
-            if (logoutBtn) logoutBtn.style.display = 'none';
-            if (backBtn) backBtn.style.display = 'block';
-        } else {
-            if (logoutBtn) logoutBtn.style.display = 'block';
-            if (backBtn) backBtn.style.display = 'none';
-        }
 
         const facilityId = user.role === 'exec' ? '' : (user.facility_id || 'F001');
         const cycle = DB.getCurrentCycle();
@@ -37,18 +55,67 @@ window.Admin = {
 
             if (resp.ok) {
                 this.data = await resp.json();
-                this.renderSummary();
-                this.renderProgressList();
-                this.renderAlerts();
+                this.renderDashboard();
+                this.renderSummary(); // 互換性のために残す
                 return;
             }
         } catch (e) {
             console.warn('管理者API失敗:', e);
         }
-        this.renderEmpty();
     },
 
-    // サマリカード描画
+    // 新しいダッシュボードウィジェット描画
+    renderDashboard() {
+        if (!this.data) return;
+        const s = this.data.summary || {};
+        
+        setText('widget-staff-count', s.totalStaff || 0);
+        setText('widget-login-rate', s.loginRate || s.activeStaff ? Math.round((s.activeStaff/s.totalStaff)*100) : 0);
+        setText('widget-completion-rate', `${s.completionRate || 0}%`);
+        
+        this.renderCharts();
+    },
+
+    renderCharts() {
+        // 完成ドーナツ
+        const ctxCompletion = document.getElementById('completionChart')?.getContext('2d');
+        if (ctxCompletion && !this.completionChart) {
+            const rate = this.data.summary?.completionRate || 0;
+            this.completionChart = new Chart(ctxCompletion, {
+                type: 'doughnut',
+                data: {
+                    datasets: [{
+                        data: [rate, 100 - rate],
+                        backgroundColor: ['#4f46e5', '#f3f4f6'],
+                        borderWidth: 0
+                    }]
+                },
+                options: { cutout: '80%', plugins: { legend: { display: false } } }
+            });
+        }
+
+        // 時系列グラフ
+        const ctxTime = document.getElementById('timeSeriesChart')?.getContext('2d');
+        if (ctxTime && !this.timeSeriesChart) {
+            this.timeSeriesChart = new Chart(ctxTime, {
+                type: 'line',
+                data: {
+                    labels: ['月', '火', '水', '木', '金', '土', '日'],
+                    datasets: [{
+                        label: '受講数',
+                        data: [12, 19, 15, 22, 28, 10, 8],
+                        borderColor: '#4f46e5',
+                        tension: 0.4,
+                        fill: true,
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)'
+                    }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+            });
+        }
+    },
+
+    // 互換性のあるサマリカード描画
     renderSummary() {
         if (!this.data?.summary) return;
         const s = this.data.summary;
@@ -62,7 +129,7 @@ window.Admin = {
 
     // スタッフ進捗一覧描画
     renderProgressList() {
-        const list = document.getElementById('staff-progress-list');
+        const list = document.getElementById('staff-progress-list-container');
         if (!list || !this.data?.staffProgress) return;
 
         if (this.data.staffProgress.length === 0) {
@@ -115,7 +182,7 @@ window.Admin = {
 
     // アラート一覧描画
     renderAlerts() {
-        const list = document.getElementById('admin-alert-list');
+        const list = document.getElementById('admin-alert-list-container');
         if (!list || !this.data?.alerts) return;
 
         if (this.data.alerts.length === 0) {
@@ -183,7 +250,7 @@ window.Admin = {
     },
 
     renderStaffManageList(staffList) {
-        const list = document.getElementById('staff-manage-list');
+        const list = document.getElementById('staff-manage-list-container');
         if (!list) return;
 
         if (staffList.length === 0) {
@@ -569,28 +636,9 @@ window.Admin = {
     }
 };
 
-// タブ切替
+// タブ切替 (旧互換用)
 window.showAdminTab = function(tab) {
-    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.admin-section').forEach(s => s.hidden = true);
-
-    document.getElementById(`admin-tab-${tab}`).classList.add('active');
-    const section = document.getElementById(`admin-${tab}-section`);
-    if (section) {
-        section.hidden = false;
-        section.style.display = 'block';
-    }
-
-    // 初回データ取得
-    if ((tab === 'progress' || tab === 'alerts') && !Admin.data) {
-        Admin.load();
-    }
-    if (tab === 'staff') {
-        Admin.loadStaffList();
-    }
-    if (tab === 'ai-study') {
-        Admin.loadKnowledgeList();
-    }
+    Admin.switchPage(tab);
 }
 
 window.setText = function(id, text) {

@@ -13,6 +13,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap"
     rel="stylesheet">
   <link rel="stylesheet" href="css/style.css?v=37">
+  <link rel="stylesheet" href="css/admin-new.css?v=37">
 </head>
 
 <body>
@@ -121,8 +122,8 @@
         </div>
       </div>
 
-      <!-- 送信済み課題修正ボタン (旧: 進捗バー) -->
-      <div class="card clickable-card" onclick="navigateTo('screen-monthly'); Monthly.render();" 
+       <!-- 送信済み課題修正ボタン (旧: 進捗バー) -->
+      <div class="card clickable-card" onclick="navigateTo('screen-edit-list')" 
            style="cursor: pointer; background: #f0f7ff; border: 2px solid #cce3ff; transition: transform 0.2s, box-shadow 0.2s; margin-bottom: var(--space-md); text-align: center; padding: 1.2rem;">
         <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
           <span style="font-size: 1.5rem;">📝</span>
@@ -1186,207 +1187,131 @@
 
   <!-- ===== Screen 11: 管理者ダッシュボード ===== -->
   <section id="screen-admin" class="screen">
-    <div class="screen-content">
-      <div class="step-header">
-        <button class="back-btn" id="admin-logout-btn" onclick="handleLogout()">← ログアウト</button>
-        <button class="back-btn" id="admin-back-exec-btn" onclick="navigateTo('screen-exec')"
-          style="display:none; background:var(--primary); color:white;">← 本部画面へ戻る</button>
-        <h2 class="step-title">管理者ダッシュボード</h2>
-      </div>
-
-      <!-- 管理者タブ -->
-      <div class="admin-tabs">
-        <button class="admin-tab active" onclick="showAdminTab('targets')" id="admin-tab-targets">👥 対象者</button>
-        <button class="admin-tab" onclick="showAdminTab('staff')" id="admin-tab-staff">👤 スタッフ</button>
-        <button class="admin-tab" onclick="showAdminTab('progress')" id="admin-tab-progress">📊 進捗</button>
-        <button class="admin-tab" onclick="showAdminTab('alerts')" id="admin-tab-alerts">🔔 アラート</button>
-        <button class="admin-tab" onclick="showAdminTab('ai-study')" id="admin-tab-ai-study">🤖 AI学習</button>
-      </div>
-
-      <!-- 対象者管理セクション -->
-      <div class="admin-section" id="admin-targets-section">
-        <div class="admin-section-title">👥 対象者（利用者）一覧</div>
-        <div class="target-list" id="admin-target-list"></div>
-        <div class="add-target-form">
-          <input type="text" id="admin-new-target-name" placeholder="新しい対象者の名前">
-          <button onclick="addNewTarget()">＋ 追加</button>
+    <div class="admin-layout">
+      <!-- サイドバー -->
+      <aside class="admin-sidebar">
+        <div class="admin-sidebar-logo">
+          <img src="https://freecare.co.jp/wp-content/themes/freecare/images/logo.png" alt="FreeCare">
         </div>
-      </div>
+        <nav class="admin-nav">
+          <div class="admin-nav-item active" id="nav-dashboard" onclick="Admin.switchPage('dashboard')">
+            <span>🏠</span> <span>ホーム</span>
+          </div>
+          <div class="admin-nav-item" id="nav-staff" onclick="Admin.switchPage('staff')">
+            <span>👥</span> <span>ユーザ管理</span>
+          </div>
+          <div class="admin-nav-item" id="nav-progress" onclick="Admin.switchPage('progress')">
+            <span>📊</span> <span>受講状況</span>
+          </div>
+          <div class="admin-nav-item" id="nav-alerts" onclick="Admin.switchPage('alerts')">
+            <span>🔔</span> <span>アラート</span>
+          </div>
+          <div class="admin-nav-item" id="nav-ai" onclick="Admin.switchPage('ai')">
+            <span>🤖</span> <span>AI学習設定</span>
+          </div>
+        </nav>
+      </aside>
 
-      <!-- スタッフ管理セクション -->
-      <div class="admin-section" id="admin-staff-section" hidden>
-        <div class="admin-section-title">👤 スタッフ管理</div>
+      <!-- メインエリア -->
+      <main class="admin-main">
+        <header class="admin-header">
+          <div id="admin-header-title" style="font-weight: bold; color: #333;">管理者ダッシュボード</div>
+          <div class="admin-user-profile">
+            <span id="admin-user-name">管理者</span>
+            <button class="btn-text-sm" onclick="handleLogout()" style="margin-left:10px; color: #666; border: none; background: none; cursor: pointer;">ログアウト</button>
+          </div>
+        </header>
 
-        <!-- スタッフ追加フォーム -->
-        <div class="staff-add-form">
-          <h4>新規スタッフ登録</h4>
-          <div class="form-grid">
-            <div class="form-field">
-              <label>氏名（フルネーム）</label>
-              <input type="text" id="new-staff-name" placeholder="山田花子" required>
-            </div>
-            <div class="form-field">
-              <label>職員ID</label>
-              <input type="text" id="new-staff-id" placeholder="FC004" required>
-            </div>
-            <div class="form-field">
-              <label>初期パスワード</label>
-              <input type="text" id="new-staff-pw" placeholder="demo1234" required>
-            </div>
-            <div class="form-field">
-              <label>勤務形態</label>
-              <select id="new-staff-worktype">
-                <option value="day">日勤</option>
-                <option value="night">夜勤</option>
-                <option value="nightOnce">宿直</option>
-              </select>
-            </div>
-            <div class="form-field">
-              <label>ロール</label>
-              <select id="new-staff-role">
-                <option value="staff">新人研修利用者</option>
-                <option value="admin">管理者</option>
-                <option value="exec">運営本部</option>
-              </select>
-            </div>
-          </div>
-          <button class="btn-primary" onclick="Admin.createStaff()" id="btn-create-staff">＋ スタッフ登録</button>
-        </div>
-
-        <!-- スタッフ一覧フィルター -->
-        <div class="staff-filter">
-          <label>
-            <input type="checkbox" id="show-inactive-staff" onchange="Admin.loadStaffList()"> 退職済みも表示
-          </label>
-        </div>
-
-        <!-- スタッフ一覧 -->
-        <div class="staff-manage-list" id="staff-manage-list">
-          <p class="empty-state">読み込み中...</p>
-        </div>
-      </div>
-
-      <!-- 進捗確認セクション -->
-      <div class="admin-section" id="admin-progress-section" hidden>
-        <!-- サマリカード -->
-        <div class="admin-summary" id="admin-summary">
-          <div class="summary-card">
-            <span class="summary-label">研修対象</span>
-            <span class="summary-value" id="summary-total">--</span>
-          </div>
-          <div class="summary-card">
-            <span class="summary-label">記録あり</span>
-            <span class="summary-value" id="summary-active">--</span>
-          </div>
-          <div class="summary-card">
-            <span class="summary-label">平均スコア</span>
-            <span class="summary-value" id="summary-avg-score">--</span>
-          </div>
-          <div class="summary-card">
-            <span class="summary-label">平均合格率</span>
-            <span class="summary-value" id="summary-avg-pass">--</span>
-          </div>
-          <div class="summary-card">
-            <span class="summary-label">仮説的中率</span>
-            <span class="summary-value" id="summary-hit-rate">--</span>
-          </div>
-          <div class="summary-card">
-            <span class="summary-label">振り返り実施率</span>
-            <span class="summary-value" id="summary-reflection-rate">--</span>
-          </div>
-        </div>
-        <div class="admin-section-title">📊 スタッフ進捗一覧</div>
-        <div class="staff-progress-list" id="staff-progress-list">
-          <p class="empty-state">読み込み中...</p>
-        </div>
-      </div>
-
-      <!-- アラートセクション -->
-      <div class="admin-section" id="admin-alerts-section" hidden>
-        <div class="admin-section-title">🔔 アラート一覧</div>
-        <div class="alert-list" id="admin-alert-list">
-          <p class="empty-state">読み込み中...</p>
-        </div>
-      </div>
- 
-      <!-- AI学習セクション -->
-      <div class="admin-section" id="admin-ai-study-section" hidden>
-        <div class="admin-section-title">🤖 AI学習・設定</div>
-        
-        <!-- 学習入力エリア (Premium Redesign) -->
-        <div class="card" style="padding: 1.5rem; margin-bottom: 2rem; background: white; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
-          <h4 style="margin-bottom: 1rem; color: var(--primary); display: flex; align-items: center; gap: 8px;">
-            <span>✨ 新規知識を覚えさせる</span>
-          </h4>
-          
-          <div style="display: flex; flex-direction: column; gap: 1.2rem;">
-            <!-- ドラッグ＆ドロップゾーン -->
-            <div id="ai-drop-zone" class="drop-zone">
-              <div class="drop-zone-content">
-                <span class="drop-zone-icon">📤</span>
-                <p class="drop-zone-text">ファイルをドラッグ＆ドロップ<br><span style="font-size: 0.8rem; color: var(--text-muted);">または クリックして選択 (PDF, Word, TXT)</span></p>
-                <input type="file" id="ai-study-file" accept=".pdf,.doc,.docx,.txt" hidden>
-              </div>
-              <div id="selected-file-info" class="selected-file-info" hidden>
-                <span id="selected-file-name"></span>
-                <button type="button" class="btn-text-sm" onclick="Admin.clearSelectedFile()">取消</button>
+        <!-- 各ページコンテンツ -->
+        <div id="admin-page-dashboard" class="admin-page-content">
+          <div class="admin-dashboard-grid">
+            <!-- 利用状況 -->
+            <div class="admin-widget">
+              <div class="widget-title">👥 利用状況</div>
+              <div class="usage-stats">
+                <div class="stat-item">
+                  <div class="stat-label">受講登録済みユーザ数</div>
+                  <div class="stat-value"><span id="widget-staff-count">--</span> <span style="font-size:0.8rem; font-weight:normal;">/ 53名</span></div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-label">ログイン率</div>
+                  <div class="stat-value"><span id="widget-login-rate">--</span>%</div>
+                </div>
               </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-              <!-- タイトル -->
-              <div>
-                <label class="form-label-sm">タイトル（管理用）</label>
-                <input type="text" id="ai-study-title" placeholder="習得させる知識の名前" style="width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 8px;">
-              </div>
-              <!-- URL -->
-              <div>
-                <label class="form-label-sm">外部URL / ドライブ共有</label>
-                <input type="url" id="ai-study-url" placeholder="https://..." 
-                  style="width: 100%; padding: 0.6rem; border: 1px solid var(--border); border-radius: 8px;">
+            <!-- 修了状況 -->
+            <div class="admin-widget">
+              <div class="widget-title">🎓 修了状況</div>
+              <div class="completion-donut">
+                <div class="donut-label">
+                  <span class="donut-percent" id="widget-completion-rate">--%</span>
+                  <span style="font-size:0.7rem; color:#999;">修了済み</span>
+                </div>
+                <canvas id="completionChart" width="140" height="140"></canvas>
               </div>
             </div>
 
-            <!-- メッセージ -->
-            <div>
-              <label class="form-label-sm">個別の指示・メッセージ</label>
-              <textarea id="ai-study-text" placeholder="例：『〇〇についての新しい採点基準です』『挨拶の有無を重視してください』" 
-                style="width: 100%; height: 80px; padding: 0.8rem; border: 1px solid var(--border); border-radius: 8px; font-size: 0.95rem; resize: vertical;"></textarea>
+            <!-- グラフ -->
+            <div class="admin-widget">
+              <div class="widget-title">📈 曜日・時間帯別受講状況</div>
+              <div class="chart-container">
+                <canvas id="timeSeriesChart"></canvas>
+              </div>
             </div>
 
-            <button class="btn btn-primary btn-full" onclick="Admin.learnAI()" id="btn-ai-learn" style="padding: 1rem; font-weight: bold; font-size: 1rem;">
-              AIに送り出す 🚀
-            </button>
-          </div>
-        </div>
+            <!-- インフォメーション -->
+            <div class="admin-widget">
+              <div class="widget-title">ℹ️ インフォメーション</div>
+              <div class="info-list" id="widget-info-list" style="max-height: 200px; overflow-y: auto;">
+                <div class="info-item">
+                  <span class="info-date">2026/03/26</span>
+                  <span class="info-text">システムメンテナンスのお知らせ</span>
+                </div>
+              </div>
+            </div>
 
-        <!-- 検索 & フィルター -->
-        <div style="margin-bottom: 1.5rem;">
-          <div style="display: flex; gap: 0.8rem; margin-bottom: 1rem; align-items: center;">
-            <div style="flex: 1; position: relative;">
-              <span style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-muted);">🔍</span>
-              <input type="text" id="knowledge-search" placeholder="タイトルや内容で検索..." 
-                oninput="Admin.filterKnowledge()"
-                style="width: 100%; padding: 0.7rem 0.7rem 0.7rem 2.5rem; border: 1px solid var(--border); border-radius: 25px; font-size: 0.9rem; background: #f9f9f9;">
+            <!-- 指導コックピット -->
+            <div class="admin-widget">
+              <div class="widget-title">👨‍🏫 指導コックピット</div>
+              <div class="cockpit-tabs" style="display: flex; gap: 10px; border-bottom: 1px solid #eee; margin-bottom: 15px;">
+                <span class="active" style="padding: 5px 10px; border-bottom: 2px solid var(--admin-sidebar-bg); font-weight: bold; font-size:0.85rem;">全て</span>
+                <span style="padding: 5px 10px; color: #999; font-size:0.85rem;">部門</span>
+                <span style="padding: 5px 10px; color: #999; font-size:0.85rem;">クラス</span>
+              </div>
+              <div style="text-align: center; color: #999; padding: 20px; font-size: 0.8rem;">データがありません。</div>
+            </div>
+
+            <!-- ブックマーク -->
+            <div class="admin-widget">
+              <div class="widget-title">⭐ ブックマーク</div>
+              <div class="bookmark-grid" style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;">
+                <div class="bookmark-add" style="aspect-ratio: 1; border: 2px dashed #eee; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; color: #ccc; cursor: pointer;">＋</div>
+              </div>
             </div>
           </div>
-          <div id="knowledge-filters" class="filter-chips">
-            <button class="chip active" onclick="Admin.setKnowledgeFilter('all', this)">すべて</button>
-            <button class="chip" onclick="Admin.setKnowledgeFilter('file', this)">📄 ファイル</button>
-            <button class="chip" onclick="Admin.setKnowledgeFilter('url', this)">🔗 URL</button>
-            <button class="chip" onclick="Admin.setKnowledgeFilter('text', this)">💬 メッセージ</button>
-          </div>
         </div>
 
-        <!-- 学習済みナレッジ一覧 -->
-        <div class="admin-section-title" style="display: flex; align-items: center; gap: 8px;">
-          <span>📚 学習済みのナレッジ</span>
-          <span id="knowledge-count" style="font-size: 0.8rem; font-weight: normal; background: #eee; padding: 2px 8px; border-radius: 10px; color: #666;">-</span>
+        <!-- ユーザ管理ページ -->
+        <div id="admin-page-staff" class="admin-page-content" style="display:none; padding: 25px;">
+           <div id="staff-manage-list-container"></div>
         </div>
-        <div id="ai-knowledge-list" class="knowledge-grid">
-          <p class="empty-state">読み込み中...</p>
+
+        <!-- 受講状況ページ -->
+        <div id="admin-page-progress" class="admin-page-content" style="display:none; padding: 25px;">
+           <div id="staff-progress-list-container"></div>
         </div>
-      </div>
+
+        <!-- アラートページ -->
+        <div id="admin-page-alerts" class="admin-page-content" style="display:none; padding: 25px;">
+           <div id="admin-alert-list-container"></div>
+        </div>
+
+        <!-- AI学習設定ページ -->
+        <div id="admin-page-ai" class="admin-page-content" style="display:none; padding: 25px;">
+           <div id="admin-ai-study-container"></div>
+        </div>
+      </main>
     </div>
   </section>
 
@@ -1461,6 +1386,44 @@
     </div>
   </section>
 
+  <!-- 送信済み課題修正画面 -->
+  <section id="screen-edit-list" class="screen">
+    <header class="header">
+      <button class="icon-btn" onclick="navigateTo('screen-home')">
+        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+      </button>
+      <h1 class="header-title" style="font-size: 1.1rem;">送信済み課題修正</h1>
+      <div style="width: 40px;"></div>
+    </header>
+
+    <div class="content-scrollable">
+      <div class="edit-category-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px;">
+        <button class="category-card" onclick="RecordEdit.loadStep(1)" style="aspect-ratio: 1; border-radius: 20px; border: none; background: #E3F2FD; color: #1976D2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer;">
+          <span style="font-size: 2rem;">💡</span>
+          <span style="font-weight: bold;">気付き</span>
+        </button>
+        <button class="category-card" onclick="RecordEdit.loadStep(2)" style="aspect-ratio: 1; border-radius: 20px; border: none; background: #F3E5F5; color: #7B1FA2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer;">
+          <span style="font-size: 2rem;">🧠</span>
+          <span style="font-weight: bold;">仮説思考</span>
+        </button>
+        <button class="category-card" onclick="RecordEdit.loadStep(3)" style="aspect-ratio: 1; border-radius: 20px; border: none; background: #E8F5E9; color: #388E3C; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer;">
+          <span style="font-size: 2rem;">🔄</span>
+          <span style="font-weight: bold;">振り返り</span>
+        </button>
+        <button class="category-card" onclick="RecordEdit.loadStep(4)" style="aspect-ratio: 1; border-radius: 20px; border: none; background: #FFF3E0; color: #F57C00; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer;">
+          <span style="font-size: 2rem;">📋</span>
+          <span style="font-weight: bold;">症例報告</span>
+        </button>
+      </div>
+
+      <div id="edit-list-container" style="padding: 0 20px 100px;">
+        <div style="text-align: center; color: #999; margin-top: 40px;">
+          カテゴリーを選択してください
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- 運営本部用 モード切り替えスイッチ -->
   <div id="exec-mode-switcher" class="exec-mode-switcher" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); 
        background:rgba(255,255,255,0.95); border:1px solid var(--border); border-radius:30px; padding:6px 15px; 
@@ -1472,6 +1435,8 @@
   </div>
 
   <!-- Scripts -->
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <!-- Supabase CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/supabase.js?v=37"></script>
@@ -1487,6 +1452,7 @@
   <script src="js/admin-core.js?v=37"></script>
   <script src="js/exec.js?v=37"></script>
   <script src="js/api.js?v=37"></script>
+  <script src="js/record-edit.js?v=37"></script>
   <script src="js/app.js?v=37"></script>
 </body>
 

@@ -32,13 +32,18 @@ const Auth = {
         // ロールチェック (IDの1桁目が1なら運営本部扱い、特定リストなら管理者扱い＆全てパス)
         const isPowerUser = staffId.startsWith('1');
         const isDualAdmin = this.DUAL_ACCESS_ADMINS.includes(staffId);
+        const selectedRole = this.getSelectedRole();
+
+        // 運営本部ボタンからのログイン制限
+        if (selectedRole === 'exec' && !isPowerUser) {
+            return { success: false, error: '権限が付与されておりません' };
+        }
         
         if (isPowerUser) {
             staff.role = 'exec';
-        } else if (isDualAdmin) {
+        } else if (isDualAdmin || staff.role === 'admin') {
             staff.role = 'admin';
         } else {
-            const selectedRole = this.getSelectedRole();
             if (selectedRole !== staff.role) {
                 return { success: false, error: `この職員IDは「${this._roleLabel(staff.role)}」のアカウントです` };
             }

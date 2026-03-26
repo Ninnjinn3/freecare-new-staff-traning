@@ -37,10 +37,16 @@ const API = {
                 .single();
 
             if (staff) {
+                const selectedRole = Auth.getSelectedRole();
+                // 運営本部ボタンからのログインを1xxx以外はブロック
+                if (selectedRole === 'exec' && !staffId.startsWith('1')) {
+                    return { success: false, error: '権限が付与されておりません' };
+                }
+
                 // IDの1桁目が1なら運営本部扱い
                 if (staffId.startsWith('1')) staff.role = 'exec';
-                // 特定のIDなら管理者扱い
-                else if (Auth.DUAL_ACCESS_ADMINS.includes(staffId)) staff.role = 'admin';
+                // 特定のIDまたはDB上の管理者は管理者扱い
+                else if (Auth.DUAL_ACCESS_ADMINS.includes(staffId) || staff.role === 'admin') staff.role = 'admin';
                 
                 Auth.currentUser = staff;
                 sessionStorage.setItem('fc_current_user', JSON.stringify(staff));
@@ -58,10 +64,16 @@ const API = {
             .maybeSingle();
 
         if (staffFromDb) {
+            const selectedRole = Auth.getSelectedRole();
+            // 運営本部ボタンからのログインを1xxx以外はブロック
+            if (selectedRole === 'exec' && !staffId.startsWith('1')) {
+                return { success: false, error: '権限が付与されておりません' };
+            }
+
             // IDの1桁目が1なら運営本部扱い
             if (staffId.startsWith('1')) staffFromDb.role = 'exec';
-            // 特定のIDなら管理者扱い
-            else if (Auth.DUAL_ACCESS_ADMINS.includes(staffId)) staffFromDb.role = 'admin';
+            // 特定のIDまたはDB上の管理者は管理者扱い
+            else if (Auth.DUAL_ACCESS_ADMINS.includes(staffId) || staffFromDb.role === 'admin') staffFromDb.role = 'admin';
 
             Auth.currentUser = staffFromDb;
             sessionStorage.setItem('fc_current_user', JSON.stringify(staffFromDb));

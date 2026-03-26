@@ -53,6 +53,9 @@ async function navigateTo(screenId) {
         case 'screen-monthly':
             Monthly.render();
             break;
+        case 'screen-edit-list':
+            RecordEdit.init();
+            break;
         case 'screen-history':
             loadHistory();
             break;
