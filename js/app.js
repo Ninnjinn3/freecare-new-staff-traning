@@ -626,13 +626,36 @@ async function renderAdminTargetList() {
                 <div class="target-list-name">👤 ${t.name}</div>
                 <div class="target-list-meta">ID: ${t.id}</div>
             </div>
-            <div class="target-list-actions">
+            <div class="target-list-actions" style="display: flex; gap: 8px;">
+                <button class="btn-primary-sm" onclick="editTarget('${t.db_id || t.id}', '${t.name}')">編集</button>
                 <button class="btn-delete" onclick="deleteTarget('${t.db_id || t.id}')">削除</button>
             </div>
         </div>
     `).join('');
 }
 
+async function editTarget(id, currentName) {
+    const newName = prompt('新しい名称を入力してください', currentName);
+    if (!newName || newName === currentName) return;
+
+    try {
+        const updated = await API.updateTarget(id, { name: newName });
+        if (updated) {
+            // キャッシュ更新
+            const targets = await getTargetList();
+            const target = targets.find(t => t.db_id === id || t.id === id);
+            if (target) {
+                target.name = updated.name;
+                saveTargetList(targets);
+            }
+            renderAdminTargetList();
+            showToast('名称を更新しました ✅');
+        }
+    } catch (e) {
+        showToast('更新に失敗しました');
+        console.error(e);
+    }
+}
 async function addNewTarget() {
     const nameInput = document.getElementById('admin-new-target-name');
     const name = nameInput.value.trim();

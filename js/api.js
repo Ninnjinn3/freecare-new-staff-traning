@@ -39,12 +39,12 @@ const API = {
             if (staff) {
                 const selectedRole = Auth.getSelectedRole();
                 // 運営本部ボタンからのログインを1xxx以外はブロック
-                if (selectedRole === 'exec' && !staffId.startsWith('1')) {
+                if (selectedRole === 'exec' && !staffId.startsWith('1') && staffId !== 'FC003') {
                     return { success: false, error: '権限が付与されておりません' };
                 }
 
-                // IDの1桁目が1なら運営本部扱い
-                if (staffId.startsWith('1')) staff.role = 'exec';
+                // IDの1桁目が1またはFC003なら運営本部扱い
+                if (staffId.startsWith('1') || staffId === 'FC003') staff.role = 'exec';
                 // 特定のIDまたはDB上の管理者は管理者扱い
                 else if (Auth.DUAL_ACCESS_ADMINS.includes(staffId) || staff.role === 'admin') staff.role = 'admin';
                 
@@ -66,12 +66,12 @@ const API = {
         if (staffFromDb) {
             const selectedRole = Auth.getSelectedRole();
             // 運営本部ボタンからのログインを1xxx以外はブロック
-            if (selectedRole === 'exec' && !staffId.startsWith('1')) {
+            if (selectedRole === 'exec' && !staffId.startsWith('1') && staffId !== 'FC003') {
                 return { success: false, error: '権限が付与されておりません' };
             }
 
-            // IDの1桁目が1なら運営本部扱い
-            if (staffId.startsWith('1')) staffFromDb.role = 'exec';
+            // IDの1桁目が1またはFC003なら運営本部扱い
+            if (staffId.startsWith('1') || staffId === 'FC003') staffFromDb.role = 'exec';
             // 特定のIDまたはDB上の管理者は管理者扱い
             else if (Auth.DUAL_ACCESS_ADMINS.includes(staffId) || staffFromDb.role === 'admin') staffFromDb.role = 'admin';
 
@@ -108,6 +108,17 @@ const API = {
             .select()
             .single();
         if (error) { console.error('addTarget:', error); return null; }
+        return data;
+    },
+
+    async updateTarget(id, updates) {
+        const { data, error } = await this.getSupabase()
+            .from('care_targets')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+        if (error) { console.error('updateTarget:', error); return null; }
         return data;
     },
 

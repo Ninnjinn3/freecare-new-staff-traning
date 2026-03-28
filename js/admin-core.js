@@ -8,27 +8,18 @@ window.Admin = {
 
     // ===== ナビゲーション =====
     switchPage(pageId) {
-        const pages = ['dashboard', 'staff', 'progress', 'alerts', 'ai', 'targets'];
+        const pages = ['dashboard', 'staff', 'progress', 'alerts', 'ai', 'targets', 'system-content'];
         pages.forEach(p => {
             const el = document.getElementById(`admin-page-${p}`);
             if (el) el.style.display = (p === pageId) ? 'block' : 'none';
-            
-            // 旧ナビゲーションの互換性 (もし存在すれば)
-            const nav = document.getElementById(`nav-${p}`);
-            if (nav) nav.classList.toggle('active', p === pageId);
         });
 
-        // 新ナビゲーションのハイライト
+        // ナビゲーションのハイライト
         document.querySelectorAll('.admin-nav-item').forEach(item => {
             item.classList.remove('active');
         });
         
-        // 特殊なハイライトロジック
-        let navId = 'nav-system';
-        if (pageId === 'dashboard') navId = 'nav-dashboard';
-        if (pageId === 'targets') navId = 'nav-targets';
-        
-        const activeNav = document.getElementById(navId);
+        const activeNav = document.getElementById(`nav-${pageId}`);
         if (activeNav) activeNav.classList.add('active');
 
         // 全てのサブメニューを閉じる
@@ -40,7 +31,8 @@ window.Admin = {
             progress: '受講状況',
             alerts: 'アラート一覧',
             ai: 'AI学習設定',
-            targets: '対象者管理'
+            targets: 'STEP（対象者）管理',
+            'system-content': 'システム部門コンテンツ'
         };
         const titleEl = document.getElementById('admin-header-title');
         if (titleEl) titleEl.textContent = titleMap[pageId] || '管理者画面';
