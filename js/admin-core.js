@@ -795,16 +795,92 @@ window.Admin = {
         if (tab === 'ai') this.loadKnowledgeList();
     },
 
-    editManual(page) {
-        // マニュアル編集は将来機能だが、モックとしてプロンプト表示
-        showToast(`「${page}」のマニュアル編集機能を起動します（シミュレーション）`);
+    viewManual(page) {
+        const modal = document.getElementById('admin-manual-modal');
+        const titleEl = document.getElementById('manual-modal-title');
+        const bodyEl = document.getElementById('manual-modal-body');
+        if (!modal || !titleEl || !bodyEl) return;
+
+        const manualContent = {
+            step1: {
+                title: '日次記録（STEP1）マニュアル',
+                content: `
+                    <h3>STEP1の目的</h3>
+                    <p>日々の業務の中で利用者様の小さな変化（いつもと違う状態）に気付き、それを客観的事実として記録する力を養います。</p>
+                    <h3>記録のポイント</h3>
+                    <ul>
+                        <li><strong>5W1Hの意識:</strong> いつ、どこで、誰が、何を、どのように。</li>
+                        <li><strong>客観的事実の記載:</strong> 「〜と思った」という主観ではなく、「〜と言った」「〜という表情をしていた」という事実を書く。</li>
+                        <li><strong>普段との比較:</strong> 「いつもは〜だが、今日は〜だった」という書き方をすると、変化が明確になります。</li>
+                    </ul>
+                    <h3>AI判定の基準</h3>
+                    <p>文字数、具体的な時間・場所の記載、変化・比較の有無、本人の反応などが含まれているかをAIがチェックします。</p>
+                `
+            },
+            step2: {
+                title: '仮説思考（STEP2）マニュアル',
+                content: `
+                    <h3>STEP2の目的</h3>
+                    <p>気付いた変化に対して「なぜそうなったのか？」という根拠ある仮説を立てる思考プロセスを学びます。</p>
+                    <h3>仮説の立て方</h3>
+                    <ul>
+                        <li><strong>「なぜ？」を繰り返す:</strong> 表面的な原因だけでなく、身体的、精神的、環境的な側面から多角的に分析します。</li>
+                        <li><strong>根拠（エビデンス）:</strong> フェイスシートの情報や過去の記録、疾患特性などを踏まえた仮説を立てます。</li>
+                        <li><strong>優先順位:</strong> 複数の可能性がある中で、最も可能性が高いもの、または緊急性が高いものを特定します。</li>
+                    </ul>
+                `
+            },
+            step3: {
+                title: '振り返り（STEP3）マニュアル',
+                content: `
+                    <h3>STEP3の目的</h3>
+                    <p>実施した支援（アプローチ）の結果を客観的に振り返り、仮説の妥当性を検証します。</p>
+                    <h3>振り返りの視点</h3>
+                    <ul>
+                        <li><strong>目標の達成度:</strong> 期待していた変化は起きたか？</li>
+                        <li><strong>新たな気付き:</strong> 実施してみて初めて分かったことは何か？</li>
+                        <li><strong>次へのアクション:</strong> 支援を継続するか、変更するか、終了するかを判断します。</li>
+                    </ul>
+                `
+            },
+            targets: {
+                title: '介護対象者管理マニュアル',
+                content: `
+                    <h3>対象者管理の役割</h3>
+                    <p>システムを利用する上でベースとなる利用者様の情報を管理します。</p>
+                    <h3>主な機能</h3>
+                    <ul>
+                        <li><strong>新規追加:</strong> 新しく研修の対象となる利用者様を登録します。</li>
+                        <li><strong>編集:</strong> 名前や介護度などの情報を更新します。</li>
+                        <li><strong>削除（非表示）:</strong> 退所などの理由で対象から外れた場合に使用します。</li>
+                    </ul>
+                `
+            },
+            ai: {
+                title: 'AIサポーター活用マニュアル',
+                content: `
+                    <h3>フリーケアくんとは</h3>
+                    <p>研修スタッフの良き相談相手として、24時間いつでも質問に答えてくれるAIサポーターです。</p>
+                    <h3>活用のコツ</h3>
+                    <ul>
+                        <li><strong>具体的に聞く:</strong> 「STEP2の書き方がわからない」よりも「〜という事例でどう仮説を立てればいい？」と聞くとより良い回答が得られます。</li>
+                        <li><strong>ナレッジの更新:</strong> 管理者が「AI学習設定」から新しいマニュアルやルールを追加することで、AIはより賢くなります。</li>
+                    </ul>
+                `
+            }
+        };
+
+        const data = manualContent[page];
+        if (data) {
+            titleEl.textContent = data.title;
+            bodyEl.innerHTML = data.content;
+            modal.style.display = 'flex';
+        }
     },
 
-    saveAIKnowledge() {
-        const text = document.getElementById('ai-study-text')?.value;
-        if (!text) return;
-        showToast('AIにナレッジを学習させました 🤖✨');
-        document.getElementById('ai-study-text').value = '';
+    closeManual() {
+        const modal = document.getElementById('admin-manual-modal');
+        if (modal) modal.style.display = 'none';
     },
 
     // ===== 施設・部門管理 =====
