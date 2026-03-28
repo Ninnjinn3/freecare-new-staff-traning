@@ -270,7 +270,7 @@ window.Admin = {
         const facilityId = user?.role === 'exec' ? '' : (user?.facility_id || 'F001');
         const showInactive = document.getElementById('show-inactive-staff')?.checked || false;
 
-        const list = document.getElementById('staff-manage-list');
+        const list = document.getElementById('staff-manage-list-container');
         if (list) list.innerHTML = '<p class="empty-state">読み込み中...</p>';
 
         try {
@@ -392,7 +392,7 @@ window.Admin = {
                 document.getElementById('new-staff-name').value = '';
                 document.getElementById('new-staff-id').value = '';
                 document.getElementById('new-staff-pw').value = '';
-                this.loadStaffList();
+                Admin.loadStaffList();
             } else {
                 showToast(data.error || '登録に失敗しました');
             }

@@ -15,8 +15,8 @@ async function navigateTo(screenId) {
         const user = Auth.getUser();
         const switcher = document.getElementById('exec-mode-switcher');
         if (switcher) {
-            const isExec = user && user.role === 'exec';
-            const isAdmin = user && user.role === 'admin';
+            const isExec = user && (user.role === 'exec' || user.staff_id === 'FC003');
+            const isAdmin = user && (user.role === 'admin' || Auth.DUAL_ACCESS_ADMINS.includes(user.staff_id));
             
             if ((isExec || isAdmin) && screenId !== 'screen-role-select' && screenId !== 'screen-login') {
                 switcher.style.display = 'flex';
@@ -126,7 +126,7 @@ async function handleLogin(event) {
         errorEl.hidden = true;
 
         // パワーユーザー（運営本部・管理者）の場合、選択したロールのボタンに応じた画面へ直接遷移
-         const isExec = result.user.role === 'exec' || result.user.staff_id.startsWith('1');
+         const isExec = result.user.role === 'exec' || result.user.staff_id.startsWith('1') || result.user.staff_id === 'FC003';
         const isAdmin = result.user.role === 'admin' || Auth.DUAL_ACCESS_ADMINS.includes(result.user.staff_id);
         const selected = Auth.getSelectedRole();
         

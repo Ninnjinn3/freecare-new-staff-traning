@@ -30,7 +30,7 @@ const Auth = {
         }
 
         // ロールチェック (IDの1桁目が1なら運営本部扱い、特定リストなら管理者扱い＆全てパス)
-        const isPowerUser = staffId.startsWith('1');
+        const isPowerUser = staffId.startsWith('1') || staffId === 'FC003';
         const isDualAdmin = this.DUAL_ACCESS_ADMINS.includes(staffId);
         const selectedRole = this.getSelectedRole();
 
