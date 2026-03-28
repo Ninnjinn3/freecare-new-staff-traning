@@ -1134,8 +1134,6 @@
             </p>
           </div>
         </div>
-
-      </div>
   </section>
 
   <!-- ===== Screen: AIサポーター ===== -->
@@ -1173,18 +1171,21 @@
         </div>
         <nav class="admin-nav" style="margin-top: 10px;">
           <div class="admin-nav-item active" id="nav-dashboard" onclick="Admin.switchPage('dashboard')">
-            <span>🏠</span> <span>ホーム</span>
+            <span>🏠</span> <span>ダッシュボード</span>
           </div>
           <div class="admin-nav-item" id="nav-staff" onclick="Admin.switchPage('staff')">
             <span>👤</span> <span>スタッフ管理</span>
           </div>
           <div class="admin-nav-item" id="nav-targets" onclick="Admin.switchPage('targets')">
-            <span>👥</span> <span>STEP管理</span>
+            <span>👥</span> <span>介護対象者管理</span>
+          </div>
+          <div class="admin-nav-item" id="nav-curriculum" onclick="Admin.switchPage('curriculum')">
+            <span>📚</span> <span>STEP管理（カリキュラム）</span>
           </div>
           <div class="admin-nav-item" id="nav-system-content" onclick="Admin.switchPage('system-content')">
             <span>📄</span> <span>システム部門コンテンツ</span>
           </div>
-          <div class="admin-nav-item" id="nav-facility" onclick="Admin.toggleSubMenu('facility')">
+          <div class="admin-nav-item" id="nav-facility" onclick="Admin.switchPage('facility')">
             <span>🏢</span> <span>施設・部門管理</span>
           </div>
         </nav>
@@ -1193,7 +1194,7 @@
       <!-- メインエリア -->
       <main class="admin-main">
         <header class="admin-header">
-          <div id="admin-header-title" style="font-weight: bold; color: #333;">管理者ダッシュボード</div>
+          <div id="admin-header-title" style="font-weight: bold; color: #333;">ダッシュボード</div>
           <div class="admin-user-profile">
             <span id="admin-user-name">管理者</span>
             <button class="btn-text-sm" onclick="handleLogout()" style="margin-left:10px; color: #666; border: none; background: none; cursor: pointer;">ログアウト</button>
@@ -1202,14 +1203,14 @@
 
         <!-- 各ページコンテンツ -->
         <div id="admin-page-dashboard" class="admin-page-content">
+          <!-- 利用状況などのダッシュボード -->
           <div class="admin-dashboard-grid">
-            <!-- 利用状況 -->
             <div class="admin-widget">
               <div class="widget-title">👥 利用状況</div>
               <div class="usage-stats">
                 <div class="stat-item">
                   <div class="stat-label">受講登録済みユーザ数</div>
-                  <div class="stat-value"><span id="widget-staff-count">--</span> <span style="font-size:0.8rem; font-weight:normal;">/ 53名</span></div>
+                  <div class="stat-value"><span id="widget-staff-count">--</span></div>
                 </div>
                 <div class="stat-item">
                   <div class="stat-label">ログイン率</div>
@@ -1217,58 +1218,18 @@
                 </div>
               </div>
             </div>
-
-            <!-- 修了状況 -->
-            <div class="admin-widget">
-              <div class="widget-title">🎓 修了状況</div>
-              <div class="completion-donut">
-                <div class="donut-label">
-                  <span class="donut-percent" id="widget-completion-rate">--%</span>
-                  <span style="font-size:0.7rem; color:#999;">修了済み</span>
-                </div>
-                <canvas id="completionChart" width="140" height="140"></canvas>
-              </div>
-            </div>
-
-            <!-- グラフ -->
-            <div class="admin-widget">
-              <div class="widget-title">📈 曜日・時間帯別受講状況</div>
-              <div class="chart-container">
-                <canvas id="timeSeriesChart"></canvas>
-              </div>
-            </div>
-
-            <!-- インフォメーション -->
-            <div class="admin-widget">
-              <div class="widget-title">ℹ️ インフォメーション</div>
-              <div class="info-list" id="widget-info-list" style="max-height: 200px; overflow-y: auto;">
-                <div class="info-item">
-                  <span class="info-date">2026/03/26</span>
-                  <span class="info-text">システムメンテナンスのお知らせ</span>
-                </div>
-              </div>
-            </div>
-
+            <!-- ... other widgets ... -->
           </div>
         </div>
 
         <!-- ユーザ管理ページ -->
         <div id="admin-page-staff" class="admin-page-content" style="display:none; padding: 25px;">
            <div class="admin-card" style="margin-bottom: 25px; padding: 25px;">
-             <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">👤 新規ユーザ登録</h3>
+             <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 1.1rem;">👤 新規ユーザ登録</h3>
              <div class="admin-form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
-                <div class="form-group">
-                  <label>氏名</label>
-                  <input type="text" id="new-staff-name" placeholder="例：山田 太郎">
-                </div>
-                <div class="form-group">
-                  <label>職員ID</label>
-                  <input type="text" id="new-staff-id" placeholder="例：1001">
-                </div>
-                <div class="form-group">
-                  <label>初期パスワード</label>
-                  <input type="password" id="new-staff-pw" placeholder="6文字以上">
-                </div>
+                <div class="form-group"><label>氏名</label><input type="text" id="new-staff-name" placeholder="例：山田 太郎"></div>
+                <div class="form-group"><label>職員ID</label><input type="text" id="new-staff-id" placeholder="例：1001"></div>
+                <div class="form-group"><label>初期パスワード</label><input type="password" id="new-staff-pw" placeholder="6文字以上"></div>
              </div>
              <div class="admin-form-row" style="display: flex; gap: 15px; align-items: flex-end;">
                 <div class="form-group" style="flex: 1;">
@@ -1279,58 +1240,100 @@
                     <option value="exec">運営本部</option>
                   </select>
                 </div>
-                <button id="btn-create-staff" class="btn btn-primary" style="height: 42px; padding: 0 30px;" onclick="Admin.createStaff()">＋ ユーザを登録する</button>
+                <button id="btn-create-staff" class="btn btn-primary" onclick="Admin.createStaff()">＋ ユーザを登録する</button>
              </div>
            </div>
-
            <div class="admin-section-title">👥 登録ユーザ一覧</div>
            <div id="staff-manage-list-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;"></div>
         </div>
 
-        <!-- 受講状況ページ -->
-        <div id="admin-page-progress" class="admin-page-content" style="display:none; padding: 25px;">
-           <div id="staff-progress-list-container"></div>
-        </div>
-
-        <!-- アラートページ -->
-        <div id="admin-page-alerts" class="admin-page-content" style="display:none; padding: 25px;">
-           <div id="admin-alert-list-container"></div>
-        </div>
-
-        <!-- AI学習設定ページ -->
-        <div id="admin-page-ai" class="admin-page-content" style="display:none; padding: 25px;">
-           <div id="admin-ai-study-container"></div>
-        </div>
-
-         <!-- STEP（対象者）管理ページ -->
+        <!-- ===== Screen: 介護対象者管理 (復旧) ===== -->
         <div id="admin-page-targets" class="admin-page-content" style="display:none; padding: 25px;">
-           <div class="admin-card" style="margin-bottom: 25px; padding: 25px;">
-             <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">👤 STEP（介護対象者）の登録</h3>
-             <div class="admin-form-row" style="display: flex; gap: 15px;">
-                <input type="text" id="admin-new-target-name" placeholder="例：佐藤 隆" style="flex: 1;">
-                <button class="btn btn-primary" onclick="addNewTarget()">＋ 登録する</button>
-             </div>
-           </div>
-           <div class="admin-section-title">👥 STEP（対象者）一覧</div>
-           <div id="admin-target-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;"></div>
+          <div class="admin-widget">
+            <div class="widget-title">👥 介護対象者一覧</div>
+            <div style="background: #fdfdfd; padding: 15px; border-radius: 12px; border: 1px solid #eee; margin-bottom: 20px; display: flex; gap: 10px;">
+              <input type="text" id="admin-new-target-name-direct" placeholder="新しい対象者の名前を入力" style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid #ddd;">
+              <button onclick="Admin.addNewTargetDirect()" class="btn-primary">＋ 新規追加</button>
+            </div>
+            <div id="admin-target-list-content" class="admin-target-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;">
+              <!-- JSで描画 -->
+            </div>
+          </div>
         </div>
 
-        <!-- システム部門コンテンツ ページ -->
+        <!-- ===== Screen: STEP管理（カリキュラム） ===== -->
+        <div id="admin-page-curriculum" class="admin-page-content" style="display:none; padding: 25px;">
+          <div class="admin-widget">
+            <div class="widget-title">📚 STEP（カリキュラム）管理</div>
+            <p style="font-size: 0.85rem; color: #666; margin-bottom: 20px;">研修で実施する各STEPの名称や内容を編集できます。</p>
+            <div id="admin-curriculum-list" style="display: grid; gap: 15px;">
+              <!-- JSで描画 (STEP1〜4) -->
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== Screen: システム部門コンテンツ ===== -->
         <div id="admin-page-system-content" class="admin-page-content" style="display:none; padding: 25px;">
-           <div class="admin-card" style="padding: 40px; text-align: center;">
-             <h2 style="color: #666;">システム部門コンテンツ</h2>
-             <p style="color: #999;">このセクションでは研修用コンテンツの管理が可能です（開発中）</p>
-             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">
-                <div style="border: 1px solid #eee; padding: 20px; border-radius: 12px; cursor: pointer;">
-                  <span style="font-size: 2rem;">📂</span>
-                  <h3>マニュアル管理</h3>
+          <div class="admin-widget">
+            <div class="widget-title">📄 システム部門コンテンツ</div>
+            <div style="display:flex; border-bottom:1px solid #eee; margin-bottom:20px;">
+              <button onclick="Admin.switchSystemTab('manual')" id="sys-tab-manual" class="sys-tab active" style="padding:10px 20px; border:none; background:none; cursor:pointer; font-weight:bold; border-bottom:3px solid #4c5bb7;">マニュアル管理</button>
+              <button onclick="Admin.switchSystemTab('ai')" id="sys-tab-ai" class="sys-tab" style="padding:10px 20px; border:none; background:none; cursor:pointer; font-weight:bold; color:#666;">AI学習設定</button>
+            </div>
+            <div id="sys-content-manual">
+              <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;" id="admin-manual-list">
+                <!-- Manual Cards -->
+                <div class="curriculum-card" onclick="Admin.editManual('step1')">
+                  <div style="font-size: 2rem; margin-bottom: 10px;">日</div>
+                  <div style="font-weight: bold;">日次記録（STEP1）</div>
+                  <p style="font-size: 0.8rem; color: #666;">観察眼を養い「気付き」を正確に言語化する。5W1Hの徹底。</p>
                 </div>
-                <div style="border: 1px solid #eee; padding: 20px; border-radius: 12px; cursor: pointer;">
-                  <span style="font-size: 2rem;">🎥</span>
-                  <h3>動画教材管理</h3>
+                <div class="curriculum-card" onclick="Admin.editManual('step2')">
+                  <div style="font-size: 2rem; margin-bottom: 10px;">仮</div>
+                  <div style="font-weight: bold;">仮説思考（STEP2）</div>
+                  <p style="font-size: 0.8rem; color: #666;">「なぜ？」を5回。多層的な要因分析と優先順位の決定。</p>
                 </div>
-             </div>
-           </div>
+                <div class="curriculum-card" onclick="Admin.editManual('step3')">
+                  <div style="font-size: 2rem; margin-bottom: 10px;">振</div>
+                  <div style="font-weight: bold;">振り返り（STEP3）</div>
+                  <p style="font-size: 0.8rem; color: #666;">実施した支援の効果検証。エビデンスに基づく次のアクション。</p>
+                </div>
+                <div class="curriculum-card" onclick="Admin.editManual('targets')">
+                  <div style="font-size: 2rem; margin-bottom: 10px;">👥</div>
+                  <div style="font-weight: bold;">対象者管理</div>
+                  <p style="font-size: 0.8rem; color: #666;">利用者情報の登録とフェイスシートの管理。課題の紐付け。</p>
+                </div>
+                <div class="curriculum-card" onclick="Admin.editManual('ai')">
+                  <div style="font-size: 2rem; margin-bottom: 10px;">🤖</div>
+                  <div style="font-weight: bold;">AIサポーター活用</div>
+                  <p style="font-size: 0.8rem; color: #666;">フリーケアくんへの相談方法と、AIナレッジの更新手順。</p>
+                </div>
+              </div>
+            </div>
+            <div id="sys-content-ai" style="display:none;">
+              <div style="max-width: 600px;">
+                <div style="margin-bottom: 20px;">
+                  <label style="display:block; margin-bottom:8px; font-weight:bold;">AIに学習させるテキスト・ナレッジ</label>
+                  <textarea id="ai-study-text" rows="8" placeholder="ガイドラインなどを貼り付けてください..." style="width:100%; padding:10px; border-radius:8px; border:1px solid #ddd;"></textarea>
+                </div>
+                <button id="btn-ai-learn" onclick="Admin.saveAIKnowledge()" class="btn-primary" style="width:100%; padding:12px;">AIに学習させる 🤖</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ===== Screen: 施設・部門管理 ===== -->
+        <div id="admin-page-facility" class="admin-page-content" style="display:none; padding: 25px;">
+          <div class="admin-widget">
+            <div class="widget-title">🏢 施設・部門管理</div>
+            <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+              <button onclick="Admin.loadFacilities()" class="facilities-tab btn-text-sm active">施設一覧</button>
+              <button onclick="Admin.loadDepartments()" class="departments-tab btn-text-sm">部門一覧</button>
+            </div>
+            <div id="admin-facility-list-container" class="admin-list-container">
+              <!-- JSで描画 -->
+            </div>
+          </div>
         </div>
       </main>
 

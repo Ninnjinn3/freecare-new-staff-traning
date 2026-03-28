@@ -288,6 +288,76 @@ function onTargetSelectChange(selectEl) {
     showToast(`${selectedTarget.name}さんを選択しました ✅`);
 }
 
+/**
+ * 対象者選択カードの描画
+ */
+function renderSelectedTarget(container, target) {
+    if (!container) return;
+    if (!target) {
+        container.innerHTML = '';
+        return;
+    }
+    container.innerHTML = `
+        <div class="selected-target-card" style="display:flex; align-items:center; justify-content:space-between; background:var(--surface); padding:10px 14px; border-radius:var(--radius); border:1px solid var(--border); margin-top:8px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+                <span style="font-size:1.2rem;">👤</span>
+                <div>
+                    <div style="font-weight:bold; font-size:0.95rem;">${target.name}</div>
+                    <div style="font-size:0.75rem; opacity:0.7;">${target.care_level || '介護度未設定'}</div>
+                </div>
+            </div>
+            <button type="button" onclick="clearSelectedTarget()" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1.2rem; padding:4px;">✕</button>
+        </div>
+    `;
+}
+
+/**
+ * 他の画面や編集モードから対象者を強制選択する
+ */
+function setStepSelectedTarget(stepName, target) {
+    if (!target || !target.id) return;
+
+    // グローバルな selectedTarget を更新
+    window.selectedTarget = {
+        id: target.id,
+        db_id: target.id,
+        name: target.name || '',
+        care_level: target.care_level || ''
+    };
+
+    // STEP1 または ホーム (ドロップダウン) の場合
+    if (stepName === 'step1' || stepName === 'home') {
+        const selectId = stepName === 'step1' ? 'step1-target' : 'home-target-select';
+        const select = document.getElementById(selectId);
+        if (select) {
+            // もしIDがリストになければ一時的に追加
+            const exists = Array.from(select.options).some(opt => opt.value === target.id);
+            if (!exists) {
+                const opt = document.createElement('option');
+                opt.value = target.id;
+                opt.textContent = target.name;
+                opt.dataset.name = target.name;
+                select.appendChild(opt);
+            }
+            select.value = target.id;
+        }
+        
+        // 選択カードの描画
+        const containerId = stepName === 'step1' ? 'step1-selected-target' : 'home-selected-target';
+        const container = document.getElementById(containerId);
+        if (container) renderSelectedTarget(container, window.selectedTarget);
+    } 
+    // STEP2, 3, 4 (オートコンプリート) の場合
+    else {
+        stepSelectedTargets[stepName] = window.selectedTarget;
+        const container = document.getElementById(`${stepName}-selected-target`);
+        if (container) renderSelectedTarget(container, window.selectedTarget);
+        
+        const input = document.getElementById(`${stepName}-target-input`);
+        if (input) input.value = '';
+    }
+}
+
 function clearSelectedTarget() {
     selectedTarget = null;
     const selects = [

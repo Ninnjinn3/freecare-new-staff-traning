@@ -348,3 +348,60 @@
     transform: translateY(-2px);
     box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
 }
+
+/* 追加：管理画面用コンポーネント */
+.target-manage-card, .curriculum-card {
+  background: white;
+  border-radius: 12px;
+  border: 1px solid var(--admin-border);
+  padding: 15px;
+  margin-bottom: 10px;
+  transition: all 0.2s;
+}
+
+.target-manage-card:hover, .curriculum-card:hover {
+  border-color: var(--admin-sidebar-bg);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+.sys-tab {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sys-tab:hover {
+  background: rgba(76, 91, 183, 0.05);
+  color: var(--admin-sidebar-bg);
+}
+
+.sys-tab.active {
+  color: var(--admin-sidebar-bg) !important;
+}
+
+.facility-manage-row {
+  transition: background 0.2s;
+}
+
+.facility-manage-row:hover {
+  background: #f9fafb;
+}
+
+.btn-primary-sm {
+  background: var(--admin-sidebar-bg);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.btn-primary-sm:hover {
+  background: var(--admin-sidebar-hover);
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px;
+  color: #999;
+  font-size: 0.9rem;
+}
