@@ -18,8 +18,15 @@ const Step2 = {
         // 仮説カードを3つ初期表示
         hypothesisCount = 0;
         document.getElementById('step2-hypotheses-container').innerHTML = '';
-        for (let i = 0; i < MIN_HYPOTHESES; i++) {
-            addHypothesisCard();
+        
+        // 編集モードチェック
+        if (window.editingRecord && window.editingRecord.step === 2) {
+            this.enterEditMode(window.editingRecord);
+            window.editingRecord = null; // 処理したらクリア
+        } else {
+            for (let i = 0; i < MIN_HYPOTHESES; i++) {
+                addHypothesisCard();
+            }
         }
     },
 

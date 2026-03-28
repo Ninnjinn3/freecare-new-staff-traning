@@ -70,18 +70,25 @@ const RecordEdit = {
             // 表示用テキストの抽出（テーブルごとに異なる）
             let summary = '';
             if (step === 1) summary = r.notice_text;
-            else if (step === 2) summary = r.hypothesis;
-            else if (step === 3) summary = r.support_done;
+            else if (step === 2) summary = r.change_noticed || r.hypothesis;
+            else if (step === 3) {
+                const d = r.reflection_json || {};
+                summary = d.notice || r.support_done;
+            }
             else if (step === 4) summary = r.noticed_change;
 
-            const displaySummary = summary ? summary.substring(0, 40) + (summary.length > 40 ? '...' : '') : '(内容なし)';
+            const targetName = r.target_name || r.name || r.target_id || '対象者不明';
+            const displaySummary = summary ? summary.substring(0, 30) + (summary.length > 30 ? '...' : '') : '(内容なし)';
             
             html += `
                 <div class="edit-item-card" style="background: white; border-radius: 12px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee;">
                     <div class="edit-item-header" onclick="RecordEdit.toggleAccordion('${r.id}')" style="padding: 15px; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
-                        <div>
-                            <div style="font-size: 0.85rem; color: #666; font-weight: bold;">${dateStr}</div>
-                            <div style="font-size: 0.95rem; color: #333; margin-top: 4px;">${displaySummary}</div>
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <span style="font-size: 0.8rem; color: #888;">${dateStr}</span>
+                                <span style="font-size: 0.8rem; background: #f0f0f0; padding: 2px 8px; border-radius: 4px; color: #666;">${targetName}</span>
+                            </div>
+                            <div style="font-size: 0.95rem; color: #333; margin-top: 6px; font-weight: 500;">${displaySummary}</div>
                         </div>
                         <span id="arrow-${r.id}" style="transition: transform 0.3s; color: #ccc;">▼</span>
                     </div>
@@ -118,12 +125,34 @@ const RecordEdit = {
     /**
      * 編集画面へ遷移
      */
-    goToEdit: function(step, id) {
-        // 月次評価画面の編集ロジックを流用するため、グローバル変数をセット
-        window.editingRecordId = id;
-        navigateTo(`screen-step${step}`);
+    async goToEdit(step, id) {
+        let tableName = '';
+        if (step === 1) tableName = 'daily_step1';
+        else if (step === 2) tableName = 'step2_hypotheses';
+        else if (step === 3) tableName = 'daily_step3';
+        else if (step === 4) tableName = 'step4_records';
+
+        showToast('データを読み込んでいます...');
         
-        // 各STEPの初期化で編集モードが動くようにする
-        // (各STEPのinit()内で editingRecordId をチェックしている前提)
+        try {
+            const { data, error } = await window.fcSupabase
+                .from(tableName)
+                .select('*')
+                .eq('id', id)
+                .single();
+
+            if (error) throw error;
+
+            // 編集対象をグローバルにセット
+            window.editingRecord = { ...data, step: step };
+            
+            // 画面遷移
+            navigateTo(`screen-step${step}`);
+            
+            showToast('編集モード：内容を修正してください');
+        } catch (e) {
+            console.error('Fetch record for edit failed:', e);
+            showToast('データの読み込みに失敗しました');
+        }
     }
 };

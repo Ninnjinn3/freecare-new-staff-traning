@@ -10,6 +10,12 @@ const Step3 = {
 
         // 提出期限チェックのセットアップ
         this.setupDateValidation();
+
+        // 編集モードチェック
+        if (window.editingRecord && window.editingRecord.step === 3) {
+            this.enterEditMode(window.editingRecord);
+            window.editingRecord = null; // 処理したらクリア
+        }
     },
 
     setupDateValidation() {

@@ -11,17 +11,14 @@ const Step1 = {
         // 対象者セレクトボックス
         this.populateTargets();
 
-        // 文字数カウント
-        const textarea = document.getElementById('step1-notice');
-        textarea.addEventListener('input', () => {
-            document.getElementById('step1-char-count').textContent = textarea.value.length;
-        });
-
         // 提出期限チェックのセットアップ
         this.setupDateValidation();
 
-        // 提出期限チェックのセットアップ
-        this.setupDateValidation();
+        // 編集モードチェック
+        if (window.editingRecord && window.editingRecord.step === 1) {
+            this.enterEditMode(window.editingRecord);
+            window.editingRecord = null; // 処理したらクリア
+        }
     },
 
     setupDateValidation() {
@@ -223,9 +220,6 @@ if (editingId) {
 btn.disabled = false;
 btn.textContent = '送信して判定を受ける';
 
-if (isCorrect) { // This is wrong, should be isSuccess. Wait, line 232 below is circle.textContent = result.judgement;
-                 // I'll fix this to isSuccess.
-}
 
 if (isSuccess) {
     showToast(editingId ? '記録を更新しました ✅' : '本日の記録を提出しました ✅');

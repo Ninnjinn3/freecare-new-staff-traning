@@ -5,6 +5,12 @@
 const Step4 = {
     init() {
         this.checkPrerequisites();
+
+        // 編集モードチェック
+        if (window.editingRecord && window.editingRecord.step === 4) {
+            this.enterEditMode(window.editingRecord);
+            window.editingRecord = null; // 処理したらクリア
+        }
     },
 
     // 実施条件チェック（全動画＋テスト合格）
@@ -15,6 +21,43 @@ const Step4 = {
         if (prerequisiteEl) prerequisiteEl.hidden = true;
         if (formEl) formEl.hidden = false;
         return true;
+    },
+
+    // 編集モード起動
+    enterEditMode(record) {
+        let d = {};
+        try {
+            d = typeof record.case_json === 'string' ? JSON.parse(record.case_json) : (record.case_json || {});
+        } catch(e) { console.error('Parse case_json failed:', e); }
+
+        const setVal = (id, val) => {
+            const el = document.getElementById(id);
+            if (el) el.value = val || '';
+        };
+        
+        setVal('step4-other-services', d.other_services);
+        setVal('step4-life-background', d.life_background);
+        setVal('step4-physical-status', d.physical_status);
+        setVal('step4-service-reason', d.service_reason);
+        setVal('step4-goal', d.goal);
+        setVal('step4-noticed-change', record.noticed_change || d.noticed_change);
+        setVal('step4-cause-support', d.cause_support);
+        setVal('step4-evidence', d.evidence);
+        setVal('step4-expected-change', d.expected_change);
+        setVal('step4-intervention', d.intervention);
+        setVal('step4-collaboration', d.collaboration);
+        setVal('step4-result', record.result || d.result);
+        setVal('step4-reflection', record.reflection || d.reflection);
+
+        // 対象者セット
+        if (typeof setStepSelectedTarget === 'function') {
+            setStepSelectedTarget('step4', { id: record.target_id, name: record.target_name });
+        }
+
+        const submitBtn = document.getElementById('step4-submit-btn');
+        if (submitBtn) submitBtn.textContent = '修正して再投稿する';
+        
+        showToast('修正モード：内容を変更してください');
     },
 
     // 発表回数取得
@@ -63,17 +106,34 @@ async function submitStep4(event) {
 
     const presentationNumber = Step4.getPresentationCount(user.staff_id) + 1;
 
+    // 編集中のレコードID取得
+    const editingId = (window.editingRecord && window.editingRecord.step === 4) ? window.editingRecord.id : null;
+
     try {
-        await API.saveStep4({
-            staff_id: user.staff_id,
-            target_id: getStepSelectedTarget('step4')?.db_id || null,
-            target_name: getStepSelectedTarget('step4')?.name || '',
-            noticed_change: caseData.noticed_change,
-            result: caseData.result,
-            reflection: caseData.reflection,
-            case_json: JSON.stringify(caseData),
-            presentation_number: presentationNumber
-        });
+        if (editingId) {
+            await API.updateStep4(editingId, {
+                target_id: getStepSelectedTarget('step4')?.id || null,
+                target_name: getStepSelectedTarget('step4')?.name || '',
+                noticed_change: caseData.noticed_change,
+                result: caseData.result,
+                reflection: caseData.reflection,
+                case_json: JSON.stringify(caseData)
+            });
+            showToast('症例報告を更新しました ✅');
+            window.editingRecord = null;
+        } else {
+            await API.saveStep4({
+                staff_id: user.staff_id,
+                target_id: getStepSelectedTarget('step4')?.id || null,
+                target_name: getStepSelectedTarget('step4')?.name || '',
+                noticed_change: caseData.noticed_change,
+                result: caseData.result,
+                reflection: caseData.reflection,
+                case_json: JSON.stringify(caseData),
+                presentation_number: presentationNumber
+            });
+            showToast('症例報告を保存しました ✅');
+        }
     } catch (e) {
         console.error('Save STEP4 failed:', e);
         showToast('保存に失敗しました');
