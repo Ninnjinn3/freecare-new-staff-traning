@@ -91,10 +91,19 @@ ${prompt}
 
     if (!response.ok) {
         const errText = await response.text();
+        console.error('Gemini API Error details:', errText);
+        let errorMsg = `Gemini API エラー: ${response.status}`;
+        try {
+            const errJson = JSON.parse(errText);
+            if (errJson.error && errJson.error.message) {
+                errorMsg += ` - ${errJson.error.message}`;
+            }
+        } catch (e) {}
+        
         if (response.status === 429) {
-            throw new Error("ただいまAIへのアクセスが集中しており、利用制限がかかっています。約1分おいてから再度お試しください。");
+            throw new Error("ただいまAIへのアクセスが集中しており、利用制限がかかっています。約1分おいてから再度お試しく ださい。");
         }
-        throw new Error(`Gemini API エラー: ${response.status}`);
+        throw new Error(errorMsg);
     }
 
     const json = await response.json();
