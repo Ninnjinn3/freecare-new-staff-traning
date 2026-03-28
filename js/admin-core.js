@@ -8,21 +8,39 @@ window.Admin = {
 
     // ===== ナビゲーション =====
     switchPage(pageId) {
-        const pages = ['dashboard', 'staff', 'progress', 'alerts', 'ai'];
+        const pages = ['dashboard', 'staff', 'progress', 'alerts', 'ai', 'targets'];
         pages.forEach(p => {
             const el = document.getElementById(`admin-page-${p}`);
             if (el) el.style.display = (p === pageId) ? 'block' : 'none';
             
+            // 旧ナビゲーションの互換性 (もし存在すれば)
             const nav = document.getElementById(`nav-${p}`);
             if (nav) nav.classList.toggle('active', p === pageId);
         });
+
+        // 新ナビゲーションのハイライト
+        document.querySelectorAll('.admin-nav-item').forEach(item => {
+            item.classList.remove('active');
+        });
+        
+        // 特殊なハイライトロジック
+        let navId = 'nav-system';
+        if (pageId === 'dashboard') navId = 'nav-dashboard';
+        if (pageId === 'targets') navId = 'nav-targets';
+        
+        const activeNav = document.getElementById(navId);
+        if (activeNav) activeNav.classList.add('active');
+
+        // 全てのサブメニューを閉じる
+        this.closeAllSubMenus();
 
         const titleMap = {
             dashboard: '管理者ダッシュボード',
             staff: 'ユーザ管理',
             progress: '受講状況',
             alerts: 'アラート一覧',
-            ai: 'AI学習設定'
+            ai: 'AI学習設定',
+            targets: '対象者管理'
         };
         const titleEl = document.getElementById('admin-header-title');
         if (titleEl) titleEl.textContent = titleMap[pageId] || '管理者画面';
@@ -33,6 +51,35 @@ window.Admin = {
         if (pageId === 'progress') this.renderProgressList();
         if (pageId === 'alerts') this.renderAlerts();
         if (pageId === 'ai') this.loadKnowledgeList();
+        if (pageId === 'targets') window.renderAdminTargetList && window.renderAdminTargetList();
+    },
+
+    // ===== サブメニュー制御 =====
+    toggleSubMenu(menuId) {
+        const el = document.getElementById(`admin-submenu-${menuId}`);
+        if (!el) {
+            // ホーム以外は一旦ダミーでトースト表示
+            if (menuId === 'dashboard') {
+                this.switchPage('dashboard');
+            } else {
+                showToast(`「${menuId}」メニューは準備中です`);
+            }
+            return;
+        }
+
+        const isVisible = el.style.display === 'block';
+        this.closeAllSubMenus();
+        
+        if (!isVisible) {
+            el.style.display = 'block';
+            // クリックイベントの伝播を防ぐための処理が必要な場合はここに追加
+        }
+    },
+
+    closeAllSubMenus() {
+        document.querySelectorAll('.admin-submenu-overlay').forEach(overlay => {
+            overlay.style.display = 'none';
+        });
     },
 
     // ===== ダッシュボード読み込み =====
@@ -272,8 +319,6 @@ window.Admin = {
                 </div>
                 <div class="staff-manage-info">
                     <span>ID: ${s.staff_id}</span>
-                    <span>${s.work_type === 'day' ? '日勤' : s.work_type === 'night' ? '夜勤' : '宿直'}</span>
-                    ${s.current_step ? `<span>STEP${s.current_step}</span>` : ''}
                     ${s.left_date ? `<span class="left-date">退職: ${s.left_date}</span>` : ''}
                 </div>
                 ${!isInactive ? `
@@ -312,8 +357,8 @@ window.Admin = {
         const name = document.getElementById('new-staff-name')?.value?.trim();
         const staffId = document.getElementById('new-staff-id')?.value?.trim();
         const pw = document.getElementById('new-staff-pw')?.value?.trim();
-        const workType = document.getElementById('new-staff-worktype')?.value;
-        const role = document.getElementById('new-staff-role')?.value;
+        const workType = document.getElementById('new-staff-worktype')?.value || 'day';
+        const role = document.getElementById('new-staff-role')?.value || 'staff';
 
         if (!name || !staffId || !pw) {
             showToast('氏名・職員ID・パスワードを入力してください');
@@ -645,3 +690,23 @@ window.setText = function(id, text) {
     const el = document.getElementById(id);
     if (el) el.textContent = text;
 }
+
+// グローバルなクリックイベントでサブメニューを閉じる
+document.addEventListener('click', (e) => {
+    const isClickInsideMenu = e.target.closest('.admin-sidebar-item') || e.target.closest('.admin-submenu-overlay');
+    if (!isClickInsideMenu) {
+        if (window.Admin && typeof window.Admin.closeAllSubMenus === 'function') {
+            window.Admin.closeAllSubMenus();
+        }
+    }
+});
+
+// グローバルなクリックイベントでサブメニューを閉じる
+document.addEventListener('click', (e) => {
+    const isClickInsideMenu = e.target.closest('.admin-sidebar-item') || e.target.closest('.admin-submenu-overlay');
+    if (!isClickInsideMenu) {
+        if (window.Admin && typeof window.Admin.closeAllSubMenus === 'function') {
+            window.Admin.closeAllSubMenus();
+        }
+    }
+});

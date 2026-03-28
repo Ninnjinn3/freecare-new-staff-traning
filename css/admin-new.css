@@ -1,10 +1,11 @@
 /* Admin Dashboard New Design */
 :root {
-  --admin-sidebar-bg: #2b3a8d;
-  --admin-sidebar-hover: #3d4da3;
-  --admin-main-bg: #f5f7fa;
+  --admin-sidebar-bg: #4c5bb7; /* より鮮やかな青/紫 */
+  --admin-sidebar-hover: #5d6cc8;
+  --admin-main-bg: #f8fafc;
   --admin-card-bg: #ffffff;
-  --admin-border: #e1e4e8;
+  --admin-border: #e2e8f0;
+  --admin-accent: #3b82f6;
 }
 
 .admin-layout {
@@ -25,11 +26,12 @@
 }
 
 .admin-sidebar-logo {
-  padding: 20px;
+  padding: 15px;
   background: white;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-bottom: 1px solid rgba(0,0,0,0.05);
 }
 
 .admin-sidebar-logo img {
@@ -43,19 +45,27 @@
 
 .admin-nav-item {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 12px 20px;
-  color: rgba(255, 255, 255, 0.7);
+  justify-content: center;
+  gap: 6px;
+  padding: 15px 10px;
+  color: rgba(255, 255, 255, 0.85);
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   transition: all 0.2s;
   cursor: pointer;
+  border-left: 4px solid transparent;
 }
 
 .admin-nav-item:hover, .admin-nav-item.active {
   background: var(--admin-sidebar-hover);
   color: white;
+  border-left-color: white;
+}
+
+.admin-nav-item span:first-child {
+  font-size: 1.4rem;
 }
 
 .admin-nav-item i {
@@ -237,4 +247,104 @@
 .bookmark-add:hover {
   border-color: #999;
   color: #999;
+}
+
+/* サブメニューオーバーレイ表示アニメーション */
+.admin-submenu-overlay {
+    animation: slideInLeft 0.3s ease-out;
+}
+
+@keyframes slideInLeft {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* サブメニュー内のアイテムホバー */
+.admin-submenu-overlay li:hover {
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding-left: 5px;
+    transition: all 0.2s;
+}
+
+/* 管理者用汎用カード */
+.admin-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.admin-section-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--admin-sidebar-bg);
+    margin: 25px 0 15px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* スタッフ管理カードの調整 */
+.staff-manage-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.staff-manage-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+}
+
+/* サブメニューオーバーレイ表示アニメーション */
+.admin-submenu-overlay {
+    animation: slideInLeft 0.3s ease-out;
+}
+
+@keyframes slideInLeft {
+    from { transform: translateX(-20px); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* サブメニュー内のアイテムホバー */
+.admin-submenu-overlay li:hover {
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding-left: 5px;
+    transition: all 0.2s;
+}
+
+/* 管理者用汎用カード */
+.admin-card {
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+    border: 1px solid rgba(0,0,0,0.05);
+}
+
+.admin-section-title {
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: var(--admin-sidebar-bg);
+    margin: 25px 0 15px 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* スタッフ管理カードの調整 */
+.staff-manage-card {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 20px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.staff-manage-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
 }

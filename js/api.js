@@ -298,6 +298,39 @@ const API = {
         return data;
     },
 
+    // ===== STEP4 症例報告 =====
+
+    async saveStep4(record) {
+        const { data, error } = await this.getSupabase()
+            .from('step4_records')
+            .insert(record)
+            .select()
+            .single();
+        if (error) { console.error('saveStep4:', error); throw error; }
+        return data;
+    },
+
+    async getStep4Records(staffId) {
+        const { data, error } = await this.getSupabase()
+            .from('step4_records')
+            .select('*')
+            .eq('staff_id', staffId)
+            .order('created_at', { ascending: false });
+        if (error) { console.error('getStep4Records:', error); return []; }
+        return data;
+    },
+
+    async updateStep4(id, updates) {
+        const { data, error } = await this.getSupabase()
+            .from('step4_records')
+            .update(updates)
+            .eq('id', id)
+            .select()
+            .single();
+        if (error) { console.error('updateStep4:', error); throw error; }
+        return data;
+    },
+
     // ===== AI判定（Vercel経由でGemini API） =====
 
     async judgeStep1(data) {

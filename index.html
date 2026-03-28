@@ -224,29 +224,7 @@
         </button>
       </form>
 
-      <!-- 今月の記録サマリ -->
-      <div class="card monthly-summary" id="step1-summary">
-        <h3>今月の記録</h3>
-        <div class="summary-stats">
-          <div class="stat">
-            <span class="stat-value" id="step1-total-count">0</span>
-            <span class="stat-label">記載日数</span>
-          </div>
-          <div class="stat">
-            <span class="stat-value stat-circle" id="step1-circle-count">0</span>
-            <span class="stat-label">◯</span>
-          </div>
-          <div class="stat">
-            <span class="stat-value stat-cross" id="step1-cross-count">0</span>
-            <span class="stat-label">☓</span>
-          </div>
-        </div>
-      </div>
-
-      <button type="button" class="btn btn-outline btn-full" style="margin-top: var(--space-md);"
-        onclick="navigateTo('screen-monthly'); Monthly.render();">
-        今月のまとめを見る
-      </button>
+      </form>
     </div>
   </section>
 
@@ -1193,21 +1171,30 @@
         <div class="admin-sidebar-logo">
           <img src="https://freecare.co.jp/wp-content/themes/freecare/images/logo.png" alt="FreeCare">
         </div>
-        <nav class="admin-nav">
+        <nav class="admin-nav" style="margin-top: 10px;">
           <div class="admin-nav-item active" id="nav-dashboard" onclick="Admin.switchPage('dashboard')">
             <span>🏠</span> <span>ホーム</span>
           </div>
-          <div class="admin-nav-item" id="nav-staff" onclick="Admin.switchPage('staff')">
-            <span>👥</span> <span>ユーザ管理</span>
+          <div class="admin-nav-item" id="nav-system" onclick="Admin.toggleSubMenu('system')">
+            <span>⚙️</span> <span>システム</span>
           </div>
-          <div class="admin-nav-item" id="nav-progress" onclick="Admin.switchPage('progress')">
-            <span>📊</span> <span>受講状況</span>
+          <div class="admin-nav-item" id="nav-targets" onclick="Admin.switchPage('targets')">
+            <span>👤</span> <span>対象者</span>
           </div>
-          <div class="admin-nav-item" id="nav-alerts" onclick="Admin.switchPage('alerts')">
-            <span>🔔</span> <span>アラート</span>
+          <div class="admin-nav-item" id="nav-facility" onclick="Admin.toggleSubMenu('facility')">
+            <span>🏢</span> <span>部門</span>
           </div>
-          <div class="admin-nav-item" id="nav-ai" onclick="Admin.switchPage('ai')">
-            <span>🤖</span> <span>AI学習設定</span>
+          <div class="admin-nav-item" id="nav-contents" onclick="Admin.toggleSubMenu('contents')">
+            <span>📄</span> <span>コンテンツ</span>
+          </div>
+          <div class="admin-nav-item" id="nav-textbook" onclick="Admin.toggleSubMenu('textbook')">
+            <span>📚</span> <span>教科</span>
+          </div>
+          <div class="admin-nav-item" id="nav-class" onclick="Admin.toggleSubMenu('class')">
+             <span>🏫</span> <span>クラス</span>
+          </div>
+          <div class="admin-nav-item" id="nav-bookmark" onclick="Admin.toggleSubMenu('bookmark')">
+            <span>⭐</span> <span>ﾌﾞｯｸﾏｰｸ</span>
           </div>
         </nav>
       </aside>
@@ -1294,7 +1281,37 @@
 
         <!-- ユーザ管理ページ -->
         <div id="admin-page-staff" class="admin-page-content" style="display:none; padding: 25px;">
-           <div id="staff-manage-list-container"></div>
+           <div class="admin-card" style="margin-bottom: 25px; padding: 25px;">
+             <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">👤 新規ユーザ登録</h3>
+             <div class="admin-form-row" style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 15px;">
+                <div class="form-group">
+                  <label>氏名</label>
+                  <input type="text" id="new-staff-name" placeholder="例：山田 太郎">
+                </div>
+                <div class="form-group">
+                  <label>職員ID</label>
+                  <input type="text" id="new-staff-id" placeholder="例：1001">
+                </div>
+                <div class="form-group">
+                  <label>初期パスワード</label>
+                  <input type="password" id="new-staff-pw" placeholder="6文字以上">
+                </div>
+             </div>
+             <div class="admin-form-row" style="display: flex; gap: 15px; align-items: flex-end;">
+                <div class="form-group" style="flex: 1;">
+                  <label>権限ロール</label>
+                  <select id="new-staff-role">
+                    <option value="staff">研修利用者 (新人)</option>
+                    <option value="admin">管理者 (施設長等)</option>
+                    <option value="exec">運営本部</option>
+                  </select>
+                </div>
+                <button id="btn-create-staff" class="btn btn-primary" style="height: 42px; padding: 0 30px;" onclick="Admin.createStaff()">＋ ユーザを登録する</button>
+             </div>
+           </div>
+
+           <div class="admin-section-title">👥 登録ユーザ一覧</div>
+           <div id="staff-manage-list-container" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px;"></div>
         </div>
 
         <!-- 受講状況ページ -->
@@ -1311,7 +1328,53 @@
         <div id="admin-page-ai" class="admin-page-content" style="display:none; padding: 25px;">
            <div id="admin-ai-study-container"></div>
         </div>
+
+        <!-- 対象者管理ページ -->
+        <div id="admin-page-targets" class="admin-page-content" style="display:none; padding: 25px;">
+           <div class="admin-card" style="margin-bottom: 25px; padding: 25px;">
+             <h3 style="margin-top: 0; margin-bottom: 20px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px;">👤 介護対象者（利用者）の登録</h3>
+             <div class="admin-form-row" style="display: flex; gap: 15px;">
+                <input type="text" id="admin-new-target-name" placeholder="例：佐藤 隆" style="flex: 1;">
+                <button class="btn btn-primary" onclick="addNewTarget()">＋ 登録する</button>
+             </div>
+           </div>
+           <div class="admin-section-title">👥 利用者一覧</div>
+           <div id="admin-target-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;"></div>
+        </div>
       </main>
+
+      <!-- サブメニューオーバーレイ (システム) -->
+      <div id="admin-submenu-system" class="admin-submenu-overlay" style="display:none; position:fixed; left:100px; top:60px; bottom:0; width:450px; background:#4c5bb7; z-index:1000; box-shadow:10px 0 30px rgba(0,0,0,0.1); padding:40px; color:white;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:40px;">
+          <div>
+            <h3 style="font-size:0.9rem; opacity:0.8; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:10px;">管理</h3>
+            <ul style="list-style:none; padding:0; display:flex; flex-direction:column; gap:12px;">
+              <li style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="Admin.switchPage('dashboard')"><span>ℹ️</span> ｲﾝﾌｫﾒｰｼｮﾝ管理</li>
+              <li style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="Admin.switchPage('staff')"><span>👤</span> ユーザ管理</li>
+              <li style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="Admin.switchPage('targets')"><span>👥</span> 対象者管理</li>
+            </ul>
+          </div>
+          <div>
+            <h3 style="font-size:0.9rem; opacity:0.8; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:10px;">閲覧</h3>
+            <ul style="list-style:none; padding:0; display:flex; flex-direction:column; gap:12px;">
+              <li style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="Admin.switchPage('progress')"><span>📊</span> 受講者別受講状況</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- サブメニューオーバーレイ (部門) -->
+      <div id="admin-submenu-facility" class="admin-submenu-overlay" style="display:none; position:fixed; left:100px; top:60px; bottom:0; width:450px; background:#3f4da3; z-index:1000; box-shadow:10px 0 30px rgba(0,0,0,0.1); padding:40px; color:white;">
+        <div style="display:grid; grid-template-columns: 1fr; gap:40px;">
+          <div>
+            <h3 style="font-size:0.9rem; opacity:0.8; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:10px;">施設・部署管理</h3>
+            <ul id="admin-facility-list" style="list-style:none; padding:0; display:flex; flex-direction:column; gap:12px;">
+              <li style="display:flex; align-items:center; gap:10px; cursor:pointer;"><span>🏢</span> 施設一覧</li>
+              <li style="display:flex; align-items:center; gap:10px; cursor:pointer;"><span>📂</span> 部署・チーム管理</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
   </section>
 

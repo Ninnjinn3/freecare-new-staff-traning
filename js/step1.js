@@ -20,8 +20,8 @@ const Step1 = {
         // 提出期限チェックのセットアップ
         this.setupDateValidation();
 
-        // 今月サマリ更新
-        this.updateSummary();
+        // 提出期限チェックのセットアップ
+        this.setupDateValidation();
     },
 
     setupDateValidation() {
@@ -54,22 +54,6 @@ const Step1 = {
         // セレクトボックスは使用しない
     },
 
-    // 今月のサマリ更新
-    async updateSummary() {
-        const user = Auth.getUser();
-        if (!user) return;
-
-        const cycle = DB.getCurrentCycle();
-        const records = await API.getStep1Records(user.staff_id, cycle.yearMonth);
-
-        const totalCount = records.length;
-        const circleCount = records.filter(r => r.ai_judgement === '○').length;
-        const crossCount = records.filter(r => r.ai_judgement === '☓').length;
-
-        document.getElementById('step1-total-count').textContent = totalCount;
-        document.getElementById('step1-circle-count').textContent = circleCount;
-        document.getElementById('step1-cross-count').textContent = crossCount;
-    },
 
     // AI判定（Phase 1: ルールベース）
     judge(noticeText) {
@@ -252,7 +236,6 @@ if (isSuccess) {
         document.getElementById('step1-date').value = new Date().toISOString().split('T')[0];
         document.getElementById('step1-char-count').textContent = '0';
     }
-    Step1.updateSummary();
 } else {
     showToast('保存に失敗しました。もう一度お試しください。');
 }

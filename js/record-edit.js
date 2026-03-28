@@ -27,25 +27,30 @@ const RecordEdit = {
         if (!user) return;
 
         try {
-            // 現在の月の全記録を取得（Monthlyのキャッシュがあれば利用、なければ取得）
-            // ここでは簡易的に直近の記録を取得する例とする
+            // STEPに応じたテーブル名の決定
+            const tableMap = {
+                1: 'daily_step1',
+                2: 'step2_hypotheses',
+                3: 'daily_step3',
+                4: 'step4_records'
+            };
+            const tableName = tableMap[step];
+            if (!tableName) throw new Error('Invalid step');
+
             const { data, error } = await window.fcSupabase
-                .from('daily_records')
+                .from(tableName)
                 .select('*')
                 .eq('staff_id', user.staff_id)
-                .order('date', { ascending: false });
+                .order('created_at', { ascending: false });
 
             if (error) throw error;
 
-            // STEPでフィルタリング
-            const filtered = data.filter(r => r.step === step);
-
-            if (filtered.length === 0) {
+            if (!data || data.length === 0) {
                 container.innerHTML = '<div style="text-align: center; color: #999; margin-top: 40px;">提出済みの課題はありません</div>';
                 return;
             }
 
-            this.renderList(filtered, container);
+            this.renderList(data, container, step);
         } catch (e) {
             console.error('Load records failed:', e);
             container.innerHTML = '<div style="text-align: center; color: #f44336; margin-top: 40px;">読み込みに失敗しました</div>';
@@ -55,26 +60,35 @@ const RecordEdit = {
     /**
      * リストの描画
      */
-    renderList: function(records, container) {
+    renderList: function(records, container, step) {
         let html = '<div class="edit-accordion-list" style="margin-top: 10px;">';
 
         records.forEach(r => {
-            const dateStr = r.date.replace(/-/g, '/');
-            const summary = r.content_text ? r.content_text.substring(0, 40) + '...' : '(内容なし)';
+            const date = r.date || r.created_at || '';
+            const dateStr = date.split('T')[0].replace(/-/g, '/');
+            
+            // 表示用テキストの抽出（テーブルごとに異なる）
+            let summary = '';
+            if (step === 1) summary = r.notice_text;
+            else if (step === 2) summary = r.hypothesis;
+            else if (step === 3) summary = r.support_done;
+            else if (step === 4) summary = r.noticed_change;
+
+            const displaySummary = summary ? summary.substring(0, 40) + (summary.length > 40 ? '...' : '') : '(内容なし)';
             
             html += `
                 <div class="edit-item-card" style="background: white; border-radius: 12px; margin-bottom: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.05); border: 1px solid #eee;">
                     <div class="edit-item-header" onclick="RecordEdit.toggleAccordion('${r.id}')" style="padding: 15px; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
                         <div>
                             <div style="font-size: 0.85rem; color: #666; font-weight: bold;">${dateStr}</div>
-                            <div style="font-size: 0.95rem; color: #333; margin-top: 4px;">${summary}</div>
+                            <div style="font-size: 0.95rem; color: #333; margin-top: 4px;">${displaySummary}</div>
                         </div>
                         <span id="arrow-${r.id}" style="transition: transform 0.3s; color: #ccc;">▼</span>
                     </div>
                     <div id="body-${r.id}" style="display: none; padding: 0 15px 15px; border-top: 1px solid #f9f9f9;">
-                        <div style="font-size: 0.9rem; color: #555; background: #fdfdfd; padding: 12px; border-radius: 8px; margin-top: 10px; white-space: pre-wrap; line-height: 1.5;">${r.content_text || ''}</div>
+                        <div style="font-size: 0.9rem; color: #555; background: #fdfdfd; padding: 12px; border-radius: 8px; margin-top: 10px; white-space: pre-wrap; line-height: 1.5;">${summary || ''}</div>
                         <div style="margin-top: 15px; display: flex; justify-content: flex-end;">
-                            <button onclick="RecordEdit.goToEdit(${r.step}, '${r.id}')" style="background: var(--primary); color: white; border: none; padding: 8px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 0.9rem;">
+                            <button onclick="RecordEdit.goToEdit(${step}, '${r.id}')" style="background: var(--primary); color: white; border: none; padding: 8px 20px; border-radius: 20px; font-weight: bold; cursor: pointer; font-size: 0.9rem;">
                                 この課題を修正する
                             </button>
                         </div>

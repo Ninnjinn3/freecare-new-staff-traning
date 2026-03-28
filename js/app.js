@@ -404,7 +404,8 @@ function updateDeadlineAlert() {
     const alertCard = document.getElementById('deadline-alert');
 
     if (cycle.phase === 'input') {
-        deadlineEl.innerHTML = `${cycle.deadlineStr}<span style="margin-left: 12px; font-weight: bold; color: #d9534f;">あと${cycle.daysLeft}日</span>`;
+        const spaces = '&nbsp;'.repeat(6);
+        deadlineEl.innerHTML = `${cycle.deadlineStr}${spaces}<span style="margin-left: 12px; font-weight: bold; color: #d9534f;">あと${cycle.daysLeft}日</span>`;
         alertCard.classList.toggle('alert-urgent', cycle.daysLeft <= 3);
     } else if (cycle.phase === 'evaluation') {
         deadlineEl.textContent = '評価期間中';

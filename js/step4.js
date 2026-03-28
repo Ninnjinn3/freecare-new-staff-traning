@@ -25,7 +25,7 @@ const Step4 = {
 };
 
 // STEP4送信
-function submitStep4(event) {
+async function submitStep4(event) {
     event.preventDefault();
 
     const user = Auth.getUser();
@@ -63,12 +63,22 @@ function submitStep4(event) {
 
     const presentationNumber = Step4.getPresentationCount(user.staff_id) + 1;
 
-    DB.save('step4_reports', {
-        staff_id: user.staff_id,
-        case_json: JSON.stringify(caseData),
-        presentation_date: caseData.presentationDate,
-        presentation_number: presentationNumber,
-    });
+    try {
+        await API.saveStep4({
+            staff_id: user.staff_id,
+            target_id: getStepSelectedTarget('step4')?.db_id || null,
+            target_name: getStepSelectedTarget('step4')?.name || '',
+            noticed_change: caseData.noticed_change,
+            result: caseData.result,
+            reflection: caseData.reflection,
+            case_json: JSON.stringify(caseData),
+            presentation_number: presentationNumber
+        });
+    } catch (e) {
+        console.error('Save STEP4 failed:', e);
+        showToast('保存に失敗しました');
+        return;
+    }
 
     // 保存成功メッセージ
     const resultArea = document.getElementById('step4-result-area');
