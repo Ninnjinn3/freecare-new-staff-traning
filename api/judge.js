@@ -114,27 +114,33 @@ ${prompt}
 
 // ===== レスポンスパース =====
 function parseGeminiResponse(text) {
+    if (!text) throw new Error('AI回答が空です');
     try {
         let cleanText = text.trim();
-        // ```json や ``` などの装飾を除去し、純粋な { } の中身を抽出
+        // ```json や ``` などの装飾を徹底的に除去
+        cleanText = cleanText.replace(/^```(json)?\n?/, '').replace(/\n?```$/, '');
+        
         const start = cleanText.indexOf('{');
         const end = cleanText.lastIndexOf('}');
         if (start !== -1 && end !== -1) {
             cleanText = cleanText.substring(start, end + 1);
         }
+        
         const result = JSON.parse(cleanText);
         // デフォルト値の保証
         if (!result.applied_knowledge) result.applied_knowledge = "";
         return result;
     } catch (e) {
         console.error('JSON Parse Error in judge.js:', e, 'Raw text:', text);
+        // パース失敗時でも、UIを壊さないようにエラー通知を含むオブジェクトを返す
         return {
-            judgement: '☓',
+            judgement: '×',
             score: 0,
-            short_comment: 'AI評価の解析に失敗しました。記録内容を具体的に修正して再送してください。',
+            short_comment: 'AI評価の解析に失敗しました。',
             good_points: [],
-            missing_points: ['エラー: AI解析失敗'],
-            improvement_example: '申し訳ありません。AIの回答形式が正しくなかったため、再度送信をお試しください。内容に「いつ・どこで・誰が・どう変化したか」をより詳しく含めると成功しやすくなります。'
+            missing_points: ['エラー: AI解析失敗', '生データ一部: ' + text.substring(0, 50) + '...'],
+            improvement_example: '申し訳ありません。AIの回答形式が正しくなかったため、再度送信をお試しください。内容をより具体的に（いつ・どこで・誰が等）含めると成功しやすくなります。',
+            applied_knowledge: 'JSON解析エラーが発生しました'
         };
     }
 }
