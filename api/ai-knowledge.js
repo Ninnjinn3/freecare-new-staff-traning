@@ -64,7 +64,7 @@ export default async function handler(req, res) {
 }
 
 async function extractTextWithGemini(apiKey, base64, mimeType) {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     const prompt = `
 以下のファイルを解析し、内容を網羅的にテキストとして抽出してください。
