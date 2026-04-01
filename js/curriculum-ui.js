@@ -2,8 +2,8 @@
    curriculum-ui.js — カリキュラム（動画課題）UI制御
    ============================================ */
 
-// Eラーニングのトップページ（実際のURLに差し替え可能）
-const ELEARNING_BASE_URL = 'https://freecare-elearning.example.com/';
+// Eラーニングのトップページ
+const ELEARNING_BASE_URL = 'https://biz.n-admin.study.jp/Home';
 
 /**
  * 特定STEPのカリキュラム（チェックリスト）を、指定のコンテナに描画する
