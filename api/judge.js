@@ -101,7 +101,14 @@ ${prompt}
         } catch (e) {}
         
         if (response.status === 429) {
-            throw new Error("ただいまAIへのアクセスが集中しており、利用制限がかかっています。約1分おいてから再度お試しく ださい。");
+            let detailSuffix = "";
+            try {
+                const errJson = JSON.parse(errText);
+                if (errJson.error && errJson.error.message) {
+                    detailSuffix = ` (${errJson.error.message})`;
+                }
+            } catch(e) {}
+            throw new Error("ただいまAIへのアクセスが集中しており、利用制限がかかっています。" + detailSuffix + " 約1分おいてから再度お試しください。");
         }
         throw new Error(errorMsg);
     }
