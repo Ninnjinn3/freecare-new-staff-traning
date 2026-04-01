@@ -52,7 +52,7 @@ function renderCurriculum(step) {
     var progress = getCurriculumProgress(staffId);
 
     var html = '<div style="margin-bottom:20px;">';
-    html += '<div style="font-size:0.95rem;font-weight:800;color:#4c5bb7;margin-bottom:10px;padding:8px 12px;background:#eef0ff;border-radius:8px;">🎬 学習カリキュラム（STEP' + step + '）</div>';
+    html += '<div style="font-size:0.95rem;font-weight:800;color:#4c5bb7;margin-bottom:10px;padding:8px 12px;background:#eef0ff;border-radius:8px;">🎬 学習カリキュラム（STEP' + step + '） <span style="font-size:0.7rem;opacity:0.5;">v38</span></div>';
     html += '<div style="display:flex;flex-direction:column;gap:8px;">';
 
     tasks.forEach(function(task) {
