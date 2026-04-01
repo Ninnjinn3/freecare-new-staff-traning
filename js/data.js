@@ -36,11 +36,19 @@ const VIDEO_TASKS = {
       step: 1, 
       sub: ['動画', 'テスト', '報告書'],
       urls: {
-        '動画': 'https://biz.n.study.jp/home/course/viewer/default.aspx?k=Z418AKXaC3SF78sJerYvFjB85rikfDqjcwFNea%2b8MvQatVtzt%2byu9mGdxXl1uCiM7MefRs58yAFkpuIzwrx6ig%3d%3d',
-        'テスト': 'https://biz.n.study.jp/home/course/viewer/test2.aspx?k=Z418AKXaC3SF78sJerYvFjB85rikfDqjcwFNea%2b8MvQatVtzt%2byu9mGdxXl1uCiMvcFWalJkfZsSwsRdVRmzlw%3d%3d'
+        '動画': 'https://biz.n.study.jp/home/course/viewer/default.aspx?k=scZZgWKFN5fm9Jw0gfA28T2JjAOLR1ULvguwoNE9%2fcFbNzEmChHx7yx2c5kYmLoDs%2bMB8WQCyh9crEHAJya2bBcujvsr7SLcakZwvfG9AeKdALM22sQaZAyrUvAJdfw%2fhBuPr0348KZI%2bL8LkqRBUjVS31fknRC2FtN1As0libm1q5h9wYhI9UFCoIGE%2bcQVZ4cdmZtHPEkw%2bDcrJ7%2bkdL%2f6VrGEDJUBXLf%2fUL%2bEkrCY8sLyI8ESoY%2bITotxHLM1',
+        'テスト': 'https://biz.n.study.jp/home/course/viewer/test2.aspx?k=scZZgWKFN5fm9Jw0gfA28T2JjAOLR1ULvguwoNE9%2fcFbNzEmChHx7yx2c5kYmLoDs%2bMB8WQCyh9crEHAJya2bPVfkKLRFSZL97HQnFJENELw38sWJpTwjsMHGJwqLOE6JXA1WJyfjnKg9%2fXkABI7x9Lvb9QxNFPq0q%2fle8%2fswZBVuBRRMtr9NpM%2fUbbRcNt67jUA2mTq9KDzTdJ%2b95l47Qh8APEeMCl8j7v6Wr4AW1PnbSoZQybnTVCuK%2bv%2fwKg1'
       }
     },
-    { id: 'v1_2', title: 'STEP1-2 “変化に気づける支援者”になるには？', step: 1, sub: ['動画', 'テスト', '報告書'] },
+    { 
+      id: 'v1_2', 
+      title: 'STEP1-2 “変化に気づける支援者”になるには？', 
+      step: 1, 
+      sub: ['動画', 'テスト', '報告書'],
+      urls: {
+        '動画': 'https://biz.n.study.jp/home/course/viewer/default.aspx?k=scZZgWKFN5fm9Jw0gfA28T2JjAOLR1ULvguwoNE9%2fcFbNzEmChHx7yx2c5kYmLoDs%2bMB8WQCyh9crEHAJya2bO%2fwWbvH%2fu%2fRQpKYRDl4X2vM4dTH4BbwROMHl7ED%2bWakbdyJN1Wy2Nc5vY5nOa7S897SESrQwAahqczzD0SsIxgF%2b%2beZgklJpM2mOgnheNsR27AkvJ8%2bKKASBXtZeickYH2o7gopgKonQIySQ1WAGF1wUJ1AwrQSVBS97BNvZr4L'
+      }
+    },
     { id: 'v1_3', title: 'STEP1-3 困ったら相談する・抱え込まない', step: 1, sub: ['動画', 'テスト', '報告書'] },
     { id: 'v1_4', title: 'STEP1-4 “支援”と“支配”の境界線', step: 1, sub: ['動画', 'テスト', '報告書'] },
     { id: 'v1_5', title: '"この人らしさ"を守るのが支援', step: 1, sub: ['動画', 'テスト', '報告書'] },
