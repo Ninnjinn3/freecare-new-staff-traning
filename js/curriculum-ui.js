@@ -82,18 +82,30 @@ function renderCurriculum(step) {
 }
 
 /**
- * ボタンのURLを決定する（個別URL > フォールバック）
+ * ボタンのURLを決定する（個別URL > UIDリンク > フォールバック）
  */
-function getTaskUrl(taskUrls, subType) {
-    if (taskUrls && taskUrls[subType]) return taskUrls[subType];
+function getTaskUrl(task, subType) {
+    var taskUrls = task.urls || {};
+    if (taskUrls[subType]) return taskUrls[subType];
+    
+    // UIDがある場合は cid=183&uid=xxx の形式で生成
+    var taskUids = task.uid || {};
+    if (taskUids[subType]) {
+        var uid = taskUids[subType];
+        var baseUrl = 'https://biz.n.study.jp/home/course/viewer/';
+        if (subType === 'テスト') return baseUrl + 'test2.aspx?cid=183&uid=' + uid;
+        if (subType === 'アンケート') return baseUrl + 'enq.aspx?cid=183&uid=' + uid;
+        return baseUrl + 'default.aspx?cid=183&uid=' + uid;
+    }
+    
     return ELEARNING_URL;
 }
 
 /**
  * ボタンの色を決定（直接リンクかフォールバックか）
  */
-function getButtonStyle(taskUrls, subType) {
-    var isDirect = taskUrls && taskUrls[subType];
+function getButtonStyle(task, subType) {
+    var isDirect = (task.urls && task.urls[subType]) || (task.uid && task.uid[subType]);
     if (isDirect) {
         return 'padding:6px 12px; background:#4c5bb7; color:white; border-radius:15px; font-size:0.75rem; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 4px rgba(76,91,183,0.2); transition:0.2s; cursor:pointer;';
     }
@@ -156,8 +168,8 @@ function loadVideoTasks() {
             var isDone = !!progress[key];
             var icon = subType === '動画' ? '📺' : subType === 'テスト' ? '✍️' : subType === '報告書' ? '📝' : subType === 'アンケート' ? '📊' : subType === '発表' ? '🎤' : '📄';
             var btnText = subType === '動画' ? '視聴する' : (subType + 'を開く');
-            var url = getTaskUrl(taskUrls, subType);
-            var btnStyle = getButtonStyle(taskUrls, subType);
+            var url = getTaskUrl(task, subType);
+            var btnStyle = getButtonStyle(task, subType);
 
             html += '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">';
             
