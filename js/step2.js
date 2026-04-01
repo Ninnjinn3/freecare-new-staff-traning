@@ -28,6 +28,11 @@ const Step2 = {
                 addHypothesisCard();
             }
         }
+
+        // カリキュラム描画
+        if (typeof renderCurriculum === 'function') {
+            renderCurriculum(2);
+        }
     },
 
     setupDateValidation() {

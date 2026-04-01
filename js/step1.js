@@ -19,6 +19,11 @@ const Step1 = {
             this.enterEditMode(window.editingRecord);
             window.editingRecord = null; // 処理したらクリア
         }
+
+        // カリキュラム描画
+        if (typeof renderCurriculum === 'function') {
+            renderCurriculum(1);
+        }
     },
 
     setupDateValidation() {

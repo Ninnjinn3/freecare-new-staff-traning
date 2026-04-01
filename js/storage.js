@@ -157,14 +157,32 @@ const DB = {
         // 動画課題ステータス（初期は全て未完了）
         if (this.getAll('video_tasks').length === 0) {
             Object.values(VIDEO_TASKS).flat().forEach(v => {
-                this.save('video_tasks', {
-                    ...v,
-                    staff_id: 'FC001',
-                    watched: false,
-                    test_score: null,
-                    report_submitted: false,
-                    is_passed: false
-                });
+                if (v.sub && v.sub.length > 0) {
+                  v.sub.forEach(subType => {
+                    this.save('video_tasks', {
+                        video_id: v.id,
+                        sub_type: subType,
+                        title: v.title,
+                        step: v.step,
+                        staff_id: 'FC001',
+                        watched: false,
+                        test_score: null,
+                        report_submitted: false,
+                        is_passed: false
+                    });
+                  });
+                } else {
+                  this.save('video_tasks', {
+                      video_id: v.id,
+                      title: v.title,
+                      step: v.step,
+                      staff_id: 'FC001',
+                      watched: false,
+                      test_score: null,
+                      report_submitted: false,
+                      is_passed: false
+                  });
+                }
             });
         }
     },

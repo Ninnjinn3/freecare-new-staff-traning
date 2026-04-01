@@ -637,46 +637,6 @@ async function loadHistory() {
     }
 }
 
-// ===== 動画課題 =====
-function loadVideoTasks() {
-    const user = Auth.getUser();
-    if (!user) return;
-
-    const listEl = document.getElementById('video-tasks-list');
-    const tasks = DB.getAll('video_tasks', { staff_id: user.staff_id });
-
-    // STEPごとにグループ化
-    const grouped = {};
-    tasks.forEach(t => {
-        const step = t.step || 1;
-        if (!grouped[step]) grouped[step] = [];
-        grouped[step].push(t);
-    });
-
-    listEl.innerHTML = Object.entries(grouped).map(([step, videos]) => {
-        const allPassed = videos.every(v => v.is_passed);
-        return `
-      <div class="video-task-card">
-        <div class="video-task-header">
-          <span class="video-task-step">STEP${step} 動画課題</span>
-          <span class="video-task-status ${allPassed ? 'is-complete' : 'is-incomplete'}">
-            ${allPassed ? '✅ 合格' : '⏳ 未完了'}
-          </span>
-        </div>
-        <div class="video-checklist">
-          ${videos.map(v => `
-            <div class="video-check-item ${v.is_passed ? 'is-done' : ''}">
-              ${v.is_passed ? '✅' : '⬜'} ${v.title}
-              ${v.test_score !== null ? `（テスト: ${v.test_score}点）` : ''}
-            </div>
-          `).join('')}
-        </div>
-      </div>
-    `;
-    }).join('');
-}
-
-
 // 管理者画面の初期化プロパティなどは admin.js に集約
 
 async function renderAdminTargetList() {
@@ -1050,6 +1010,7 @@ async function renderAssessmentList() {
             container.innerHTML = '<p class="empty-state">登録済みの対象者がいません<br><small>ホーム画面の「＋ 新規追加」から登録できます</small></p>';
             return;
         }
+
 
         container.innerHTML = targets.map(t => {
             const id = t.id || t.db_id;

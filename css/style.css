@@ -2836,3 +2836,114 @@ input:checked+.slider:before {
   transition: width 0.8s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+
+/* === Curriculum / Learning List === */
+.curriculum-section {
+  margin-bottom: var(--space-xl);
+  padding: var(--space-md);
+  background: #fff;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--border);
+}
+
+.curriculum-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text);
+  margin-bottom: var(--space-md);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.curriculum-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.curriculum-card {
+  padding: 12px;
+  background: var(--bg);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  transition: transform 0.2s;
+}
+
+.curriculum-card-header {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  line-height: 1.4;
+}
+
+.curriculum-sub-tasks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.sub-task-btn {
+  padding: 6px 12px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--border);
+  background: #fff;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.sub-task-btn.is-done {
+  background: var(--success-light);
+  border-color: var(--success);
+  color: var(--success-dark);
+}
+
+.sub-task-btn:hover {
+  border-color: var(--primary);
+  background: var(--primary-bg);
+}
+
+.sub-task-btn.is-link::after {
+  content: '🔗';
+  font-size: 0.7rem;
+  opacity: 0.7;
+}
+
+/* カリキュラムセクション追加スタイル */
+.curriculum-section {
+  margin-bottom: 24px;
+}
+.curriculum-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.curriculum-card.is-complete {
+  border-color: var(--success, #4caf50);
+  background: #f0fff4;
+}
+.curriculum-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+.curriculum-card-progress {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted, #999);
+  white-space: nowrap;
+  margin-left: auto;
+}
+.sub-task-btn {
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
