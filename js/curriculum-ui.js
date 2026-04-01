@@ -72,7 +72,7 @@ function renderCurriculum(step) {
     html += '<div style="flex:1;">';
     html += '<div style="font-size:0.85rem; font-weight:800; color:#4834d4; margin-bottom:4px;">STEP' + step + ' 学習カリキュラム進捗</div>';
     html += '<div style="background:#e0e0e0; height:6px; border-radius:10px; overflow:hidden;"><div style="background:#6c5ce7; height:100%; width:' + pct + '%;"></div></div>';
-    html += '<div style="font-size:0.75rem; color:#666; margin-top:4px;">達成度: ' + done + ' / ' + total + ' (' + pct + '%) <span style="color:#6c5ce7; font-weight:bold;">→ 動画課題ページで確認</span></div>';
+    html += '<div style="font-size:0.75rem; color:#666; margin-top:4px;">達成度: ' + done + ' / ' + total + ' (' + pct + '%) <span style="color:#6c5ce7; font-weight:bold;">→ 課題ページで確認</span></div>';
     html += '</div>';
     html += '<div style="color:#6c5ce7; font-weight:800;">＞</div>';
     html += '</div>';
@@ -82,7 +82,6 @@ function renderCurriculum(step) {
 
 /**
  * 動画課題一覧画面 (screen-video) の描画
- * タブ切り替え形式で表示
  */
 function loadVideoTasks() {
     var user = Auth.getUser();
@@ -93,7 +92,6 @@ function loadVideoTasks() {
     var staffId = user.staff_id;
     var progress = getCurriculumProgress(staffId);
     
-    // 現在のユーザーのSTEPをデフォルトにする（初回のみ）
     if (!window._curriculumInitialized) {
         curriculumActiveStep = user.current_step || 1;
         window._curriculumInitialized = true;
@@ -107,8 +105,6 @@ function loadVideoTasks() {
     html += '</div>';
 
     var tasks = VIDEO_TASKS[curriculumActiveStep] || [];
-    
-    // 進捗サマリ
     var total = 0, done = 0;
     tasks.forEach(function(t) { (t.sub || []).forEach(function(s) { total++; if (progress[t.id + '__' + s]) done++; }); });
     var pct = total ? Math.round(done / total * 100) : 0;
@@ -118,35 +114,37 @@ function loadVideoTasks() {
     html += '<span style="font-size:0.85rem; font-weight:bold; color:#4c5bb7;">' + done + ' / ' + total + ' (' + pct + '%)</span>';
     html += '</div>';
 
-    // グリッドレイアウト
     html += '<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap:12px;">';
     
     tasks.forEach(function(task) {
         var subs = task.sub || [];
         var taskAllDone = subs.every(function(s){ return progress[task.id + '__' + s]; });
+        var taskUrls = task.urls || {};
 
         html += '<div class="cv-card" style="background:' + (taskAllDone ? '#f0fff4' : '#fff') + '; border:1px solid ' + (taskAllDone ? '#4caf50' : '#eee') + '; border-radius:10px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">';
         html += '<div style="font-size:0.8rem; font-weight:700; color:#333; margin-bottom:10px;">' + (taskAllDone ? '✅' : '📋') + ' ' + task.title + '</div>';
-        html += '<div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">';
+        html += '<div style="display:flex; flex-direction:column; gap:10px;">';
         
         subs.forEach(function(subType) {
             var key = task.id + '__' + subType;
             var isDone = !!progress[key];
+            var specificUrl = taskUrls[subType];
+            var icon = subType === '動画' ? '📺' : subType === 'テスト' ? '✍️' : subType === '報告書' ? '📝' : '📊';
+            var btnText = subType === '動画' ? '視聴' : (subType + 'を開く');
 
-            if (subType === '動画') {
-                html += '<div style="display:flex; align-items:center; gap:6px;">';
-                html += '<a href="' + ELEARNING_URL + '" target="_blank" rel="noopener" style="padding:4px 10px; background:#4c5bb7; color:white; border-radius:15px; font-size:0.75rem; font-weight:700; text-decoration:none;" onclick="var p=this.parentElement.querySelector(\'input\'); if(p){setTimeout(function(){p.checked=true; onCurriculumCheck(p, \'' + staffId + '\', \'' + key + '\');}, 3000);}">📺 視聴</a>';
-                html += '<label style="display:flex; align-items:center; gap:3px; font-size:0.75rem; color:#666; cursor:pointer;">';
-                html += '<input type="checkbox" ' + (isDone ? 'checked' : '') + ' onchange="onCurriculumCheck(this, \'' + staffId + '\', \'' + key + '\')" style="width:18px; height:18px; cursor:pointer;"> 視聴';
-                html += '</label>';
-                html += '</div>';
-            } else {
-                var icon = subType === 'テスト' ? '✍️' : subType === '報告書' ? '📝' : '📊';
-                html += '<label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; cursor:pointer; padding:4px 8px; border:1px solid ' + (isDone ? '#4caf50' : '#ccc') + '; border-radius:15px; background:' + (isDone ? '#e8f5e9' : '#fff') + '">';
-                html += '<input type="checkbox" ' + (isDone ? 'checked' : '') + ' onchange="onCurriculumCheck(this, \'' + staffId + '\', \'' + key + '\')" style="width:16px; height:16px; cursor:pointer;">';
-                html += icon + ' ' + subType;
-                html += '</label>';
+            html += '<div style="display:flex; align-items:center; gap:8px;">';
+            
+            // 個別URLがある、または「動画」の場合はボタンを表示
+            if (specificUrl || subType === '動画') {
+                var url = specificUrl || ELEARNING_URL;
+                html += '<a href="' + url + '" target="_blank" rel="noopener" style="padding:4px 10px; background:#4c5bb7; color:white; border-radius:15px; font-size:0.75rem; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:4px;" onclick="var p=this.parentElement.querySelector(\'input\'); if(p){setTimeout(function(){p.checked=true; onCurriculumCheck(p, \'' + staffId + '\', \'' + key + '\');}, 3000);}">' + icon + ' ' + btnText + '</a>';
             }
+
+            html += '<label style="display:flex; align-items:center; gap:3px; font-size:0.75rem; color:#666; cursor:pointer; ' + (specificUrl ? '' : 'padding:4px 8px; border:1px solid '+ (isDone?'#4caf50':'#ccc') +'; border-radius:15px; background:'+ (isDone?'#e8f5e9':'#fff') +';') + '">';
+            html += '<input type="checkbox" ' + (isDone ? 'checked' : '') + ' onchange="onCurriculumCheck(this, \'' + staffId + '\', \'' + key + '\')" style="width:18px; height:18px; cursor:pointer;">';
+            html += (specificUrl ? '完了' : (icon + ' ' + subType + ' 完了'));
+            html += '</label>';
+            html += '</div>';
         });
         html += '</div></div>';
     });

@@ -30,7 +30,16 @@ const MIN_DAYS = {
 // 動画課題・カリキュラム定義
 const VIDEO_TASKS = {
   1: [
-    { id: 'v1_1', title: 'STEP1-1 情報収集、アセスメント、変化の気づきとは？', step: 1, sub: ['動画', 'テスト', '報告書'] },
+    { 
+      id: 'v1_1', 
+      title: 'STEP1-1 情報収集、アセスメント、変化の気づきとは？', 
+      step: 1, 
+      sub: ['動画', 'テスト', '報告書'],
+      urls: {
+        '動画': 'https://biz.n.study.jp/home/course/viewer/default.aspx?k=Z418AKXaC3SF78sJerYvFjB85rikfDqjcwFNea%2b8MvQatVtzt%2byu9mGdxXl1uCiM7MefRs58yAFkpuIzwrx6ig%3d%3d',
+        'テスト': 'https://biz.n.study.jp/home/course/viewer/test2.aspx?k=Z418AKXaC3SF78sJerYvFjB85rikfDqjcwFNea%2b8MvQatVtzt%2byu9mGdxXl1uCiMvcFWalJkfZsSwsRdVRmzlw%3d%3d'
+      }
+    },
     { id: 'v1_2', title: 'STEP1-2 “変化に気づける支援者”になるには？', step: 1, sub: ['動画', 'テスト', '報告書'] },
     { id: 'v1_3', title: 'STEP1-3 困ったら相談する・抱え込まない', step: 1, sub: ['動画', 'テスト', '報告書'] },
     { id: 'v1_4', title: 'STEP1-4 “支援”と“支配”の境界線', step: 1, sub: ['動画', 'テスト', '報告書'] },
