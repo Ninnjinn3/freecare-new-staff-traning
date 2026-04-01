@@ -16,70 +16,34 @@ function saveCurriculumProgress(staffId, progress) {
     localStorage.setItem('fc_cv_' + staffId, JSON.stringify(progress));
 }
 
-// チェックボックスの変更イベント
-function onCurriculumCheck(staffId, key, step) {
+/**
+ * チェックボックスの変更イベント
+ * @param {HTMLElement} el - チェックボックス要素
+ * @param {string} staffId - 職員ID
+ * @param {string} key - 課題キー (videoId__subType)
+ */
+function onCurriculumCheck(el, staffId, key) {
     var progress = getCurriculumProgress(staffId);
-    var cb = document.getElementById('cb_' + key);
-    if (!cb) return;
-    progress[key] = cb.checked;
+    progress[key] = el.checked;
     saveCurriculumProgress(staffId, progress);
 
-    // カードの完了状態を更新 (STEP画面用)
-    var card = document.getElementById('cv_card_' + key.split('__')[0]);
+    // カードのスタイル更新 (完了時に色を変える)
+    var card = el.closest('.cv-card');
     if (card) {
         var allCbs = card.querySelectorAll('input[type="checkbox"]');
         var allDone = Array.from(allCbs).every(function(c) { return c.checked; });
-        card.style.background = allDone ? '#f0fff4' : '';
-        card.style.borderColor = allDone ? '#4caf50' : '';
+        card.style.background = allDone ? '#f0fff4' : '#fff';
+        card.style.borderColor = allDone ? '#4caf50' : '#eee';
     }
 
-    // 動画一覧画面(screen-video)も即時反映が必要なら再描画
-    if (document.getElementById('screen-video') && 
-        document.getElementById('screen-video').classList.contains('active')) {
-        loadVideoTasks();
-    }
+    // 他の画面のサマリを更新する必要があれば再描画
+    // (ここでは同一画面内の更新に留める)
 }
 
 /**
- * 共通の課題カードHTMLを生成する
+ * STEP画面 (記録入力画面) の描画
+ * ユーザー要望により、詳細リストではなく「現在の進捗サマリ」と「リンク」のみを表示する
  */
-function createCurriculumCardHtml(task, staffId, progress, step) {
-    var subs = task.sub || [];
-    var doneCount = subs.filter(function(s) {
-        return progress[task.id + '__' + s];
-    }).length;
-    var allDone = doneCount === subs.length && subs.length > 0;
-    var cardId = 'cv_card_' + task.id;
-
-    var html = '<div id="' + cardId + '" style="border:1px solid ' + (allDone ? '#4caf50' : '#ddd') + ';border-radius:8px;padding:10px 12px;background:' + (allDone ? '#f0fff4' : '#fff') + ';margin-bottom:8px;">';
-    html += '<div style="font-size:0.85rem;font-weight:700;margin-bottom:8px;color:#333;">' + (allDone ? '✅ ' : '📋 ') + task.title + '</div>';
-    html += '<div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;">';
-
-    subs.forEach(function(subType) {
-        var key = task.id + '__' + subType;
-        var isDone = !!progress[key];
-        var cbId = 'cb_' + key;
-
-        if (subType === '動画') {
-            html += '<div style="display:flex;align-items:center;gap:6px;">';
-            html += '<a href="' + ELEARNING_URL + '" target="_blank" rel="noopener" style="display:inline-flex;align-items:center;gap:4px;padding:5px 12px;background:#4c5bb7;color:white;border-radius:20px;font-size:0.82rem;font-weight:700;text-decoration:none;" onclick="setTimeout(function(){var c=document.getElementById(\'' + cbId + '\'); if(c){c.checked=true;onCurriculumCheck(\'' + staffId + '\',\'' + key + '\',' + step + ');}},3000);">📺 動画を視聴する</a>';
-            html += '<label style="display:flex;align-items:center;gap:4px;font-size:0.8rem;color:#666;cursor:pointer;">';
-            html += '<input type="checkbox" id="' + cbId + '" ' + (isDone ? 'checked' : '') + ' onchange="onCurriculumCheck(\'' + staffId + '\',\'' + key + '\',' + step + ')" style="width:16px;height:16px;cursor:pointer;"> 視聴完了';
-            html += '</label>';
-            html += '</div>';
-        } else {
-            var icon = subType === 'テスト' ? '✍️' : subType === '報告書' ? '📝' : subType === 'アンケート' ? '📊' : '🎤';
-            html += '<label style="display:flex;align-items:center;gap:4px;font-size:0.82rem;cursor:pointer;padding:5px 8px;border:1px solid ' + (isDone ? '#4caf50' : '#ddd') + ';border-radius:20px;background:' + (isDone ? '#e8f5e9' : '#f8f8f8') + '">';
-            html += '<input type="checkbox" id="' + cbId + '" ' + (isDone ? 'checked' : '') + ' onchange="onCurriculumCheck(\'' + staffId + '\',\'' + key + '\',' + step + ')" style="width:14px;height:14px;cursor:pointer;">';
-            html += icon + ' ' + subType + ' 完了';
-            html += '</label>';
-        }
-    });
-
-    html += '</div></div>';
-    return html;
-}
-
 function renderCurriculum(step) {
     var container = document.getElementById('step' + step + '-curriculum');
     if (!container) return;
@@ -90,24 +54,35 @@ function renderCurriculum(step) {
     var tasks = VIDEO_TASKS[step] || [];
     if (!tasks.length) { container.innerHTML = ''; return; }
 
-    var staffId = user.staff_id;
-    var progress = getCurriculumProgress(staffId);
+    var progress = getCurriculumProgress(user.staff_id);
+    var totalSubTasks = 0;
+    var doneSubTasks = 0;
 
-    var html = '<div style="margin-bottom:20px;">';
-    html += '<div style="font-size:0.95rem;font-weight:800;color:#4c5bb7;margin-bottom:10px;padding:8px 12px;background:#eef0ff;border-radius:8px;">🎬 学習カリキュラム（STEP' + step + '） <span style="font-size:0.7rem;opacity:0.5;">v38</span></div>';
-    html += '<div style="display:flex;flex-direction:column;gap:4px;">';
-
-    tasks.forEach(function(task) {
-        html += createCurriculumCardHtml(task, staffId, progress, step);
+    tasks.forEach(function(t) {
+        (t.sub || []).forEach(function(s) {
+            totalSubTasks++;
+            if (progress[t.id + '__' + s]) doneSubTasks++;
+        });
     });
 
-    html += '</div></div>';
+    var pct = totalSubTasks ? Math.round(doneSubTasks / totalSubTasks * 100) : 0;
+
+    var html = '<div style="margin-bottom:15px; padding:12px; background:#f0effc; border:1px solid #6c5ce7; border-radius:12px; display:flex; align-items:center; gap:12px; cursor:pointer;" onclick="navigateTo(\'screen-video\')">';
+    html += '<div style="font-size:1.5rem;">🎬</div>';
+    html += '<div style="flex:1;">';
+    html += '<div style="font-size:0.85rem; font-weight:800; color:#4834d4; margin-bottom:4px;">STEP' + step + ' 学習カリキュラム進捗</div>';
+    html += '<div style="background:#e0e0e0; height:6px; border-radius:10px; overflow:hidden;"><div style="background:#6c5ce7; height:100%; width:' + pct + '%;"></div></div>';
+    html += '<div style="font-size:0.75rem; color:#666; margin-top:4px;">現在の達成度: ' + doneSubTasks + ' / ' + totalSubTasks + ' (' + pct + '%) <span style="color:#6c5ce7; font-weight:bold;">→ 動画課題ページで確認</span></div>';
+    html += '</div>';
+    html += '<div style="color:#6c5ce7; font-weight:800;">＞</div>';
+    html += '</div>';
+
     container.innerHTML = html;
 }
 
 /**
  * 動画課題一覧画面 (screen-video) の描画
- * STEP画面と同じインタラクティブなUIを全STEP分表示する
+ * 50以上の課題を、横並び（グリッド）で分かりやすく表示する
  */
 function loadVideoTasks() {
     var user = Auth.getUser();
@@ -123,7 +98,7 @@ function loadVideoTasks() {
         var tasks = VIDEO_TASKS[step] || [];
         if (!tasks.length) return;
 
-        // STEPごとのサマリ計算
+        // STEPごとのサマリ
         var total = 0, done = 0;
         tasks.forEach(function(t) {
             (t.sub || []).forEach(function(s) {
@@ -132,23 +107,46 @@ function loadVideoTasks() {
             });
         });
         var pct = total ? Math.round(done / total * 100) : 0;
-        var allDone = done === total && total > 0;
 
-        html += '<div style="margin-bottom:24px; border:1px solid #ddd; border-radius:12px; overflow:hidden; background:#fff; box-shadow:0 2px 8px rgba(0,0,0,0.05);">';
-        // ヘッダー
-        html += '<div style="background:#4c5bb7; color:white; padding:12px 16px; display:flex; justify-content:space-between; align-items:center;">';
+        html += '<div style="margin-bottom:30px;">';
+        html += '<div style="background:#4c5bb7; color:white; padding:12px 16px; border-radius:12px 12px 0 0; display:flex; justify-content:space-between; align-items:center;">';
         html += '<span style="font-weight:800;">STEP' + step + ' カリキュラム</span>';
-        html += '<span style="font-size:0.85rem;">' + (allDone ? '✅ 全完了' : done + '/' + total + '（' + pct + '%）') + '</span>';
+        html += '<span style="font-size:0.85rem; font-weight:bold;">' + done + ' / ' + total + ' (' + pct + '%)</span>';
         html += '</div>';
         
-        // 進捗バー
-        html += '<div style="background:#e0e0e0; height:4px;"><div style="background:#4caf50; height:100%; transition:width 0.3s; width:' + pct + '%;"></div></div>';
+        // グリッドレイアウト
+        html += '<div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap:12px; padding:15px; background:#f8f9ff; border:1px solid #4c5bb7; border-top:none; border-radius:0 0 12px 12px;">';
         
-        // タスクリスト本体
-        html += '<div style="padding:12px; background:' + (allDone ? '#f0fff4' : '#fcfcff') + ';">';
         tasks.forEach(function(task) {
-            html += createCurriculumCardHtml(task, staffId, progress, step);
+            var subs = task.sub || [];
+            var taskAllDone = subs.every(function(s){ return progress[task.id + '__' + s]; });
+
+            html += '<div class="cv-card" style="background:' + (taskAllDone ? '#f0fff4' : '#fff') + '; border:1px solid ' + (taskAllDone ? '#4caf50' : '#eee') + '; border-radius:10px; padding:12px; box-shadow:0 2px 4px rgba(0,0,0,0.03);">';
+            html += '<div style="font-size:0.82rem; font-weight:700; color:#333; margin-bottom:10px; display:flex; gap:6px;"><span>' + (taskAllDone ? '✅' : '📋') + '</span> ' + task.title + '</div>';
+            
+            html += '<div style="display:flex; flex-wrap:wrap; gap:8px; align-items:center;">';
+            subs.forEach(function(subType) {
+                var key = task.id + '__' + subType;
+                var isDone = !!progress[key];
+
+                if (subType === '動画') {
+                    html += '<div style="display:flex; align-items:center; gap:6px;">';
+                    html += '<a href="' + ELEARNING_URL + '" target="_blank" rel="noopener" style="padding:4px 10px; background:#4c5bb7; color:white; border-radius:15px; font-size:0.75rem; font-weight:700; text-decoration:none;" onclick="var p=this.parentElement.querySelector(\'input\'); if(p){setTimeout(function(){p.checked=true; onCurriculumCheck(p, \'' + staffId + '\', \'' + key + '\');}, 3000);}">📺 視聴</a>';
+                    html += '<label style="display:flex; align-items:center; gap:3px; font-size:0.75rem; color:#666; cursor:pointer;">';
+                    html += '<input type="checkbox" ' + (isDone ? 'checked' : '') + ' onchange="onCurriculumCheck(this, \'' + staffId + '\', \'' + key + '\')" style="width:18px; height:18px; cursor:pointer;"> 視聴';
+                    html += '</label>';
+                    html += '</div>';
+                } else {
+                    var icon = subType === 'テスト' ? '✍️' : subType === '報告書' ? '📝' : '📊';
+                    html += '<label style="display:flex; align-items:center; gap:4px; font-size:0.75rem; cursor:pointer; padding:4px 8px; border:1px solid ' + (isDone ? '#4caf50' : '#ccc') + '; border-radius:15px; background:' + (isDone ? '#e8f5e9' : '#fff') + '">';
+                    html += '<input type="checkbox" ' + (isDone ? 'checked' : '') + ' onchange="onCurriculumCheck(this, \'' + staffId + '\', \'' + key + '\')" style="width:16px; height:16px; cursor:pointer;">';
+                    html += icon + ' ' + subType;
+                    html += '</label>';
+                }
+            });
+            html += '</div></div>';
         });
+        
         html += '</div></div>';
     });
 
