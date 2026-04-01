@@ -63,7 +63,7 @@ function renderCurriculum(step) {
             if (subType === '動画') {
                 // 動画ボタン：クリックでEラーニングを別タブで開き、チェック状態を切り替える
                 html += `
-                    <button
+                    <button type="button"
                         class="sub-task-btn ${isDone ? 'is-done' : ''}"
                         onclick="openElearningAndMark('${task.id}', '${subType}', ${step})"
                         title="クリックすると動画ページへ移動します">
@@ -73,7 +73,7 @@ function renderCurriculum(step) {
             } else {
                 // テスト・報告書・アンケートなど：クリックで完了/未完了を切り替え
                 html += `
-                    <button
+                    <button type="button"
                         class="sub-task-btn ${isDone ? 'is-done' : ''}"
                         onclick="toggleCurriculumTask('${task.id}', '${subType}', ${step})"
                         title="${isDone ? 'クリックで未完了に戻す' : 'クリックで完了にする'}">
