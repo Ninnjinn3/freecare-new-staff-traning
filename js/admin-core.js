@@ -106,48 +106,37 @@ window.Admin = {
     renderDashboard() {
         if (!this.data) return;
         const s = this.data.summary || {};
-        const loginRate = s.activeStaff && s.totalStaff ? Math.round((s.activeStaff/s.totalStaff)*100) : (s.loginRate || 0);
+        const staff = this.data.staffProgress || [];
         
+        // 1. スタッフ
         setText('widget-staff-count', (s.totalStaff || 0) + '名');
-        setText('widget-login-rate', loginRate + '%');
-        setText('widget-completion-rate', (s.completionRate || 0) + '%');
-        setText('widget-avg-score', s.avgScore > 0 ? s.avgScore + '点' : '--');
-        setText('widget-pass-rate', (s.avgPassRate || 0) + '%');
-        setText('widget-total-records', (s.totalRecords || s.hitRate || 0) + '件');
-        
-        this.renderActivityFeed();
-    },
+        const dist = s.stepDistribution || {};
+        setText('detail-staff-count', `アクティブ: ${s.activeStaff}名 / STEP1: ${dist.step1||0} ・ STEP2: ${dist.step2||0} ・ STEP3: ${dist.step3||0}`);
 
-    // 直近の活動フィード
-    async renderActivityFeed() {
-        const feed = document.getElementById('dashboard-activity-feed');
-        if (!feed) return;
-        feed.innerHTML = '<p style="text-align:center;color:#999;font-size:0.85rem;">読み込み中...</p>';
-        try {
-            const { data } = await window.fcSupabase
-                .from('daily_step1')
-                .select('staff_id, ai_judgement, date, notice_text, staff_master(name)')
-                .order('date', { ascending: false })
-                .limit(10);
-            if (!data || data.length === 0) {
-                feed.innerHTML = '<p style="text-align:center;color:#999;font-size:0.85rem;">まだ活動がありません</p>';
-                return;
-            }
-            feed.innerHTML = data.map(r => {
-                const name = r.staff_master?.name || r.staff_id;
-                const judge = r.ai_judgement === '○' ? '✅' : (r.ai_judgement === '×' ? '❌' : '📝');
-                const short = (r.notice_text || '').substring(0, 40) + (r.notice_text?.length > 40 ? '...' : '');
-                return `<div style="padding:10px 0;border-bottom:1px solid #f0f0f0;display:flex;gap:10px;align-items:flex-start;">
-                    <span style="font-size:1.2rem;">${judge}</span>
-                    <div style="flex:1;">
-                        <div style="font-weight:bold;font-size:0.85rem;">${name}</div>
-                        <div style="font-size:0.78rem;color:#666;margin-top:2px;">${r.date} — ${short}</div>
-                    </div>
-                </div>`;
-            }).join('');
-        } catch(e) {
-            feed.innerHTML = '<p style="text-align:center;color:#ccc;font-size:0.85rem;">取得失敗</p>';
-        }
+        // 2. ログイン率
+        const loginRate = s.activeStaff && s.totalStaff ? Math.round((s.activeStaff/s.totalStaff)*100) : (s.loginRate || 0);
+        setText('widget-login-rate', loginRate + '%');
+        setText('detail-login-rate', `今月の活動スタッフ: ${s.activeStaff}名 / 未活動: ${s.totalStaff - s.activeStaff}名`);
+
+        // 3. 平均スコア
+        setText('widget-avg-score', s.avgScore > 0 ? s.avgScore + '点' : '--');
+        const evaluated = staff.filter(p => p.monthlyScore !== null).length;
+        setText('detail-avg-score', `評価済み: ${evaluated}名 / 全体: ${s.totalStaff}名`);
+
+        // 4. 合格率
+        setText('widget-pass-rate', (s.avgPassRate || 0) + '%');
+        setText('detail-pass-rate', `仮説的中率: ${s.hitRate}% / 振り返り実施率: ${s.reflectionRate}%`);
+
+        // 5. 記録件数
+        const totalRecs = (s.totalRecords || s.hitRate || 0);
+        const avgRecs = s.activeStaff > 0 ? (totalRecs / s.activeStaff).toFixed(1) : 0;
+        setText('widget-total-records', totalRecs + '件');
+        setText('detail-total-records', `アクティブ1人あたり平均: ${avgRecs}件`);
+
+        // 6. 完了率
+        setText('widget-completion-rate', (s.completionRate || 0) + '%');
+        const doneCount = staff.filter(p => p.taskStatus === 'done').length;
+        setText('detail-completion-rate', `月次ノルマ(6回)達成: ${doneCount}名 / 全体: ${s.totalStaff}名`);
     },
 
     // 互換性のあるサマリカード描画
