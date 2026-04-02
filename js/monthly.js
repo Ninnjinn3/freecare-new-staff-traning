@@ -268,7 +268,7 @@ const Monthly = {
                             日々のフィードバック（○/×）を確認しながら、より良い記録を目指しましょう！
                         </p>
                         <div style="font-size: 0.9rem; background: #f0f7ff; padding: 15px; border-radius: 8px; color: #0056b3; display: inline-block;">
-                            📅 公開予定：${yearMonth.split('-')[1]}月11日 0:00〜
+                            📅 公開予定：${parseInt(yearMonth.split('-')[1]) === 12 ? 1 : parseInt(yearMonth.split('-')[1]) + 1}月11日 0:00〜
                         </div>
                     </div>
                 `;
