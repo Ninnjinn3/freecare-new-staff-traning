@@ -213,7 +213,7 @@ const Monthly = {
             let passed = data ? data.passed : false;
 
             // 描画実行（まずは現在のデータを出す）
-            this.renderEvaluation(reportData, score, passed);
+            this.renderEvaluation(reportData, score, passed, currentTarget);
             await this.renderDailyRecords(currentTarget);
 
             // 再評価（自動または手動）が必要な場合
@@ -237,7 +237,7 @@ const Monthly = {
                 const newData = await Monthly.calculate(currentTarget);
                 if (newData) {
                     // 最新データで再描画
-                    this.renderEvaluation(newData.breakdown, newData.score, newData.passed);
+                    this.renderEvaluation(newData.breakdown, newData.score, newData.passed, currentTarget);
                     showToast('最新の記録に基づき、AI評価を更新しました ✨');
                 }
             }
@@ -252,9 +252,39 @@ const Monthly = {
     },
 
     // 6項目の評価描画
-    renderEvaluation(breakdown, totalScore, passed) {
+    renderEvaluation(breakdown, totalScore, passed, yearMonth) {
+        const isEditable = DB.isCycleActive(yearMonth);
+        const bRoot = document.getElementById('score-breakdown');
+
+        if (isEditable) {
+            if (bRoot) {
+                bRoot.innerHTML = `
+                    <div class="card" style="text-align: center; padding: 40px var(--space-lg); margin-top: 20px; border: 2px dashed var(--primary);">
+                        <div style="font-size: 3rem; margin-bottom: 20px;">⏳</div>
+                        <h3 style="margin-bottom: 15px; color: var(--primary);">ただいま記録修正・提出期間中です</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 25px; line-height: 1.6;">
+                            ${yearMonth.split('-')[1]}月分の取り組みは、**翌月10日**まで修正・提出が可能です。<br>
+                            月次評価（合否判定）は、提出期間が終了した後に公開されます。<br>
+                            日々のフィードバック（○/×）を確認しながら、より良い記録を目指しましょう！
+                        </p>
+                        <div style="font-size: 0.9rem; background: #f0f7ff; padding: 15px; border-radius: 8px; color: #0056b3; display: inline-block;">
+                            📅 公開予定：${yearMonth.split('-')[1]}月11日 0:00〜
+                        </div>
+                    </div>
+                `;
+            }
+            // スコア表示も「期間中」とする
+            const scoreEl = document.getElementById('monthly-score');
+            const statusEl = document.getElementById('monthly-pass-status');
+            if (scoreEl) scoreEl.textContent = '--';
+            if (statusEl) {
+                statusEl.textContent = '集計待ち';
+                statusEl.style.color = 'var(--primary)';
+            }
+            return;
+        }
+
         if (!breakdown || !Array.isArray(breakdown) || breakdown.length === 0) {
-            const bRoot = document.getElementById('score-breakdown');
             if (bRoot) {
                 bRoot.innerHTML = `
                     <div class="card" style="text-align: center; padding: 40px var(--space-lg); margin-top: 20px; border: 2px dashed var(--border);">
@@ -272,7 +302,10 @@ const Monthly = {
             const scoreEl = document.getElementById('monthly-score');
             const statusEl = document.getElementById('monthly-pass-status');
             if (scoreEl) scoreEl.textContent = '--';
-            if (statusEl) statusEl.textContent = '--';
+            if (statusEl) {
+                statusEl.textContent = '--';
+                statusEl.style.color = 'var(--text-muted)';
+            }
             return;
         }
 

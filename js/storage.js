@@ -143,6 +143,17 @@ const DB = {
         };
     },
 
+    // 指定した年月(YYYY-MM)の編集期間が終了しているかチェック
+    // 翌月10日を過ぎていれば「終了(false)」
+    isCycleActive(yearMonthStr) {
+        if (!yearMonthStr) return false;
+        const [y, m] = yearMonthStr.split('-').map(Number);
+        // mは1-12なので、Dateコンストラクタ(0-11)に入れると翌月になる
+        // 例: 4月分(yearMonthStr="2026-04") -> new Date(2026, 4, 10) は 5月10日
+        const deadline = new Date(y, m, 10, 23, 59, 59);
+        return new Date() <= deadline;
+    },
+
     getCycleOptions(count = 6) {
         const options = [];
         const activeCycle = this.getCurrentCycle(new Date());
