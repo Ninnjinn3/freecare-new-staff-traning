@@ -81,19 +81,7 @@ function renderCurriculum(step) {
     container.innerHTML = html;
 }
 
-/**
- * ボタンのURLを決定する（N-Academyの仕様により全リンクを講座一覧ページへ統一）
- */
-function getTaskUrl(task, subType) {
-    return ELEARNING_URL;
-}
-
-/**
- * ボタンの色を決定
- */
-function getButtonStyle(task, subType) {
-    return 'padding:6px 12px; background:#4c5bb7; color:white; border-radius:15px; font-size:0.75rem; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 4px rgba(76,91,183,0.2); transition:0.2s; cursor:pointer;';
-}
+// 個別URLやボタンスタイル生成関数は不要になったため削除
 
 /**
  * 動画課題一覧画面 (screen-video) の描画
@@ -150,14 +138,11 @@ function loadVideoTasks() {
             var key = task.id + '__' + subType;
             var isDone = !!progress[key];
             var icon = subType === '動画' ? '📺' : subType === 'テスト' ? '✍️' : subType === '報告書' ? '📝' : subType === 'アンケート' ? '📊' : subType === '発表' ? '🎤' : '📄';
-            var btnText = subType === '動画' ? '視聴する' : (subType + 'を開く');
-            var url = getTaskUrl(task, subType);
-            var btnStyle = getButtonStyle(task, subType);
 
             html += '<div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">';
             
-            // すべての項目に開くボタンを表示
-            html += '<a href="' + url + '" target="_blank" rel="noopener" style="' + btnStyle + '" onmouseover="this.style.transform=\'translateY(-1px)\'" onmouseout="this.style.transform=\'none\'">' + icon + ' ' + btnText + '</a>';
+            // 単純なテキストラベルを表示
+            html += '<div style="font-size:0.85rem; font-weight:700; color:#555; width:80px; display:flex; align-items:center; gap:4px;">' + icon + ' ' + subType + '</div>';
 
             // チェックボックス
             html += '<label style="display:flex; align-items:center; gap:3px; font-size:0.75rem; color:' + (isDone ? '#2e7d32' : '#666') + '; cursor:pointer; padding:4px 8px; border:1px solid ' + (isDone ? '#4caf50' : '#ccc') + '; border-radius:15px; background:' + (isDone ? '#e8f5e9' : '#fff') + '; transition:0.2s;">';
