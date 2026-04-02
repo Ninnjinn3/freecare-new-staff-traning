@@ -87,7 +87,6 @@ ${prompt}
             contents: [{ parts: [{ text: fullPrompt }] }],
             generationConfig: {
                 temperature: 0.3,
-                maxOutputTokens: 1024,
                 responseMimeType: "application/json"
             }
         })
@@ -128,15 +127,7 @@ function parseGeminiResponse(text) {
     if (!text) throw new Error('AI回答が空です');
     try {
         let cleanText = text.trim();
-        // markdown装飾除去
-        cleanText = cleanText.replace(/^```(json)?\s*/i, '').replace(/\s*```$/i, '');
-        const start = cleanText.indexOf('{');
-        const end = cleanText.lastIndexOf('}');
-        if (start !== -1 && end !== -1) cleanText = cleanText.substring(start, end + 1);
-        // 末尾カンマ除去
-        cleanText = cleanText.replace(/,\s*([}\]])/g, '$1');
-        // 制御文字除去（9=Tab, 10=LF以外の0-31を除去。特に入り込みやすい13=CRを確実に消す）
-        cleanText = cleanText.replace(/[\x00-\x08\x0B-\x1F\x7F]/g, '');
+        // Native JSON is guaranteed by responseMimeType, skip fragile regexes
         const result = JSON.parse(cleanText);
         if (!result.applied_knowledge) result.applied_knowledge = '';
         return result;

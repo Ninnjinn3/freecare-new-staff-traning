@@ -112,14 +112,7 @@ ${customRules || '特になし'}
     const json = await resp.json();
     const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
     
-    // パース処理（ロバスト版）
+    // パース処理（ロバスト版: Native JSON化済み）
     let cleanText = text.trim();
-    cleanText = cleanText.replace(/^```(json)?\s*/i, '').replace(/\s*```$/i, '');
-    const start = cleanText.indexOf('{');
-    const end = cleanText.lastIndexOf('}');
-    if (start !== -1 && end !== -1) cleanText = cleanText.substring(start, end + 1);
-    cleanText = cleanText.replace(/,\s*([}\]])/g, '$1');
-    // 制御文字除去（特に13=CRを除去し、JSONパースエラーを防ぐ）
-    cleanText = cleanText.replace(/[\x00-\x08\x0B-\x1F\x7F]/g, '');
     return JSON.parse(cleanText);
 }

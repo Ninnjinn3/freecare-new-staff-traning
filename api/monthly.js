@@ -299,19 +299,11 @@ ${prompt}
 
     try {
         let cleanText = text.trim();
-        cleanText = cleanText.replace(/^```(json)?\s*/i, '').replace(/\s*```$/i, '');
-        const jsonStart = cleanText.indexOf('{');
-        const jsonEnd = cleanText.lastIndexOf('}');
-        if (jsonStart !== -1 && jsonEnd !== -1) cleanText = cleanText.substring(jsonStart, jsonEnd + 1);
-        cleanText = cleanText.replace(/,\s*([}\]])/g, '$1');
-        // 制御文字除去（特に13=CRを除去）
-        cleanText = cleanText.replace(/[\x00-\x08\x0B-\x1F\x7F]/g, '');
-        let parsedData = JSON.parse(cleanText);
-        // オブジェクトの中に breakdown 配列があるか確認
-        let breakdown = parsedData.breakdown || (Array.isArray(parsedData) ? parsedData : null);
+        const result = JSON.parse(cleanText);
+        let breakdown = result.breakdown || (Array.isArray(result) ? result : null);
         
         if (!breakdown || !Array.isArray(breakdown)) {
-            console.error('Invalid breakdown structure:', parsedData);
+            console.error('Invalid breakdown structure:', result);
             throw new Error('Invalid breakdown structure returned from AI');
         }
 
