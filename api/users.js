@@ -70,7 +70,7 @@ async function createStaff(url, key, body, res) {
         staff_id,
         name,
         role: role || 'staff',
-        facility_id: facility_id || 'F001',
+        facility_id: facility_id || staff_id, // 施設IDをログインID（staff_id）にデフォルト設定
         facility_name: facility_name || '',
         work_type: work_type || 'day',
         current_step: (role === 'staff') ? 1 : null,

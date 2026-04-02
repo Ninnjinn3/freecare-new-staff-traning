@@ -370,8 +370,8 @@ window.Admin = {
                     initial_password: pw,
                     role,
                     work_type: workType,
-                    facility_id: user?.facility_id || 'F001',
-                    facility_name: user?.facility_name || ''
+                    facility_id: staffId, // 施設IDをログインID（staff_id）にする
+                    facility_name: ''
                 })
             });
 
@@ -1059,8 +1059,8 @@ window.Admin = {
         if (newStep === null) return;
         const newRole = prompt('役割 (staff / admin / exec):', currentRole);
         if (newRole === null) return;
-        const newFacility = prompt('部門/施設ID (例: F001):', currentFacility);
-        if (newFacility === null) return;
+        // 施設IDはログインID固定にするルールのため、自動的にセット
+        const newFacility = staffId; 
         try {
             const resp = await fetch('/api/users', {
                 method: 'POST',
