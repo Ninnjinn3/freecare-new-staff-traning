@@ -30,8 +30,8 @@ window.Admin = {
             staff: 'スタッフ管理',
             targets: '介護対象者管理',
             curriculum: 'STEP管理（カリキュラム）',
-            'system-content': 'システム部門コンテンツ',
-            facility: '施設・部門管理'
+            'system-content': 'システム管理',
+            facility: '部門管理'
         };
         const titleEl = document.getElementById('admin-header-title');
         if (titleEl) titleEl.textContent = titleMap[pageId] || '管理者画面';
@@ -298,6 +298,7 @@ window.Admin = {
         list.innerHTML = staffList.map(s => {
             const isInactive = !s.is_active;
             const roleLabel = roleLabels[s.role] || s.role;
+            const dept = Admin.getDeptName(s.staff_id);
 
             return `
             <div class="staff-manage-card ${isInactive ? 'staff-inactive' : ''}">
@@ -307,6 +308,7 @@ window.Admin = {
                 </div>
                 <div class="staff-manage-info">
                     <span>ID: ${s.staff_id}</span>
+                    <span style="margin-left:8px; color:var(--primary); font-weight:bold;">[${dept}]</span>
                     ${s.left_date ? `<span class="left-date">退職: ${s.left_date}</span>` : ''}
                 </div>
                 ${!isInactive ? `
@@ -768,6 +770,7 @@ window.Admin = {
                     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
                         <div style="flex:1;">
                             <div style="font-weight:bold;color:#333;font-size:0.95rem;">${i+1}. ${t.title}</div>
+                            ${t.content ? `<div style="font-size:0.8rem;color:#666;margin-top:4px;">${t.content.replace(/\n/g,'<br>')}</div>` : ''}
                             <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
                                 ${(t.sub||[]).map(s => `<span style="font-size:0.75rem;background:#f0effc;color:#4c5bb7;padding:2px 8px;border-radius:10px;">${s}</span>`).join('')}
                             </div>
@@ -796,11 +799,12 @@ window.Admin = {
     addCurriculumTask() {
         const title = prompt('課題タイトルを入力してください:');
         if (!title) return;
+        const explanation = prompt('内容説明を入力してください（任意）:');
         const subInput = prompt('実施項目をカンマ区切りで入力（例: 動画,テスト,報告書）:', '動画,テスト,報告書');
         const sub = (subInput || '動画,テスト,報告書').split(',').map(s => s.trim()).filter(Boolean);
         const tasks = this._getCurriculumTasks(this._curriculumStep);
         const newId = `custom_${Date.now()}`;
-        tasks.push({ id: newId, title: title.trim(), sub });
+        tasks.push({ id: newId, title: title.trim(), content: explanation || '', sub });
         this._saveCurriculumTasks(this._curriculumStep, tasks);
         showToast('課題を追加しました ✅');
         this.loadCurriculumSteps();
@@ -812,8 +816,10 @@ window.Admin = {
         if (!task) return;
         const newTitle = prompt('課題タイトルを変更:', task.title);
         if (!newTitle) return;
+        const newExplanation = prompt('内容説明を変更:', task.content || '');
         const newSub = prompt('実施項目をカンマ区切りで:', (task.sub||[]).join(','));
         task.title = newTitle.trim();
+        task.content = newExplanation || '';
         task.sub = (newSub || '').split(',').map(s => s.trim()).filter(Boolean);
         this._saveCurriculumTasks(step, tasks);
         showToast('課題を更新しました ✅');
@@ -953,8 +959,8 @@ window.Admin = {
     async _renderFacilityTabs(container) {
         const isF = this._facilityView === 'facility';
         let html = `<div style="display:flex;gap:8px;margin-bottom:18px;">
-            <button onclick="Admin._facilityView='facility';Admin._renderFacilityTabs(document.getElementById('admin-facility-list-container'));" style="padding:8px 18px;border-radius:8px;border:none;font-weight:bold;cursor:pointer;background:${isF?'var(--primary)':'#eee'};color:${isF?'white':'#555'};transition:0.2s;">🏢 施設一覧</button>
-            <button onclick="Admin._facilityView='staff';Admin._renderFacilityTabs(document.getElementById('admin-facility-list-container'));" style="padding:8px 18px;border-radius:8px;border:none;font-weight:bold;cursor:pointer;background:${!isF?'var(--primary)':'#eee'};color:${!isF?'white':'#555'};transition:0.2s;">👤 スタッフ編集</button>
+            <button onclick="Admin._facilityView='facility';Admin._renderFacilityTabs(document.getElementById('admin-facility-list-container'));" style="padding:8px 18px;border-radius:8px;border:none;font-weight:bold;cursor:pointer;background:${isF?'var(--primary)':'#eee'};color:${isF?'white':'#555'};transition:0.2s;">🏛️ 部門一覧</button>
+            <button onclick="Admin._facilityView='staff';Admin._renderFacilityTabs(document.getElementById('admin-facility-list-container'));" style="padding:8px 18px;border-radius:8px;border:none;font-weight:bold;cursor:pointer;background:${!isF?'var(--primary)':'#eee'};color:${!isF?'white':'#555'};transition:0.2s;">👤 スタッフ所属編集</button>
         </div>`;
         container.innerHTML = html + '<p style="text-align:center;color:#aaa">読み込み中...</p>';
         if (isF) {
@@ -998,14 +1004,17 @@ window.Admin = {
             });
             const d = await resp.json();
             const staffList = d.staff || [];
-            const rows = staffList.map(s => `
+            const rows = staffList.map(s => {
+                const dept = Admin.getDeptName(s.staff_id);
+                return `
                 <div style="background:#fff;border:1px solid #e8eaf6;border-radius:10px;padding:12px 15px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
                     <div>
                         <div style="font-weight:bold;">${s.name} <span style="font-size:0.78rem;color:#888;">(${s.staff_id})</span></div>
-                        <div style="font-size:0.8rem;color:#666;margin-top:3px;">STEP ${s.current_step||1} / 役割: ${s.role} / 施設: ${s.facility_id||'-'}</div>
+                        <div style="font-size:0.8rem;color:#666;margin-top:3px;">STEP ${s.current_step||1} / 役割: ${s.role} / 部門: ${dept}</div>
                     </div>
                     <button onclick="Admin.editStaff('${s.staff_id}','${s.name}',${s.current_step||1},'${s.role}','${s.facility_id||''}')" style="background:#4c5bb7;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:0.82rem;cursor:pointer;">✏️ 編集</button>
-                </div>`).join('');
+                </div>`;
+            }).join('');
             container.innerHTML = tabHtml + rows;
         } catch(e) {
             container.innerHTML = tabHtml + '<p style="color:red;text-align:center;">取得失敗</p>';
@@ -1045,11 +1054,12 @@ window.Admin = {
     },
 
     async editStaff(staffId, name, currentStep, currentRole, currentFacility) {
+        const currentDept = this.getDeptName(staffId);
         const newStep = prompt(`${name}さんの現在のSTEP (1〜4):`, currentStep);
         if (newStep === null) return;
         const newRole = prompt('役割 (staff / admin / exec):', currentRole);
         if (newRole === null) return;
-        const newFacility = prompt('施設ID (例: F001):', currentFacility);
+        const newFacility = prompt('部門/施設ID (例: F001):', currentFacility);
         if (newFacility === null) return;
         try {
             const resp = await fetch('/api/users', {
@@ -1073,6 +1083,19 @@ window.Admin = {
         } catch(e) {
             showToast('更新に失敗しました: ' + e.message);
         }
+    },
+
+    getDeptName(staffId) {
+        if (!staffId) return '不明';
+        const s = String(staffId);
+        if (s.startsWith('2')) return 'グループホーム';
+        if (s.startsWith('3')) return '訪問看護（精神）';
+        if (s.startsWith('4')) return '三国';
+        if (s.startsWith('5')) return '就労B';
+        if (s.startsWith('6')) return 'デイサービス';
+        if (s.startsWith('7')) return '生活介護';
+        if (s.startsWith('8')) return '小児';
+        return 'その他';
     },
 
     toBase64(file) {

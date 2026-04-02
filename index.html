@@ -1190,10 +1190,10 @@
             <span>📚</span> <span>STEP管理（カリキュラム）</span>
           </div>
           <div class="admin-nav-item" id="nav-system-content" onclick="Admin.switchPage('system-content')">
-            <span>📄</span> <span>システム部門コンテンツ</span>
+            <span>📄</span> <span>システム管理</span>
           </div>
           <div class="admin-nav-item" id="nav-facility" onclick="Admin.switchPage('facility')">
-            <span>🏢</span> <span>施設・部門管理</span>
+            <span>🏛️</span> <span>部門管理</span>
           </div>
         </nav>
       </aside>
@@ -1297,7 +1297,7 @@
         <!-- ===== Screen: システム部門コンテンツ ===== -->
         <div id="admin-page-system-content" class="admin-page-content" style="display:none; padding: 25px;">
           <div class="admin-widget">
-            <div class="widget-title">📄 システム部門コンテンツ</div>
+            <div class="widget-title">📄 システム管理</div>
             <div style="display:flex; border-bottom:1px solid #eee; margin-bottom:20px;">
               <button onclick="Admin.switchSystemTab('manual')" id="sys-tab-manual" class="sys-tab active" style="padding:10px 20px; border:none; background:none; cursor:pointer; font-weight:bold; border-bottom:3px solid #4c5bb7;">マニュアル管理</button>
               <button onclick="Admin.switchSystemTab('ai')" id="sys-tab-ai" class="sys-tab" style="padding:10px 20px; border:none; background:none; cursor:pointer; font-weight:bold; color:#666;">AI学習設定</button>
@@ -1305,27 +1305,12 @@
             <div id="sys-content-manual">
               <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 15px;" id="admin-manual-list">
                 <!-- Manual Cards -->
-                <div class="curriculum-card" onclick="Admin.editManual('step1')">
-                  <div style="font-size: 2rem; margin-bottom: 10px;">日</div>
-                  <div style="font-weight: bold;">日次記録（STEP1）</div>
-                  <p style="font-size: 0.8rem; color: #666;">観察眼を養い「気付き」を正確に言語化する。5W1Hの徹底。</p>
-                </div>
-                <div class="curriculum-card" onclick="Admin.editManual('step2')">
-                  <div style="font-size: 2rem; margin-bottom: 10px;">仮</div>
-                  <div style="font-weight: bold;">仮説思考（STEP2）</div>
-                  <p style="font-size: 0.8rem; color: #666;">「なぜ？」を5回。多層的な要因分析と優先順位の決定。</p>
-                </div>
-                <div class="curriculum-card" onclick="Admin.editManual('step3')">
-                  <div style="font-size: 2rem; margin-bottom: 10px;">振</div>
-                  <div style="font-weight: bold;">振り返り（STEP3）</div>
-                  <p style="font-size: 0.8rem; color: #666;">実施した支援の効果検証。エビデンスに基づく次のアクション。</p>
-                </div>
-                <div class="curriculum-card" onclick="Admin.editManual('targets')">
+                <div class="curriculum-card" onclick="Admin.viewManual('targets')">
                   <div style="font-size: 2rem; margin-bottom: 10px;">👥</div>
                   <div style="font-weight: bold;">対象者管理</div>
                   <p style="font-size: 0.8rem; color: #666;">利用者情報の登録とフェイスシートの管理。課題の紐付け。</p>
                 </div>
-                <div class="curriculum-card" onclick="Admin.editManual('ai')">
+                <div class="curriculum-card" onclick="Admin.viewManual('ai')">
                   <div style="font-size: 2rem; margin-bottom: 10px;">🤖</div>
                   <div style="font-weight: bold;">AIサポーター活用</div>
                   <p style="font-size: 0.8rem; color: #666;">フリーケアくんへの相談方法と、AIナレッジの更新手順。</p>
@@ -1347,10 +1332,10 @@
         <!-- ===== Screen: 施設・部門管理 ===== -->
         <div id="admin-page-facility" class="admin-page-content" style="display:none; padding: 25px;">
           <div class="admin-widget">
-            <div class="widget-title">🏢 施設・部門管理</div>
+            <div class="widget-title">🏛️ 部門管理</div>
             <div style="display: flex; gap: 10px; margin-bottom: 20px;">
-              <button onclick="Admin.loadFacilities()" class="facilities-tab btn-text-sm active">施設一覧</button>
-              <button onclick="Admin.loadDepartments()" class="departments-tab btn-text-sm">部門一覧</button>
+              <button onclick="Admin.loadFacilities()" class="facilities-tab btn-text-sm active">部門一覧</button>
+              <button onclick="Admin.loadDepartments()" class="departments-tab btn-text-sm">スタッフ所属編集</button>
             </div>
             <div id="admin-facility-list-container" class="admin-list-container">
               <!-- JSで描画 -->
@@ -1383,10 +1368,10 @@
       <div id="admin-submenu-facility" class="admin-submenu-overlay" style="display:none; position:fixed; left:100px; top:60px; bottom:0; width:450px; background:#3f4da3; z-index:1000; box-shadow:10px 0 30px rgba(0,0,0,0.1); padding:40px; color:white;">
         <div style="display:grid; grid-template-columns: 1fr; gap:40px;">
           <div>
-            <h3 style="font-size:0.9rem; opacity:0.8; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:10px;">施設・部署管理</h3>
+            <h3 style="font-size:0.9rem; opacity:0.8; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.2); padding-bottom:10px;">部門管理</h3>
             <ul id="admin-facility-list" style="list-style:none; padding:0; display:flex; flex-direction:column; gap:12px;">
-              <li style="display:flex; align-items:center; gap:10px; cursor:pointer;"><span>🏢</span> 施設一覧</li>
-              <li style="display:flex; align-items:center; gap:10px; cursor:pointer;"><span>📂</span> 部署・チーム管理</li>
+              <li style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="Admin.switchPage('facility')"><span>🏛️</span> 部門一覧</li>
+              <li style="display:flex; align-items:center; gap:10px; cursor:pointer;" onclick="Admin.switchPage('facility');Admin.loadDepartments()"><span>👤</span> 所属・役割の編集</li>
             </ul>
           </div>
         </div>
