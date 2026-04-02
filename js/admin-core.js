@@ -243,10 +243,11 @@ window.Admin = {
 
     // ===== スタッフ管理 =====
 
-    // スタッフ一覧取得
+    // スタッフ一覧取得 (全ユーザー反映版)
     async loadStaffList() {
         const user = Auth.getUser();
-        const facilityId = user?.role === 'exec' ? '' : (user?.facility_id || 'F001');
+        // 本部・管理者は全拠点対象、それ以外は自拠点のみ
+        const facilityId = (user?.role === 'exec' || user?.role === 'admin') ? '' : (user?.facility_id || '');
         const showInactive = document.getElementById('show-inactive-staff')?.checked || false;
 
         const list = document.getElementById('staff-manage-list-container');
@@ -265,6 +266,8 @@ window.Admin = {
 
             if (resp.ok) {
                 const data = await resp.json();
+                // 部門管理用と同じフィルタリングを適用（1000系本部は部門管理でも特殊扱いされているため一旦そのまま出すか検討）
+                // ただし「登録されている人全員反映して」とのことなので、敢えて絞りすぎない
                 this.renderStaffManageList(data.staff || []);
                 return;
             }
@@ -783,24 +786,27 @@ window.Admin = {
         const btn = document.getElementById('btn-save-face');
         if (btn) { btn.disabled = true; btn.textContent = '保存中...'; }
 
-        const payload = {
-            target_id: this._currentFaceTargetId,
-            basic_info: form.basic_info.value,
-            medical_history: form.medical_history.value,
-            habits: form.habits.value,
-            family_env: form.family_env.value,
-            updated_by: Auth.getUser()?.staff_id || 'admin',
-            updated_at: new Date().toISOString()
-        };
-
         try {
-            // upsert を試みる (target_id がユニークであることを前提にするか、別途ID管理)
-            // ここでは一旦、既存があるかチェックして挿入/更新を分岐
+            // 現在の最新データを取得してマージの準備
             const { data: existing } = await window.fcSupabase
                 .from('care_face_assessments')
-                .select('id')
+                .select('*')
                 .eq('target_id', this._currentFaceTargetId)
                 .single();
+
+            // フォームから値を取得。空文字列の場合は既存値を維持する「一部分だけ消す」挙動に対応
+            // ※完全に消したい場合はスペース1つ入れるなどの運用か、それとも「空なら上書きしない」ルールにするか
+            // ユーザー要望「一部分だけ消してって感じにして」＝「既存が入った状態で編集」
+            // フォームの初期値に既存を入れているので、そのまま送信すればOK。
+            const payload = {
+                target_id: this._currentFaceTargetId,
+                basic_info: form.basic_info.value,
+                medical_history: form.medical_history.value,
+                habits: form.habits.value,
+                family_env: form.family_env.value,
+                updated_by: Auth.getUser()?.staff_id || 'admin',
+                updated_at: new Date().toISOString()
+            };
 
             let result;
             if (existing) {

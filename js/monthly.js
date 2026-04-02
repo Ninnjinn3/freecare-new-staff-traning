@@ -294,7 +294,7 @@ const Monthly = {
                             日々の記録が溜まったら、右上の「**再評価**」ボタンを押してください。<br>
                             AIが今月全体の活動を分析し、詳細な評価レポートを生成します。
                         </p>
-                        <button class="btn btn-primary" onclick="Monthly.forceReevaluate()">AI評価を開始する</button>
+                        <button class="btn btn-primary" onclick="Monthly.forceReevaluate('${yearMonth}')">AI評価を開始する</button>
                     </div>
                 `;
             }

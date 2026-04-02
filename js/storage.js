@@ -161,7 +161,7 @@ const DB = {
         let month = activeCycle.cycleMonth; // 1-12
         for (let i = 0; i < count; i++) {
             const val = `${year}-${String(month).padStart(2, '0')}`;
-            const label = `${year}年${month}月度`;
+            const label = `${year}年${String(month).padStart(2, '0')}月分`;
             options.push({ value: val, label: label });
             month--;
             if (month < 1) {
