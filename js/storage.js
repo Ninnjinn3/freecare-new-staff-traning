@@ -147,9 +147,16 @@ const DB = {
     // 翌月10日を過ぎていれば「終了(false)」
     isCycleActive(yearMonthStr) {
         if (!yearMonthStr) return false;
+        
+        // 今日の日付から見た「本来アクティブであるべきサイクル」を取得
+        const currentActiveCycle = this.getCurrentCycle(new Date());
+        
+        // 指定された月が「現在進行中のサイクル」でないなら、それは過去分なので active ではない(false)
+        if (yearMonthStr !== currentActiveCycle.yearMonth) {
+            return false;
+        }
+
         const [y, m] = yearMonthStr.split('-').map(Number);
-        // mは1-12なので、Dateコンストラクタ(0-11)に入れると翌月になる
-        // 例: 4月分(yearMonthStr="2026-04") -> new Date(2026, 4, 10) は 5月10日
         const deadline = new Date(y, m, 10, 23, 59, 59);
         return new Date() <= deadline;
     },
