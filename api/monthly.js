@@ -241,7 +241,8 @@ ${s3Text}
 
     // 月次要約は以前はproを使用していましたが、アクセス制限とコストを考慮し高速な gemini-1.5-flash を使用します
     const modelName = 'gemini-1.5-flash';
-    const url = `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
+
     
     // プロンプトに知識を注入
     const fullPrompt = `
