@@ -314,30 +314,63 @@ const Monthly = {
                         <h4 class="eval-item-title">${item.name} (${item.max}点満点) → <span style="color:${barColor}; font-weight:bold;">${item.score}点</span></h4>
                     </div>
                     
-                    <div class="criteria-list" style="margin-top: 10px;">
-                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 8px;">【採点基準との照合】</p>
-                        <table class="criteria-table">
+                    <div class="criteria-list" style="margin-top: 15px;">
+                        <p style="font-size: 0.9rem; font-weight: bold; color: var(--text-secondary); margin-bottom: 8px;">【採点基準との照合】</p>
+                        <table class="criteria-table" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
                             <thead>
-                                <tr><th>点数</th><th>基準</th><th>判定</th></tr>
+                                <tr style="background: var(--surface); text-align: left; border-bottom: 2px solid var(--border);">
+                                    <th style="padding: 8px; width: 60px; text-align: center;">点数</th>
+                                    <th style="padding: 8px;">基準</th>
+                                    <th style="padding: 8px; width: 50px; text-align: center;">判定</th>
+                                </tr>
                             </thead>
                             <tbody>
                                 ${(item.criteriaRef || []).map(c => `
-                                    <tr class="${c.check ? 'is-selected' : ''}">
-                                        <td class="center">${c.pts}</td>
-                                        <td>${c.desc}</td>
-                                        <td class="center">${c.check ? '✅' : ''}</td>
+                                    <tr style="border-bottom: 1px solid var(--border); ${c.check ? 'background: rgba(88, 204, 2, 0.1);' : ''}">
+                                        <td style="padding: 8px; text-align: center; font-weight: bold; color: var(--text-secondary);">${c.pts}</td>
+                                        <td style="padding: 8px; color: var(--text);">${c.desc}</td>
+                                        <td style="padding: 8px; text-align: center; font-size: 1.2rem;">${c.check ? '✅' : 'ー'}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
                         </table>
                     </div>
 
-                    <div class="eval-content-section" style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border);">
-                        <div class="eval-box-title">【対象となるスタッフの記載内容】</div>
-                        <div class="eval-content-text">${(item.userContent || '（記載なし）').replace(/\n/g, '<br>')}</div>
+                    <div class="eval-content-section" style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border);">
+                        <div style="font-weight: bold; color: var(--text-secondary); margin-bottom: 8px; font-size: 0.95rem;">【対象となるスタッフの記載内容】</div>
+                        <div style="background: #fdfdfd; border-left: 3px solid #b2bec3; padding: 12px; font-size: 0.9rem; color: #2d3436; margin-bottom: 20px;">${(item.userContent || '（記載なし）').replace(/\n/g, '<br>')}</div>
                         
-                        <div class="eval-box-title" style="margin-top: 15px;">【AIからの総評】</div>
-                        <div class="eval-content-text" style="color: #2d3436; font-weight: 500;">${item.comment ? item.comment.replace(/\n/g, '<br>') : (item.judgement || '（記載なし）')}</div>
+                        ${(item.goodPoints && item.goodPoints.length > 0) ? `
+                        <div style="margin-bottom: 20px;">
+                            <div style="font-weight: bold; color: #27ae60; margin-bottom: 8px; font-size: 0.95rem;">【良い点】</div>
+                            <ul style="list-style: none; padding: 0; margin: 0; color: #2d3436; font-size: 0.9rem; line-height: 1.6;">
+                                ${item.goodPoints.map(p => `<li style="display: flex; gap: 8px; margin-bottom: 6px;"><span style="color: #27ae60;">✅</span><span>${p}</span></li>`).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
+
+                        ${(item.badPoints && item.badPoints.length > 0) ? `
+                        <div style="margin-bottom: 20px;">
+                            <div style="font-weight: bold; color: #e74c3c; margin-bottom: 8px; font-size: 0.95rem;">【不足している点】</div>
+                            <ul style="list-style: none; padding: 0; margin: 0; color: #2d3436; font-size: 0.9rem; line-height: 1.6;">
+                                ${item.badPoints.map(p => `<li style="display: flex; gap: 8px; margin-bottom: 6px;"><span style="color: #e74c3c;">❌</span><span>${p}</span></li>`).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
+
+                        ${item.improvement ? `
+                        <div style="margin-bottom: 10px;">
+                            <div style="font-weight: bold; color: #16a085; margin-bottom: 8px; font-size: 0.95rem;">【${item.max}点を取るための改善例】</div>
+                            <div style="background: rgba(22, 160, 133, 0.05); padding: 15px; border-radius: 8px; border-left: 4px solid #16a085; font-size: 0.9rem; color: #2d3436; line-height: 1.6;">
+                                ${item.improvement.replace(/\n/g, '<br>')}
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dotted var(--border);">
+                            <div style="font-weight: bold; color: var(--text-secondary); margin-bottom: 6px; font-size: 0.9rem;">【AIからの総評】</div>
+                            <div style="font-size: 0.9rem; color: #636e72;">${item.comment ? item.comment.replace(/\n/g, '<br>') : (item.judgement || 'ー')}</div>
+                        </div>
                     </div>
                 </div>
             `;
