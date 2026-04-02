@@ -337,7 +337,7 @@ const Monthly = {
                     </div>
 
                     <div class="eval-content-section" style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border);">
-                        <div style="font-weight: bold; color: var(--text-secondary); margin-bottom: 8px; font-size: 0.95rem;">【対象となるスタッフの記載内容】</div>
+                        <div style="font-weight: bold; color: var(--text-secondary); margin-bottom: 8px; font-size: 0.95rem;">【AIによるコメント（該当する記録の要約）】</div>
                         <div style="background: #fdfdfd; border-left: 3px solid #b2bec3; padding: 12px; font-size: 0.9rem; color: #2d3436; margin-bottom: 20px;">${(item.userContent || '（記載なし）').replace(/\n/g, '<br>')}</div>
                         
                         ${(item.goodPoints && item.goodPoints.length > 0) ? `
@@ -418,6 +418,16 @@ const Monthly = {
                     else if (r.step === 2) content = `【仮説】${r.hypothesis}<br>【理由】${r.reason}`;
                     else content = `【支援】${r.support_done}<br>【結果】${r.result}`;
 
+                    let feedbackHtml = '';
+                    if (r.ai_advice || r.ai_comment) {
+                        feedbackHtml = `
+                            <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px; font-size: 0.9rem;">
+                                <div style="font-weight: bold; color: ${bc}; margin-bottom: 4px;">【AI評価: ${r.ai_judgement || 'ー'}】</div>
+                                <div style="color: var(--text-secondary); line-height: 1.5;">${(r.ai_advice || r.ai_comment || 'アドバイスはありません').replace(/\n/g, '<br>')}</div>
+                            </div>
+                        `;
+                    }
+
                     return `<div class="card" style="margin-bottom:var(--space-sm);padding:0;border-left:4px solid ${bc};overflow:hidden;">
                         <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-sm);cursor:pointer;" onclick="var d=this.nextElementSibling;d.hidden=!d.hidden;this.querySelector('.rtg').textContent=d.hidden?'▼':'▲';">
                             <div>
@@ -432,6 +442,7 @@ const Monthly = {
                         </div>
                         <div hidden style="padding:0 var(--space-sm) var(--space-sm);border-top:1px solid var(--border);">
                             <p style="font-size:0.95rem;color:var(--text);line-height:1.6;margin-top:10px;white-space:pre-wrap;">${content}</p>
+                            ${feedbackHtml}
                         </div>
                     </div>`;
                 }).join('');
