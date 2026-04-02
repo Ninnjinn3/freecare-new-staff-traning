@@ -323,7 +323,6 @@ const Monthly = {
             statusEl.style.color = passed ? 'var(--success)' : 'var(--danger)';
         }
 
-        const bRoot = document.getElementById('score-breakdown');
         if (!bRoot) return;
 
         let html = '<div class="evaluation-sheet">';
