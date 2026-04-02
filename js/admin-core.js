@@ -1047,9 +1047,22 @@ window.Admin = {
             }
 
             staffList.forEach(s => {
-                const dept = Admin.getDeptName(s.staff_id, s.facility_id);
+                const dept = Admin.getDeptName(s.staff_id, s.facility_id) || '未分類';
                 if (!grouped[dept]) grouped[dept] = [];
                 grouped[dept].push(s);
+
+                // もし管理者の場合は、staff_idの先頭1桁から本来の部門を推測して両方に表示
+                if (s.facility_id === '1000' || s.facility_id === 'HQ') {
+                    const prefix = String(s.staff_id).charAt(0);
+                    const originalFacilityId = prefix + '000';
+                    if (originalFacilityId !== '1000') {
+                        const originalDept = Admin.getDeptName(s.staff_id, originalFacilityId);
+                        if (originalDept && originalDept !== 'その他' && originalDept !== '未分類') {
+                            if (!grouped[originalDept]) grouped[originalDept] = [];
+                            grouped[originalDept].push(s);
+                        }
+                    }
+                }
             });
 
             // HTML生成
@@ -1062,7 +1075,7 @@ window.Admin = {
                 const list = grouped[dept];
                 if (list && list.length > 0) {
                     rows += `
-                    <details style="margin-top:15px; background:#fff; border:1px solid #e8eaf6; border-radius:12px; overflow:hidden;" open>
+                    <details style="margin-top:15px; background:#fff; border:1px solid #e8eaf6; border-radius:12px; overflow:hidden;">
                         <summary style="padding:15px 20px; font-weight:bold; color:#4c5bb7; background:#f8f9ff; cursor:pointer; list-style:none; display:flex; justify-content:space-between; align-items:center;">
                             <span>🏢 ${dept} <span style="font-size:0.8rem; color:#888; font-weight:normal; margin-left:8px;">(${list.length}名)</span></span>
                             <span style="font-size:0.7rem; color:#aaa;">▼</span>
