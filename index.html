@@ -1658,4 +1658,74 @@
     </div>
   </body>
 
+  <!-- ===== E-Learning In-App Lesson Modal ===== -->
+  <div id="lesson-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.7); z-index:9000; overflow:auto; padding:16px; box-sizing:border-box;">
+    <div style="background:#fff; border-radius:16px; max-width:760px; margin:0 auto; overflow:hidden; box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+      <!-- Header -->
+      <div style="background:linear-gradient(135deg,#4c5bb7,#6c5ce7); padding:18px 20px; display:flex; align-items:center; gap:12px;">
+        <button onclick="closeLessonModal()" style="background:rgba(255,255,255,0.15); border:none; color:#fff; width:36px; height:36px; border-radius:50%; font-size:1.1rem; cursor:pointer; display:flex; align-items:center; justify-content:center;">✕</button>
+        <div>
+          <div id="lesson-modal-title" style="font-size:1rem; font-weight:800; color:#fff;"></div>
+          <div id="lesson-modal-step" style="font-size:0.78rem; color:rgba(255,255,255,0.8); margin-top:2px;"></div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div style="display:flex; border-bottom:2px solid #eee; background:#fafafa;">
+        <button id="tab-btn-video" onclick="switchLessonTab('video')" style="flex:1; padding:13px 8px; border:none; background:transparent; font-weight:700; font-size:0.9rem; color:#4c5bb7; border-bottom:3px solid #4c5bb7; cursor:pointer; transition:0.2s;">📺 動画</button>
+        <button id="tab-btn-test" onclick="switchLessonTab('test')" style="flex:1; padding:13px 8px; border:none; background:transparent; font-weight:700; font-size:0.9rem; color:#aaa; border-bottom:3px solid transparent; cursor:pointer; transition:0.2s;">✍️ テスト</button>
+        <button id="tab-btn-report" onclick="switchLessonTab('report')" style="flex:1; padding:13px 8px; border:none; background:transparent; font-weight:700; font-size:0.9rem; color:#aaa; border-bottom:3px solid transparent; cursor:pointer; transition:0.2s;">📝 報告書</button>
+      </div>
+
+      <!-- Tab: Video -->
+      <div id="lesson-tab-video" style="padding:0;">
+        <div style="position:relative; padding-bottom:56.25%; height:0; overflow:hidden; background:#000;">
+          <iframe id="lesson-video-iframe" src="" style="position:absolute; top:0; left:0; width:100%; height:100%; border:none;" allowfullscreen allow="autoplay"></iframe>
+        </div>
+        <div style="padding:16px 20px; display:flex; align-items:center; justify-content:space-between; background:#f8f9ff; border-top:1px solid #eee;">
+          <div style="font-size:0.85rem; color:#666;">動画を最後まで見たら「視聴完了」を押してください</div>
+          <button id="btn-video-done" onclick="markVideoWatched()" style="background:#4c5bb7; color:#fff; border:none; padding:10px 20px; border-radius:10px; font-weight:700; cursor:pointer; font-size:0.9rem;">✅ 視聴完了</button>
+        </div>
+      </div>
+
+      <!-- Tab: Test -->
+      <div id="lesson-tab-test" style="display:none; padding:20px;">
+        <div id="lesson-test-content">
+          <div style="text-align:center; color:#aaa; padding:30px;">テストを読み込み中...</div>
+        </div>
+        <div id="lesson-test-result" style="display:none; text-align:center; padding:20px; background:#f0fff4; border-radius:12px; margin-top:16px;">
+          <div style="font-size:2rem; margin-bottom:8px;">🎯</div>
+          <div id="lesson-test-score-text" style="font-size:1.3rem; font-weight:800; color:#2e7d32;"></div>
+          <button onclick="retryTest()" style="margin-top:12px; background:#4c5bb7; color:#fff; border:none; padding:10px 24px; border-radius:10px; font-weight:700; cursor:pointer;">もう一度</button>
+        </div>
+      </div>
+
+      <!-- Tab: Report -->
+      <div id="lesson-tab-report" style="display:none; padding:20px;">
+        <form id="lesson-report-form" onsubmit="submitLessonReport(event)">
+          <div style="margin-bottom:20px;">
+            <label style="display:block; font-weight:800; color:#333; margin-bottom:8px; font-size:0.95rem;">Q1. 印象に残った内容とその理由はなんですか？<span style="color:red;">*</span></label>
+            <textarea id="report-q1" rows="4" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:10px; font-size:0.9rem; box-sizing:border-box; resize:vertical;" placeholder="動画を視聴して、最も心に残った場面や内容と、その理由を書いてください。" required></textarea>
+          </div>
+          <div style="margin-bottom:20px;">
+            <label style="display:block; font-weight:800; color:#333; margin-bottom:8px; font-size:0.95rem;">Q2. 今後は具体的にどのような行動を取りますか？<span style="color:red;">*</span></label>
+            <textarea id="report-q2" rows="4" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:10px; font-size:0.9rem; box-sizing:border-box; resize:vertical;" placeholder="動画の内容を踏まえて、明日からの支援でどう活かすか、具体的に書いてください。" required></textarea>
+          </div>
+          <div style="margin-bottom:24px;">
+            <label style="display:block; font-weight:800; color:#333; margin-bottom:8px; font-size:0.95rem;">Q3. この動画の内容を新人スタッフに教えるなら、何を伝えますか？<span style="color:red;">*</span></label>
+            <textarea id="report-q3" rows="4" style="width:100%; padding:12px; border:1px solid #ddd; border-radius:10px; font-size:0.9rem; box-sizing:border-box; resize:vertical;" placeholder="最も伝えたい要点を1〜3つ、新人スタッフにわかりやすく書いてください。" required></textarea>
+          </div>
+          <div style="display:flex; gap:12px; justify-content:flex-end;">
+            <button type="submit" id="btn-report-submit" style="background:linear-gradient(135deg,#4c5bb7,#6c5ce7); color:#fff; border:none; padding:12px 30px; border-radius:10px; font-weight:800; cursor:pointer; font-size:1rem;">📤 提出する</button>
+          </div>
+        </form>
+        <div id="lesson-report-done" style="display:none; text-align:center; padding:30px; background:#f0fff4; border-radius:12px;">
+          <div style="font-size:2.5rem; margin-bottom:12px;">🎉</div>
+          <div style="font-size:1.2rem; font-weight:800; color:#2e7d32; margin-bottom:8px;">報告書を提出しました！</div>
+          <div style="font-size:0.9rem; color:#555;">お疲れ様でした。次の動画に進みましょう。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </html>
