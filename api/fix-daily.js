@@ -85,7 +85,7 @@ ${customRules || '特になし'}
 
 出力形式:
 {
-  "judgement": "○" または "☓",
+  "judgement": "○" または "×",
   "score": (0-100),
   "short_comment": "200文字程度のまとめ",
   "good_points": ["良い点1", "良い点2"],
@@ -95,7 +95,7 @@ ${customRules || '特になし'}
 }
 `;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
     const resp = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -116,6 +116,7 @@ ${customRules || '特になし'}
     const end = cleanText.lastIndexOf('}');
     if (start !== -1 && end !== -1) cleanText = cleanText.substring(start, end + 1);
     cleanText = cleanText.replace(/,\s*([}\]])/g, '$1');
-    cleanText = cleanText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+    // 制御文字除去（特に13=CRを除去し、JSONパースエラーを防ぐ）
+    cleanText = cleanText.replace(/[\x00-\x08\x0B-\x1F\x7F]/g, '');
     return JSON.parse(cleanText);
 }

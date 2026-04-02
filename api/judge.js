@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    api/judge.js — Vercel サーバーレス関数
    Gemini API でAI採点を実行（6観点100点満点）
    ============================================ */
@@ -64,7 +64,7 @@ export default async function handler(req, res) {
 
 // ===== Gemini API 呼び出し =====
 async function callGemini(apiKey, prompt, customRules = '') {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
     const fullPrompt = `
 以下の指示に従って、介護記録の採点を行ってください。
@@ -131,8 +131,8 @@ function parseGeminiResponse(text) {
         if (start !== -1 && end !== -1) cleanText = cleanText.substring(start, end + 1);
         // 末尾カンマ除去
         cleanText = cleanText.replace(/,\s*([}\]])/g, '$1');
-        // 制御文字除去（改行・タブは保持）
-        cleanText = cleanText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+        // 制御文字除去（9=Tab, 10=LF以外の0-31を除去。特に入り込みやすい13=CRを確実に消す）
+        cleanText = cleanText.replace(/[\x00-\x08\x0B-\x1F\x7F]/g, '');
         const result = JSON.parse(cleanText);
         if (!result.applied_knowledge) result.applied_knowledge = '';
         return result;
@@ -232,12 +232,12 @@ const JSON_FORMAT = `
   "judgement": "○ または ×",
   "score": 合計スコア（0〜100の整数）,
   "breakdown": {
-    "change_clarity": 観点1のスコア,
-    "multi_factor": 観点2のスコア,
-    "priority": 観点3のスコア,
-    "verification": 観点4のスコア,
-    "support_plan": 観点5のスコア,
-    "reflection": 観点6のスコア
+    "change_clarity": 10,
+    "multi_factor": 7,
+    "priority": 5,
+    "verification": 5,
+    "support_plan": 5,
+    "reflection": 5
   },
   "short_comment": "総評（1〜2文）",
   "good_points": ["良い点1", "良い点2"],

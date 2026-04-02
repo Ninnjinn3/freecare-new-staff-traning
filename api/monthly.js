@@ -44,7 +44,7 @@ export default async function handler(req, res) {
             });
         }
 
-        // 3) 6観点スコアを集計（AI評価）
+        // 3) 6観点スコアを集計（AI評価など）
         const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
         let breakdown = [];
         let isAIEvaluated = false;
@@ -80,7 +80,7 @@ export default async function handler(req, res) {
         // 5) レベル判定
         const level = getLevel(score);
 
-        // 6) 過去の評価取得 & 合否判定
+        // 6) 過去の評価取得 & 合格判定
         const step = current_step || 1;
         const previousEvals = await supabaseSelect(
             SUPABASE_URL, SUPABASE_KEY, 'monthly_evaluations',
@@ -149,7 +149,7 @@ function calculateBreakdown(step1, step2, step3, isError = false) {
     const step2Rate = step2.length > 0 ? step2.filter(r => r.ai_judgement === '○').length / step2.length : 0;
     const step3Rate = step3.length > 0 ? step3.filter(r => r.ai_judgement === '○').length / step3.length : 0;
 
-    const errorNote = isError ? "【注意】AI要約の生成に失敗しました。基本的なスコアのみ表示しています。" : "（AI評価が有効になっていません）";
+    const errorNote = isError ? "【注意】AI項目の生成に失敗しました。基本的なスコアのみ表示しています。" : "（AI評価が有効になっていません）";
 
     return [
         { name: '気づいた変化の明確さ', key: 'change_clarity', score: calcScore(15, step1Rate || passRate), max: 15, userContent: errorNote, comment: errorNote },
@@ -163,7 +163,7 @@ function calculateBreakdown(step1, step2, step3, isError = false) {
 
 // ===== AI 月次評価算出 =====
 async function evaluateMonthlyWithAI(step1, step2, step3, apiKey) {
-    // 各STEPの記録テキストをより詳しく変換
+    // 各STEPの記録テキストをより詳しく抽出
     const s1Items = step1.slice(0, 15).map((r, i) => `[気付き${i+1}] ${r.notice_text || ''}`);
     const s2Items = step2.slice(0, 10).map((r, i) => `[仮説${i+1}] 仮説: ${r.hypothesis || ''} / 理由: ${r.reason || ''} / 支援案: ${r.support_plan || ''}`);
     const s3Items = step3.slice(0, 5).map((r, i) => `[振り返り${i+1}] 実施内容: ${r.support_done || ''} / 結果: ${r.result || ''} / 判定: ${r.judgement || ''}`);
@@ -173,38 +173,38 @@ async function evaluateMonthlyWithAI(step1, step2, step3, apiKey) {
     const s3Text = s3Items.join('\n') || '記録なし';
 
     const prompt = `あなたは新人介護スタッフの「月次評価」を行うAIメンターです。
-以下のスタッフが1ヶ月間に記録した提出物（STEP1〜3）を元に、月次評価シートの6つの観点について厳密に採点とフィードバックを行ってください。
+以下のスタッフが1ヶ月間に提出した課題（STEP1〜3）を元に、月次評価シートの6つの観点について厳格に採点とフィードバックを行ってください。
 
-【今月の記録（全件）】
-■ STEP1（気付き）
+【今月の記録（抜粋）】
+■ STEP1（気付き）:
 ${s1Text}
 
-■ STEP2（仮説思考）
+■ STEP2（仮説思考）:
 ${s2Text}
 
-■ STEP3（振り返り）
+■ STEP3（振り返り）:
 ${s3Text}
 
 【評価基準と配点】
-1. 気づいた変化の明確さ (15点満点) ← STEP1の内容で評価
+1. 気づいた変化の明確さ(15点満点) → STEP1の内容で評価
 15点:「いつ、どこで、誰が、どうなった」＋普段との違いが明確。10点:変化はあるが普段との違い等一要素が欠落。5点:漠然とした変化のみ。
-2. 要因の多層的分析 (20点満点) ← STEP2の仮説・理由で評価
-20点:身体・心理・環境等、複数の視点から深く要因を分析。12点:要因は挙げているが視点が単一。5点:浅く思い込みが見られる。
-3. 要因の関連性と優先順位 (15点満点) ← STEP2の理由・優先度で評価
+2. 要因の多層的分析(20点満点) → STEP2の仮説・理由で評価
+20点:身体・心理・環境等、複数の視点から深く要因を分析。12点:要因は挙げているが視点が単一。5点:浅い思い込みが見られる。
+3. 要因の関連性と優先順位(15点満点) → STEP2の理由・優先度で評価
 15点:複数要因の関連性を整理し、根拠に基づき的確に優先順位を設定。10点:優先順位はあるが根拠が弱い。5点:理由が不明確。
-4. 検証計画の論理性 (15点満点) ← STEP2の支援案で評価
+4. 検証計画の論理性 (15点満点) → STEP2の支援案で評価
 15点:仮説に基づき、期待される変化が具体的・計測可能。10点:計画はあるが変化が抽象的。5点:とりあえず行動するだけの計画。
-5. 支援計画の実効性 (20点満点) ← STEP3の実施内容で評価
+5. 支援計画の実効性 (20点満点) → STEP3の実施内容で評価
 20点:チームで共有・実行可能な具体的で現実的な支援内容。13点:支援は記載されているが意思確認や連携が不十分。7点:一方的な支援計画。
-6. 振り返り・修正力 (15点満点) ← STEP3の結果・判定で評価
+6. 振り返り・修正力(15点満点) → STEP3の結果・判定で評価
 15点:結果を評価し、次の仮説や改善に繋げる力がある。10点:振り返りはあるが、次の改善に具体性が不足。5点:形式的で改善に繋がっていない。
 
 【出力に関する重要ルール】
-- "userContent" フィールドには、その観点の評価根拠となったスタッフの記録テキストから、最もよく（もしくは課題として）当てはまる具体的な記録内容を1〜3文で必ず引用・要約してください。
-  - 例(STEP1の場合): "「なんか調子悪そう」という気付きが1件ありました。" や "「田中様がフロアであいさつを呼びかけたが視線を合わせず返答もなかった」という観察が記録されていました。"
-  - 絶対に空文字または(記載なし)を出力しないでください。記録がない場合でも「この月はSTEP○に記録が見当たりませんでした。」と記載すること。
-- "comment" フィールドには、対象スタッフの記録を的確に評価する「具体的な総評」を3〜4文の長めの文章で記述してください。対象者の強み、改善の伸びしろなどを含め、説得力を持たせてください。
-- 採点基準のcheckは、スタッフの実際のレベルに最も近い基準1つだけtrueにしてください。
+- "userContent" フィールドには、その観点の評価根拠となったスタッフの記録テキストから、最も良く（もしくは課題として）当てはまる具体的な記録内容を、1〜2文で必ず引用・要約してください。
+  - 例（STEP1の場合）: 「『なんか調子悪そう』という気付きが1件ありました。」や「『田中様がフロアであいさつを呼びかけたが視線を合わせず返答もなかった』という観察が記録されていました。」
+  - 絶対に空文字または(記載なし)を入力しないでください。記録がない場合でも「この月のSTEP○に記録が見当たりませんでした。」と記載すること。
+- "comment" フィールドには、対象スタッフの記録を的確に評価する「具体的な総評」を3〜4文の長めの文章で記述してください。対象者の強み、改善点、伸びしろなどを含め、説得力を持たせてください。
+- 採点基準のcheckは、スタッフの実際のレベルに最も近い基準1つだけをtrueにしてください。
 - JSON形式で、以下のキーを持つオブジェクトとして出力してください。
 {
   "breakdown": [
@@ -214,15 +214,15 @@ ${s3Text}
       "max": 15,
       "score": 10,
       "judgement": "適切な気付きができています",
-      "comment": "（ここに当該観点のスタッフのパフォーマンス、強みや課題について、3〜4文程度の詳細な総評を記述してください）",
+      "comment": "（ここに該当観点のスタッフのパフォーマンス、強みや課題について、3〜4文程度の詳細な総評を記述してください）",
       "userContent": "（スタッフの実際の記録を引用・要約した文章を必ず記入すること）",
       "goodPoints": ["良い点1", "良い点2"],
       "badPoints": ["不十分な点"],
       "improvement": "次満点を取るための具体的な助言",
       "criteriaRef": [
-        { "pts": 15, "desc": "「いつ、どこで、誰が、どうなった」＋普段との違いが明確に記載されている", "check": false },
+        { "pts": 15, "desc": "「いつ、どこで、誰が、どうなった」＋普段との違いが明確に記録されている", "check": false },
         { "pts": 10, "desc": "変化は書かれているが「普段との違い」など一要素が欠けている", "check": true },
-        { "pts": 5, "desc": "漠然とした変化のみ。（例：様子がおかしい）", "check": false }
+        { "pts": 5, "desc": "漠然とした変化のみ（例：様子がおかしい）", "check": false }
       ]
     },
     ],
@@ -239,8 +239,8 @@ ${s3Text}
     const knowledge = await supabaseSelect(SUPABASE_URL, SUPABASE_KEY, 'ai_knowledge', 'select=title,content');
     const customRules = (knowledge || []).map(k => `【${k.title}】: ${k.content}`).join('\n');
 
-    // 月次要約は以前はproを使用していましたが、アクセス制限とコストを考慮し高速な gemini-2.5-flash を使用します
-    const modelName = 'gemini-2.5-flash'; 
+    // 月次要約は以前はproを使用していましたが、アクセス制限とコストを考慮し高速な gemini-1.5-flash を使用します
+    const modelName = 'gemini-1.5-flash';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
     
     // プロンプトに知識を注入
@@ -300,7 +300,8 @@ ${prompt}
         const jsonEnd = cleanText.lastIndexOf('}');
         if (jsonStart !== -1 && jsonEnd !== -1) cleanText = cleanText.substring(jsonStart, jsonEnd + 1);
         cleanText = cleanText.replace(/,\s*([}\]])/g, '$1');
-        cleanText = cleanText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+        // 制御文字除去（特に13=CRを除去）
+        cleanText = cleanText.replace(/[\x00-\x08\x0B-\x1F\x7F]/g, '');
         let parsedData = JSON.parse(cleanText);
         // オブジェクトの中に breakdown 配列があるか確認
         let breakdown = parsedData.breakdown || (Array.isArray(parsedData) ? parsedData : null);
@@ -354,7 +355,7 @@ function getLevel(score) {
     return thresholds.find(t => score >= t.min && score <= t.max) || thresholds[thresholds.length - 1];
 }
 
-// ===== 合否判定 =====
+// ===== 合格判定 =====
 function checkPass(score, attemptNumber, previousScores) {
     if (attemptNumber === 1) return score >= 80;
     if (previousScores.length >= 1) {
@@ -367,7 +368,7 @@ function checkPass(score, attemptNumber, previousScores) {
 function calculateHRPoints(step, score, previousEvals) {
     let points = 2; // 初期
 
-    // 現在のステップとスコアを previousEvals に含めて判定を容易にする
+    // 現在のステップとスコアも previousEvals に含めて判定を容易にする
     const allEvals = [...previousEvals, { step, score }];
 
     // ステップごとの到達状況を確認
@@ -381,7 +382,7 @@ function calculateHRPoints(step, score, previousEvals) {
     if (countScore(2, 100) >= 1) points = Math.max(points, 8);
     if (hasScore(3, 80)) points = Math.max(points, 8);
     if (countScore(3, 100) >= 1) points = Math.max(points, 10);
-    if (hasScore(4, 0)) points = Math.max(points, 10); // 症例報告はSTEP4到達で最大評価
+    if (hasScore(4, 0)) points = Math.max(points, 10); // 事例報告のSTEP4到達で最大評価
 
     // 6ヶ月滞在ペナルティ (現在のstepに何ヶ月いるか)
     const sameStepEvals = allEvals.filter(e => e.step === step).length;
@@ -400,9 +401,9 @@ function generateActions(breakdown) {
     breakdown.forEach(item => {
         const rate = item.score / item.max;
         if (rate < 0.5) {
-            actions.push(`「${item.name}」が不足しています（${item.score}/${item.max}点）。重点的に取り組みましょう。`);
+            actions.push(`「${item.name}」が不足しています（${item.score}/${item.max}点）。重点的に取り組みましょう！`);
         } else if (rate < 0.75) {
-            actions.push(`「${item.name}」をさらに伸ばしましょう（${item.score}/${item.max}点）。`);
+            actions.push(`「${item.name}」をさらに伸ばしましょう（${item.score}/${item.max}点）！`);
         }
     });
     if (actions.length === 0) {
