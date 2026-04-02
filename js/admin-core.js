@@ -1024,7 +1024,7 @@ window.Admin = {
     async _renderStaffEditList(container, tabHtml) {
         try {
             const user = Auth.getUser();
-            const facilityId = user?.role === 'exec' ? '' : (user?.facility_id || 'F001');
+            const facilityId = (user?.role === 'exec' || user?.role === 'admin') ? '' : (user?.facility_id || '');
             const resp = await fetch('/api/users', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -1033,9 +1033,10 @@ window.Admin = {
             const d = await resp.json();
             const staffList = (d.staff || []).filter(s => {
                 const sidStr = String(s.staff_id);
-                // 1000系（本部）は除外
-                return !sidStr.startsWith('1') && !sidStr.startsWith('F');
+                // 1000系（本部）だけ除外
+                return !sidStr.startsWith('1000');
             });
+
             
             // 部門ごとにグループ化
             const grouped = {};
