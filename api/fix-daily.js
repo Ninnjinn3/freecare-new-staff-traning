@@ -90,12 +90,12 @@ ${customRules || '特になし'}
   "short_comment": "200文字程度のまとめ",
   "good_points": ["良い点1", "良い点2"],
   "missing_points": ["不足点1"],
-  "improvement_example": "改善アドバイス",
-  "applied_knowledge": "活用した施設固有ルールや知識があれば簡潔に記載（なければ空文字）"
 }
-`;
+\`;
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const url = \`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=\${apiKey}\`;
+
+
 
 
     const resp = await fetch(url, {
