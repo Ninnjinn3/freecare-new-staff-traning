@@ -5,6 +5,8 @@
 
 window.Admin = {
     data: null,
+    facilities: [], // キャッシュ用
+
 
     // ===== ナビゲーション =====
     switchPage(pageId) {
@@ -1037,30 +1039,50 @@ window.Admin = {
             
             // 部門ごとにグループ化
             const grouped = {};
+            // 部門キャッシュ取得
+            if (!this.facilities || this.facilities.length === 0) {
+                const { data: fData } = await window.fcSupabase.from('facilities').select('*');
+                this.facilities = fData || [];
+            }
+
             staffList.forEach(s => {
-                const dept = Admin.getDeptName(s.staff_id);
+                const dept = Admin.getDeptName(s.staff_id, s.facility_id);
                 if (!grouped[dept]) grouped[dept] = [];
                 grouped[dept].push(s);
             });
 
             // HTML生成
             let rows = '';
-            const depts = ['グループホーム', '訪問看護（精神）', '三国', '就労B', 'デイサービス', '生活介護', '小児', 'その他'];
-            depts.forEach(dept => {
-                if (grouped[dept] && grouped[dept].length > 0) {
-                    rows += `<div style="margin-top:20px;margin-bottom:10px;font-size:1.1rem;font-weight:bold;color:#4c5bb7;border-bottom:2px solid #e8eaf6;padding-bottom:5px;">🏢 ${dept}</div>`;
-                    grouped[dept].forEach(s => {
+            // 部門の並び順（ID順）
+            const sortedDepts = [...this.facilities].sort((a, b) => parseInt(a.id) - parseInt(b.id)).map(f => f.name);
+            if (!sortedDepts.includes('その他')) sortedDepts.push('その他');
+
+            sortedDepts.forEach(dept => {
+                const list = grouped[dept];
+                if (list && list.length > 0) {
+                    rows += `
+                    <details style="margin-top:15px; background:#fff; border:1px solid #e8eaf6; border-radius:12px; overflow:hidden;" open>
+                        <summary style="padding:15px 20px; font-weight:bold; color:#4c5bb7; background:#f8f9ff; cursor:pointer; list-style:none; display:flex; justify-content:space-between; align-items:center;">
+                            <span>🏢 ${dept} <span style="font-size:0.8rem; color:#888; font-weight:normal; margin-left:8px;">(${list.length}名)</span></span>
+                            <span style="font-size:0.7rem; color:#aaa;">▼</span>
+                        </summary>
+                        <div style="padding:10px 15px;">`;
+                    
+                    list.forEach(s => {
                         rows += `
-                        <div style="background:#fff;border:1px solid #e8eaf6;border-radius:10px;padding:12px 15px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                        <div style="border-bottom:1px solid #f0f2f5; padding:12px 5px; display:flex; justify-content:space-between; align-items:center;">
                             <div>
-                                <div style="font-weight:bold;">${s.name} <span style="font-size:0.78rem;color:#888;">(${s.staff_id})</span></div>
-                                <div style="font-size:0.8rem;color:#666;margin-top:3px;">STEP ${s.current_step||1} / 役割: ${s.role}</div>
+                                <div style="font-weight:bold; font-size:0.95rem;">${s.name} <span style="font-size:0.78rem; color:#888; font-weight:normal;">(${s.staff_id})</span></div>
+                                <div style="font-size:0.8rem; color:#666; margin-top:3px;">STEP ${s.current_step||1} / 役割: ${s.role}</div>
                             </div>
-                            <button onclick="Admin.editStaff('${s.staff_id}','${s.name}',${s.current_step||1},'${s.role}','${s.facility_id||''}')" style="background:#4c5bb7;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:0.82rem;cursor:pointer;">✏️ 編集</button>
+                            <button onclick="Admin.editStaff('${s.staff_id}','${s.name}',${s.current_step||1},'${s.role}','${s.facility_id||''}')" style="background:#4c5bb7; color:white; border:none; padding:6px 12px; border-radius:6px; font-size:0.82rem; cursor:pointer; transition:0.2s;">✏️ 編集</button>
                         </div>`;
                     });
+                    
+                    rows += `</div></details>`;
                 }
             });
+
             
             if (rows === '') {
                 rows = '<p style="text-align:center;color:#666;">表示対象のスタッフがいません。</p>';
@@ -1106,13 +1128,24 @@ window.Admin = {
     },
 
     async editStaff(staffId, name, currentStep, currentRole, currentFacility) {
-        const currentDept = this.getDeptName(staffId);
         const newStep = prompt(`${name}さんの現在のSTEP (1〜4):`, currentStep);
         if (newStep === null) return;
         const newRole = prompt('役割 (staff / admin / exec):', currentRole);
         if (newRole === null) return;
-        // 施設IDはログインID固定にするルールのため、自動的にセット
-        const newFacility = staffId; 
+        
+        // 部門選択
+        let deptMsg = '所属部門を選択してください:\n';
+        const sortedF = [...this.facilities].sort((a,b)=>parseInt(a.id)-parseInt(b.id));
+        sortedF.forEach((f, i) => {
+            deptMsg += `${i+1}: ${f.name} (ID: ${f.id})\n`;
+        });
+        
+        const currentIndex = sortedF.findIndex(f => f.id === currentFacility) + 1;
+        const deptChoice = prompt(deptMsg, currentIndex || '');
+        if (deptChoice === null) return;
+        
+        const choiceIdx = parseInt(deptChoice) - 1;
+        const newFacility = (sortedF[choiceIdx]) ? sortedF[choiceIdx].id : currentFacility;
         try {
             const resp = await fetch('/api/users', {
                 method: 'POST',
@@ -1137,8 +1170,12 @@ window.Admin = {
         }
     },
 
-    getDeptName(staffId) {
-        if (!staffId) return '不明';
+    getDeptName(staffId, facilityId) {
+        if (facilityId) {
+            const f = this.facilities.find(f => f.id === String(facilityId));
+            if (f) return f.name;
+        }
+        if (!staffId) return 'その他';
         const s = String(staffId);
         if (s.startsWith('2')) return 'グループホーム';
         if (s.startsWith('3')) return '訪問看護（精神）';
