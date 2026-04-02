@@ -184,8 +184,8 @@ const Monthly = {
         if (selectEl && selectEl.options.length === 0) {
             const options = DB.getCycleOptions(6);
             selectEl.innerHTML = options.map(opt => `<option value="${opt.value}" ${opt.value === currentTarget ? 'selected' : ''}>${opt.label}</option>`).join('');
-            selectEl.value = currentTarget;
         }
+        if (selectEl) selectEl.value = currentTarget;
 
         const container = document.getElementById('monthly-report');
         if (!container) return;

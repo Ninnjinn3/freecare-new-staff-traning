@@ -142,6 +142,24 @@ const DB = {
         };
     },
 
+    getCycleOptions(count = 6) {
+        const options = [];
+        const activeCycle = this.getCurrentCycle(new Date());
+        let year = activeCycle.cycleYear;
+        let month = activeCycle.cycleMonth; // 1-12
+        for (let i = 0; i < count; i++) {
+            const val = `${year}-${String(month).padStart(2, '0')}`;
+            const label = `${year}年${month}月度`;
+            options.push({ value: val, label: label });
+            month--;
+            if (month < 1) {
+                month = 12;
+                year--;
+            }
+        }
+        return options;
+    },
+
     // --- 初期データ投入 ---
     initDemoData() {
         // スタッフマスタ
