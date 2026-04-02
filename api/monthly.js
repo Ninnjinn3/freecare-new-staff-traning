@@ -261,7 +261,8 @@ ${prompt}
     const requestBody = {
         contents: [{ parts: [{ text: fullPrompt }] }],
         generationConfig: { 
-            temperature: 0.2
+            temperature: 0.2,
+            responseMimeType: "application/json"
         },
         safetySettings: [
             { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
