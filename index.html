@@ -1210,22 +1210,37 @@
 
         <!-- 各ページコンテンツ -->
         <div id="admin-page-dashboard" class="admin-page-content">
-          <!-- 利用状況などのダッシュボード -->
-          <div class="admin-dashboard-grid">
-            <div class="admin-widget">
-              <div class="widget-title">👥 利用状況</div>
-              <div class="usage-stats">
-                <div class="stat-item">
-                  <div class="stat-label">受講登録済みユーザ数</div>
-                  <div class="stat-value"><span id="widget-staff-count">--</span></div>
-                </div>
-                <div class="stat-item">
-                  <div class="stat-label">ログイン率</div>
-                  <div class="stat-value"><span id="widget-login-rate">--</span>%</div>
-                </div>
-              </div>
+          <!-- 統計カードグリッド -->
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px;margin-bottom:24px;">
+            <div style="background:#fff;border-radius:12px;padding:18px 16px;border:1px solid #e8eaf6;box-shadow:0 2px 8px rgba(79,70,229,0.06);">
+              <div style="font-size:0.78rem;color:#888;margin-bottom:6px;">👥 登録スタッフ</div>
+              <div style="font-size:1.8rem;font-weight:bold;color:#4c5bb7;" id="widget-staff-count">--</div>
             </div>
-            <!-- ... other widgets ... -->
+            <div style="background:#fff;border-radius:12px;padding:18px 16px;border:1px solid #e8eaf6;box-shadow:0 2px 8px rgba(79,70,229,0.06);">
+              <div style="font-size:0.78rem;color:#888;margin-bottom:6px;">📲 ログイン率</div>
+              <div style="font-size:1.8rem;font-weight:bold;color:#4c5bb7;" id="widget-login-rate">--</div>
+            </div>
+            <div style="background:#fff;border-radius:12px;padding:18px 16px;border:1px solid #e8eaf6;box-shadow:0 2px 8px rgba(79,70,229,0.06);">
+              <div style="font-size:0.78rem;color:#888;margin-bottom:6px;">⭐ 平均スコア</div>
+              <div style="font-size:1.8rem;font-weight:bold;color:#4c5bb7;" id="widget-avg-score">--</div>
+            </div>
+            <div style="background:#fff;border-radius:12px;padding:18px 16px;border:1px solid #e8eaf6;box-shadow:0 2px 8px rgba(79,70,229,0.06);">
+              <div style="font-size:0.78rem;color:#888;margin-bottom:6px;">✅ 合格率</div>
+              <div style="font-size:1.8rem;font-weight:bold;color:#4c5bb7;" id="widget-pass-rate">--</div>
+            </div>
+            <div style="background:#fff;border-radius:12px;padding:18px 16px;border:1px solid #e8eaf6;box-shadow:0 2px 8px rgba(79,70,229,0.06);">
+              <div style="font-size:0.78rem;color:#888;margin-bottom:6px;">📝 記録件数</div>
+              <div style="font-size:1.8rem;font-weight:bold;color:#4c5bb7;" id="widget-total-records">--</div>
+            </div>
+            <div style="background:#fff;border-radius:12px;padding:18px 16px;border:1px solid #e8eaf6;box-shadow:0 2px 8px rgba(79,70,229,0.06);">
+              <div style="font-size:0.78rem;color:#888;margin-bottom:6px;">📊 完了率</div>
+              <div style="font-size:1.8rem;font-weight:bold;color:#4c5bb7;" id="widget-completion-rate">--</div>
+            </div>
+          </div>
+          <!-- アクティビティフィード -->
+          <div style="background:#fff;border-radius:14px;padding:20px 22px;border:1px solid #e8eaf6;box-shadow:0 2px 8px rgba(79,70,229,0.06);">
+            <div style="font-weight:bold;color:#333;margin-bottom:14px;font-size:0.95rem;">📊 直近の提出履歴</div>
+            <div id="dashboard-activity-feed"><p style="text-align:center;color:#aaa;font-size:0.85rem;">読み込み中...</p></div>
           </div>
         </div>
 

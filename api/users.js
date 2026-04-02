@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    api/users.js — ユーザー管理API
    スタッフ登録・削除・パスワードリセット
    ============================================ */
@@ -21,6 +21,8 @@ export default async function handler(req, res) {
                 return await listStaff(SUPABASE_URL, SUPABASE_KEY, req.body, res);
             case 'create':
                 return await createStaff(SUPABASE_URL, SUPABASE_KEY, req.body, res);
+            case 'update':
+                return await updateStaff(SUPABASE_URL, SUPABASE_KEY, req.body, res);
             case 'delete':
                 return await deleteStaff(SUPABASE_URL, SUPABASE_KEY, req.body, res);
             case 'reset_password':
@@ -94,6 +96,34 @@ async function createStaff(url, key, body, res) {
 
     const created = await insertResp.json();
     return res.status(201).json({ success: true, staff: created[0] || created });
+}
+
+// ===== スタッフ情報更新 =====
+async function updateStaff(url, key, body, res) {
+    const { staff_id, current_step, role, facility_id } = body;
+    if (!staff_id) return res.status(400).json({ error: '職員IDが必要です' });
+
+    const updates = {};
+    if (current_step !== undefined) updates.current_step = current_step;
+    if (role !== undefined) updates.role = role;
+    if (facility_id !== undefined) updates.facility_id = facility_id;
+
+    const resp = await fetch(`${url}/rest/v1/staff_master?staff_id=eq.${staff_id}`, {
+        method: 'PATCH',
+        headers: {
+            'apikey': key,
+            'Authorization': `Bearer ${key}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(updates)
+    });
+
+    if (!resp.ok) {
+        const err = await resp.text();
+        return res.status(500).json({ error: '更新に失敗しました', detail: err });
+    }
+    return res.status(200).json({ success: true, message: `${staff_id} の情報を更新しました` });
 }
 
 // ===== スタッフ削除（離職扱い） =====

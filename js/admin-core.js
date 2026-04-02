@@ -106,50 +106,47 @@ window.Admin = {
     renderDashboard() {
         if (!this.data) return;
         const s = this.data.summary || {};
+        const loginRate = s.activeStaff && s.totalStaff ? Math.round((s.activeStaff/s.totalStaff)*100) : (s.loginRate || 0);
         
-        setText('widget-staff-count', s.totalStaff || 0);
-        setText('widget-login-rate', s.loginRate || s.activeStaff ? Math.round((s.activeStaff/s.totalStaff)*100) : 0);
-        setText('widget-completion-rate', `${s.completionRate || 0}%`);
+        setText('widget-staff-count', (s.totalStaff || 0) + '名');
+        setText('widget-login-rate', loginRate + '%');
+        setText('widget-completion-rate', (s.completionRate || 0) + '%');
+        setText('widget-avg-score', s.avgScore > 0 ? s.avgScore + '点' : '--');
+        setText('widget-pass-rate', (s.avgPassRate || 0) + '%');
+        setText('widget-total-records', (s.totalRecords || s.hitRate || 0) + '件');
         
-        this.renderCharts();
+        this.renderActivityFeed();
     },
 
-    renderCharts() {
-        // 完成ドーナツ
-        const ctxCompletion = document.getElementById('completionChart')?.getContext('2d');
-        if (ctxCompletion && !this.completionChart) {
-            const rate = this.data.summary?.completionRate || 0;
-            this.completionChart = new Chart(ctxCompletion, {
-                type: 'doughnut',
-                data: {
-                    datasets: [{
-                        data: [rate, 100 - rate],
-                        backgroundColor: ['#4f46e5', '#f3f4f6'],
-                        borderWidth: 0
-                    }]
-                },
-                options: { cutout: '80%', plugins: { legend: { display: false } } }
-            });
-        }
-
-        // 時系列グラフ
-        const ctxTime = document.getElementById('timeSeriesChart')?.getContext('2d');
-        if (ctxTime && !this.timeSeriesChart) {
-            this.timeSeriesChart = new Chart(ctxTime, {
-                type: 'line',
-                data: {
-                    labels: ['月', '火', '水', '木', '金', '土', '日'],
-                    datasets: [{
-                        label: '受講数',
-                        data: [12, 19, 15, 22, 28, 10, 8],
-                        borderColor: '#4f46e5',
-                        tension: 0.4,
-                        fill: true,
-                        backgroundColor: 'rgba(79, 70, 229, 0.1)'
-                    }]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
-            });
+    // 直近の活動フィード
+    async renderActivityFeed() {
+        const feed = document.getElementById('dashboard-activity-feed');
+        if (!feed) return;
+        feed.innerHTML = '<p style="text-align:center;color:#999;font-size:0.85rem;">読み込み中...</p>';
+        try {
+            const { data } = await window.fcSupabase
+                .from('daily_step1')
+                .select('staff_id, ai_judgement, date, notice_text, staff_master(name)')
+                .order('date', { ascending: false })
+                .limit(10);
+            if (!data || data.length === 0) {
+                feed.innerHTML = '<p style="text-align:center;color:#999;font-size:0.85rem;">まだ活動がありません</p>';
+                return;
+            }
+            feed.innerHTML = data.map(r => {
+                const name = r.staff_master?.name || r.staff_id;
+                const judge = r.ai_judgement === '○' ? '✅' : (r.ai_judgement === '×' ? '❌' : '📝');
+                const short = (r.notice_text || '').substring(0, 40) + (r.notice_text?.length > 40 ? '...' : '');
+                return `<div style="padding:10px 0;border-bottom:1px solid #f0f0f0;display:flex;gap:10px;align-items:flex-start;">
+                    <span style="font-size:1.2rem;">${judge}</span>
+                    <div style="flex:1;">
+                        <div style="font-weight:bold;font-size:0.85rem;">${name}</div>
+                        <div style="font-size:0.78rem;color:#666;margin-top:2px;">${r.date} — ${short}</div>
+                    </div>
+                </div>`;
+            }).join('');
+        } catch(e) {
+            feed.innerHTML = '<p style="text-align:center;color:#ccc;font-size:0.85rem;">取得失敗</p>';
         }
     },
 
@@ -746,42 +743,95 @@ window.Admin = {
     },
 
     // ===== STEP管理 (カリキュラム) =====
+    _curriculumStep: 1,
+
     async loadCurriculumSteps() {
         const container = document.getElementById('admin-curriculum-list');
         if (!container) return;
 
-        // 本来はDBから取得するが、現状は固定概念として管理
-        const steps = [
-            { id: 1, name: 'STEP1：気付き', desc: '日々の観察から変化に気付く' },
-            { id: 2, name: 'STEP2：仮説思考', desc: '「なぜ？」を深掘りし原因を探る' },
-            { id: 3, name: 'STEP3：振り返り', desc: '支援の結果を検証し修正する' },
-            { id: 4, name: 'STEP4：症例報告', desc: '一連の経過をレポートにまとめる' }
-        ];
-
-        // localStorageにカスタム名があれば上書き
-        steps.forEach(s => {
-            const saved = localStorage.getItem(`custom_step_name_${s.id}`);
-            if (saved) s.name = saved;
-        });
-
-        container.innerHTML = steps.map(s => `
-            <div class="curriculum-card" style="background:var(--surface); padding:20px; border-radius:12px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <div style="font-weight:bold; font-size:1.1rem; color:var(--primary);">${s.name}</div>
-                    <div style="font-size:0.85rem; color:#666; margin-top:4px;">${s.desc}</div>
-                </div>
-                <button class="btn-primary-sm" onclick="Admin.editCurriculumStep(${s.id}, '${s.name}')">名称を編集</button>
+        // タブ UI
+        const tabHtml = `
+            <div style="display:flex;gap:8px;margin-bottom:20px;border-bottom:2px solid #eee;padding-bottom:10px;flex-wrap:wrap;">
+                ${[1,2,3,4].map(n => `<button id="ctab-${n}" onclick="Admin._curriculumStep=${n};Admin.loadCurriculumSteps();" style="padding:8px 18px;border-radius:8px 8px 0 0;border:none;font-weight:bold;font-size:0.9rem;cursor:pointer;background:${this._curriculumStep===n?'var(--primary)':'#eee'};color:${this._curriculumStep===n?'white':'#555'};transition:0.2s;">STEP ${n}</button>`).join('')}
             </div>
-        `).join('');
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+                <div style="font-weight:bold;color:var(--primary);font-size:1rem;">📋 STEP ${this._curriculumStep} のカリキュラム一覧</div>
+                <button onclick="Admin.addCurriculumTask()" style="background:var(--primary);color:white;border:none;padding:8px 16px;border-radius:8px;font-weight:bold;cursor:pointer;font-size:0.85rem;">＋ 課題を追加</button>
+            </div>`;
+
+        const tasks = this._getCurriculumTasks(this._curriculumStep);
+
+        const taskHtml = tasks.length === 0
+            ? '<p style="text-align:center;color:#999;padding:30px;">課題がありません。「＋ 課題を追加」から追加してください。</p>'
+            : tasks.map((t, i) => `
+                <div style="background:#fff;border:1px solid #e8eaf6;border-radius:10px;padding:15px 18px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.04);">
+                    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;">
+                        <div style="flex:1;">
+                            <div style="font-weight:bold;color:#333;font-size:0.95rem;">${i+1}. ${t.title}</div>
+                            <div style="margin-top:6px;display:flex;gap:6px;flex-wrap:wrap;">
+                                ${(t.sub||[]).map(s => `<span style="font-size:0.75rem;background:#f0effc;color:#4c5bb7;padding:2px 8px;border-radius:10px;">${s}</span>`).join('')}
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:6px;flex-shrink:0;">
+                            <button onclick="Admin.editCurriculumTask(${this._curriculumStep},'${t.id}')" style="background:#4c5bb7;color:white;border:none;padding:5px 10px;border-radius:6px;font-size:0.8rem;cursor:pointer;">✏️ 編集</button>
+                            <button onclick="Admin.deleteCurriculumTask(${this._curriculumStep},'${t.id}')" style="background:#e53935;color:white;border:none;padding:5px 10px;border-radius:6px;font-size:0.8rem;cursor:pointer;">🗑️</button>
+                        </div>
+                    </div>
+                </div>`).join('');
+
+        container.innerHTML = tabHtml + taskHtml;
     },
 
+    // localStorage に保存されたカスタムタスクを返す（なければ data.js の VIDEO_TASKS を使う）
+    _getCurriculumTasks(step) {
+        const saved = localStorage.getItem(`admin_curriculum_step${step}`);
+        if (saved) return JSON.parse(saved);
+        return (window.VIDEO_TASKS && window.VIDEO_TASKS[step]) ? window.VIDEO_TASKS[step] : [];
+    },
+
+    _saveCurriculumTasks(step, tasks) {
+        localStorage.setItem(`admin_curriculum_step${step}`, JSON.stringify(tasks));
+    },
+
+    addCurriculumTask() {
+        const title = prompt('課題タイトルを入力してください:');
+        if (!title) return;
+        const subInput = prompt('実施項目をカンマ区切りで入力（例: 動画,テスト,報告書）:', '動画,テスト,報告書');
+        const sub = (subInput || '動画,テスト,報告書').split(',').map(s => s.trim()).filter(Boolean);
+        const tasks = this._getCurriculumTasks(this._curriculumStep);
+        const newId = `custom_${Date.now()}`;
+        tasks.push({ id: newId, title: title.trim(), sub });
+        this._saveCurriculumTasks(this._curriculumStep, tasks);
+        showToast('課題を追加しました ✅');
+        this.loadCurriculumSteps();
+    },
+
+    editCurriculumTask(step, taskId) {
+        const tasks = this._getCurriculumTasks(step);
+        const task = tasks.find(t => t.id === taskId);
+        if (!task) return;
+        const newTitle = prompt('課題タイトルを変更:', task.title);
+        if (!newTitle) return;
+        const newSub = prompt('実施項目をカンマ区切りで:', (task.sub||[]).join(','));
+        task.title = newTitle.trim();
+        task.sub = (newSub || '').split(',').map(s => s.trim()).filter(Boolean);
+        this._saveCurriculumTasks(step, tasks);
+        showToast('課題を更新しました ✅');
+        this.loadCurriculumSteps();
+    },
+
+    deleteCurriculumTask(step, taskId) {
+        if (!confirm('この課題を削除しますか？')) return;
+        const tasks = this._getCurriculumTasks(step).filter(t => t.id !== taskId);
+        this._saveCurriculumTasks(step, tasks);
+        showToast('課題を削除しました');
+        this.loadCurriculumSteps();
+    },
+
+    // 旧互換
     editCurriculumStep(id, currentName) {
-        const newName = prompt(`STEP${id}の表示名称を変更しますか？`, currentName);
-        if (newName && newName !== currentName) {
-            localStorage.setItem(`custom_step_name_${id}`, newName);
-            showToast('名称を更新しました ✅');
-            this.loadCurriculumSteps();
-        }
+        this._curriculumStep = id;
+        this.loadCurriculumSteps();
     },
 
     // ===== システム部門コンテンツ =====
@@ -884,60 +934,144 @@ window.Admin = {
     },
 
     // ===== 施設・部門管理 =====
+    _facilityView: 'facility', // 'facility' or 'staff'
+
     async loadFacilities() {
         const container = document.getElementById('admin-facility-list-container');
         if (!container) return;
-        document.querySelectorAll('.facilities-tab').forEach(t => t.classList.add('active'));
-        document.querySelectorAll('.departments-tab').forEach(t => t.classList.remove('active'));
-
-        try {
-            const { data, error } = await window.fcSupabase.from('facilities').select('*').order('id');
-            if (error) throw error;
-
-            container.innerHTML = data.map(f => `
-                <div class="facility-manage-row" style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <span style="font-weight:bold;">[${f.id}] ${f.name}</span>
-                        <span style="font-size:0.8rem; color:#666; margin-left:10px;">${f.region || ''}</span>
-                    </div>
-                    <button class="btn-text-sm" onclick="Admin.editFacilityName('${f.id}', '${f.name}')">編集</button>
-                </div>
-            `).join('');
-        } catch (e) {
-            container.innerHTML = '<p class="empty-state">施設情報の取得に失敗しました</p>';
-        }
+        this._facilityView = 'facility';
+        this._renderFacilityTabs(container);
     },
 
     async loadDepartments() {
         const container = document.getElementById('admin-facility-list-container');
         if (!container) return;
-        document.querySelectorAll('.facilities-tab').forEach(t => t.classList.remove('active'));
-        document.querySelectorAll('.departments-tab').forEach(t => t.classList.add('active'));
-
-        // 部門マスタがない場合は固定、または staff_master から抽出
-        const departments = ['デイサービス', '訪問看護', '精神科訪問', '三国', '就労B', 'グループホーム'];
-        
-        container.innerHTML = departments.map(d => `
-            <div class="facility-manage-row" style="padding:15px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
-                <div>
-                    <span style="font-weight:bold;">${d}</span>
-                </div>
-                <button class="btn-text-sm" onclick="showToast('将来的に部門設定を変更可能にします')">編集</button>
-            </div>
-        `).join('');
+        this._facilityView = 'staff';
+        this._renderFacilityTabs(container);
     },
 
-    async editFacilityName(id, currentName) {
-        const newName = prompt('施設名を変更しますか？', currentName);
-        if (newName && newName !== currentName) {
-            try {
-                const { error } = await window.fcSupabase.from('facilities').update({ name: newName }).eq('id', id);
-                if (error) throw error;
-                showToast('施設名を更新しました ✅');
-                this.loadFacilities();
-            } catch (e) {
-                showToast('更新に失敗しました');
+    async _renderFacilityTabs(container) {
+        const isF = this._facilityView === 'facility';
+        let html = `<div style="display:flex;gap:8px;margin-bottom:18px;">
+            <button onclick="Admin._facilityView='facility';Admin._renderFacilityTabs(document.getElementById('admin-facility-list-container'));" style="padding:8px 18px;border-radius:8px;border:none;font-weight:bold;cursor:pointer;background:${isF?'var(--primary)':'#eee'};color:${isF?'white':'#555'};transition:0.2s;">🏢 施設一覧</button>
+            <button onclick="Admin._facilityView='staff';Admin._renderFacilityTabs(document.getElementById('admin-facility-list-container'));" style="padding:8px 18px;border-radius:8px;border:none;font-weight:bold;cursor:pointer;background:${!isF?'var(--primary)':'#eee'};color:${!isF?'white':'#555'};transition:0.2s;">👤 スタッフ編集</button>
+        </div>`;
+        container.innerHTML = html + '<p style="text-align:center;color:#aaa">読み込み中...</p>';
+        if (isF) {
+            await this._renderFacilityList(container, html);
+        } else {
+            await this._renderStaffEditList(container, html);
+        }
+    },
+
+    async _renderFacilityList(container, tabHtml) {
+        try {
+            const { data, error } = await window.fcSupabase.from('facilities').select('*').order('id');
+            if (error) throw error;
+            const rows = data.map(f => `
+                <div style="background:#fff;border:1px solid #e8eaf6;border-radius:10px;padding:15px 18px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <div style="font-weight:bold;">[${f.id}] ${f.name}</div>
+                        <div style="font-size:0.8rem;color:#666;">${f.region || ''}</div>
+                    </div>
+                    <div style="display:flex;gap:6px;">
+                        <button onclick="Admin.editFacility('${f.id}','${f.name}','${f.region||''}')" style="background:#4c5bb7;color:white;border:none;padding:5px 12px;border-radius:6px;font-size:0.82rem;cursor:pointer;">✏️ 編集</button>
+                    </div>
+                </div>`).join('');
+            const addBtn = `<div style="margin-top:16px;">
+                <button onclick="Admin.addFacility()" style="background:var(--primary);color:white;border:none;padding:10px 20px;border-radius:8px;font-weight:bold;cursor:pointer;width:100%;">＋ 施設を追加</button>
+            </div>`;
+            container.innerHTML = tabHtml + rows + addBtn;
+        } catch(e) {
+            container.innerHTML = tabHtml + '<p style="color:red;text-align:center;">取得失敗</p>';
+        }
+    },
+
+    async _renderStaffEditList(container, tabHtml) {
+        try {
+            const user = Auth.getUser();
+            const facilityId = user?.role === 'exec' ? '' : (user?.facility_id || 'F001');
+            const resp = await fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'list', facility_id: facilityId, include_inactive: false })
+            });
+            const d = await resp.json();
+            const staffList = d.staff || [];
+            const rows = staffList.map(s => `
+                <div style="background:#fff;border:1px solid #e8eaf6;border-radius:10px;padding:12px 15px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                    <div>
+                        <div style="font-weight:bold;">${s.name} <span style="font-size:0.78rem;color:#888;">(${s.staff_id})</span></div>
+                        <div style="font-size:0.8rem;color:#666;margin-top:3px;">STEP ${s.current_step||1} / 役割: ${s.role} / 施設: ${s.facility_id||'-'}</div>
+                    </div>
+                    <button onclick="Admin.editStaff('${s.staff_id}','${s.name}',${s.current_step||1},'${s.role}','${s.facility_id||''}')" style="background:#4c5bb7;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:0.82rem;cursor:pointer;">✏️ 編集</button>
+                </div>`).join('');
+            container.innerHTML = tabHtml + rows;
+        } catch(e) {
+            container.innerHTML = tabHtml + '<p style="color:red;text-align:center;">取得失敗</p>';
+        }
+    },
+
+    async editFacility(id, currentName, currentRegion) {
+        const newName = prompt('施設名を入力してください:', currentName);
+        if (!newName) return;
+        const newRegion = prompt('地域/拠点を入力（任意）:', currentRegion);
+        try {
+            const { error } = await window.fcSupabase.from('facilities').update({ name: newName, region: newRegion || currentRegion }).eq('id', id);
+            if (error) throw error;
+            showToast('施設情報を更新しました ✅');
+            this.loadFacilities();
+        } catch(e) {
+            showToast('更新に失敗しました');
+        }
+    },
+
+    editFacilityName(id, currentName) { this.editFacility(id, currentName, ''); }, // 後方互換
+
+    async addFacility() {
+        const id = prompt('施設IDを入力（例: F003）:');
+        if (!id) return;
+        const name = prompt('施設名を入力:');
+        if (!name) return;
+        const region = prompt('地域/拠点（任意）:', '大阪') || '大阪';
+        try {
+            const { error } = await window.fcSupabase.from('facilities').insert({ id: id.trim(), name: name.trim(), region });
+            if (error) throw error;
+            showToast(`${name}を追加しました ✅`);
+            this.loadFacilities();
+        } catch(e) {
+            showToast('追加に失敗しました: ' + e.message);
+        }
+    },
+
+    async editStaff(staffId, name, currentStep, currentRole, currentFacility) {
+        const newStep = prompt(`${name}さんの現在のSTEP (1〜4):`, currentStep);
+        if (newStep === null) return;
+        const newRole = prompt('役割 (staff / admin / exec):', currentRole);
+        if (newRole === null) return;
+        const newFacility = prompt('施設ID (例: F001):', currentFacility);
+        if (newFacility === null) return;
+        try {
+            const resp = await fetch('/api/users', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    action: 'update',
+                    staff_id: staffId,
+                    current_step: parseInt(newStep) || 1,
+                    role: newRole.trim(),
+                    facility_id: newFacility.trim()
+                })
+            });
+            const data = await resp.json();
+            if (resp.ok && data.success) {
+                showToast(`${name}の情報を更新しました ✅`);
+                this._renderFacilityTabs(document.getElementById('admin-facility-list-container'));
+            } else {
+                showToast(data.error || '更新に失敗しました');
             }
+        } catch(e) {
+            showToast('更新に失敗しました: ' + e.message);
         }
     },
 
