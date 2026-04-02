@@ -253,7 +253,28 @@ const Monthly = {
 
     // 6項目の評価描画
     renderEvaluation(breakdown, totalScore, passed) {
-        if (!breakdown || !Array.isArray(breakdown)) return;
+        if (!breakdown || !Array.isArray(breakdown) || breakdown.length === 0) {
+            const bRoot = document.getElementById('score-breakdown');
+            if (bRoot) {
+                bRoot.innerHTML = `
+                    <div class="card" style="text-align: center; padding: 40px var(--space-lg); margin-top: 20px; border: 2px dashed var(--border);">
+                        <div style="font-size: 3rem; margin-bottom: 20px;">📝</div>
+                        <h3 style="margin-bottom: 15px; color: var(--text);">今月分の月次評価はまだ作成されていません</h3>
+                        <p style="color: var(--text-secondary); margin-bottom: 25px; line-height: 1.6;">
+                            日々の記録が溜まったら、右上の「**再評価**」ボタンを押してください。<br>
+                            AIが今月全体の活動を分析し、詳細な評価レポートを生成します。
+                        </p>
+                        <button class="btn btn-primary" onclick="Monthly.forceReevaluate()">AI評価を開始する</button>
+                    </div>
+                `;
+            }
+            // スコア表示もリセット
+            const scoreEl = document.getElementById('monthly-score');
+            const statusEl = document.getElementById('monthly-pass-status');
+            if (scoreEl) scoreEl.textContent = '--';
+            if (statusEl) statusEl.textContent = '--';
+            return;
+        }
 
         const scoreEl = document.getElementById('monthly-score');
         const ring = document.getElementById('score-ring');

@@ -51,6 +51,7 @@ const DB = {
     // --- Query helpers ---
     getByMonth(table, staffId, yearMonth) {
         return this.getAll(table).filter(r => {
+            // yearMonth is "2026-04", r.date is "2026-04-02"
             return r.staff_id === staffId && r.date && r.date.startsWith(yearMonth);
         });
     },
