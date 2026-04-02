@@ -82,34 +82,17 @@ function renderCurriculum(step) {
 }
 
 /**
- * ボタンのURLを決定する（個別URL > UIDリンク > フォールバック）
+ * ボタンのURLを決定する（N-Academyの仕様により全リンクを講座一覧ページへ統一）
  */
 function getTaskUrl(task, subType) {
-    var taskUrls = task.urls || {};
-    if (taskUrls[subType]) return taskUrls[subType];
-    
-    // UIDがある場合は cid=199&uid=xxx の形式で生成
-    var taskUids = task.uid || {};
-    if (taskUids[subType]) {
-        var uid = taskUids[subType];
-        var baseUrl = 'https://biz.n.study.jp/home/course/viewer/';
-        if (subType === 'テスト') return baseUrl + 'test2.aspx?cid=199&uid=' + uid;
-        if (subType === 'アンケート') return baseUrl + 'enq.aspx?cid=199&uid=' + uid;
-        return baseUrl + 'default.aspx?cid=199&uid=' + uid;
-    }
-    
     return ELEARNING_URL;
 }
 
 /**
- * ボタンの色を決定（直接リンクかフォールバックか）
+ * ボタンの色を決定
  */
 function getButtonStyle(task, subType) {
-    var isDirect = (task.urls && task.urls[subType]) || (task.uid && task.uid[subType]);
-    if (isDirect) {
-        return 'padding:6px 12px; background:#4c5bb7; color:white; border-radius:15px; font-size:0.75rem; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 4px rgba(76,91,183,0.2); transition:0.2s; cursor:pointer;';
-    }
-    return 'padding:6px 12px; background:#7c8db5; color:white; border-radius:15px; font-size:0.75rem; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:4px; box-shadow:0 1px 3px rgba(0,0,0,0.1); transition:0.2s; cursor:pointer;';
+    return 'padding:6px 12px; background:#4c5bb7; color:white; border-radius:15px; font-size:0.75rem; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:4px; box-shadow:0 2px 4px rgba(76,91,183,0.2); transition:0.2s; cursor:pointer;';
 }
 
 /**
