@@ -30,134 +30,49 @@ const MIN_DAYS = {
 // 動画課題・カリキュラム定義
 const VIDEO_TASKS = {
   1: [
-    { 
-      id: 'v1_1', 
-      title: 'STEP1-1 情報収集、アセスメント、変化の気づきとは？', 
-      step: 1, 
-      sub: ['動画', 'テスト', '報告書'],
-      urls: {
-        '動画': 'https://biz.n.study.jp/home/course/viewer/default.aspx?k=scZZgWKFN5fm9Jw0gfA28T2JjAOLR1ULvguwoNE9%2fcFbNzEmChHx7yx2c5kYmLoDs%2bMB8WQCyh9crEHAJya2bBcujvsr7SLcakZwvfG9AeKdALM22sQaZAyrUvAJdfw%2fhBuPr0348KZI%2bL8LkqRBUjVS31fknRC2FtN1As0libm1q5h9wYhI9UFCoIGE%2bcQVZ4cdmZtHPEkw%2bDcrJ7%2bkdL%2f6VrGEDJUBXLf%2fUL%2bEkrCY8sLyI8ESoY%2bITotxHLM1',
-        'テスト': 'https://biz.n.study.jp/home/course/viewer/test2.aspx?k=scZZgWKFN5fm9Jw0gfA28T2JjAOLR1ULvguwoNE9%2fcFbNzEmChHx7yx2c5kYmLoDs%2bMB8WQCyh9crEHAJya2bPVfkKLRFSZL97HQnFJENELw38sWJpTwjsMHGJwqLOE6JXA1WJyfjnKg9%2fXkABI7x9Lvb9QxNFPq0q%2fle8%2fswZBVuBRRMtr9NpM%2fUbbRcNt67jUA2mTq9KDzTdJ%2b95l47Qh8APEeMCl8j7v6Wr4AW1PnbSoZQybnTVCuK%2bv%2fwKg1'
-      }
-    },
-    { 
-      id: 'v1_2', 
-      title: 'STEP1-2 “変化に気づける支援者”になるには？', 
-      step: 1, 
-      sub: ['動画', 'テスト', '報告書'],
-      urls: {
-        '動画': 'https://biz.n.study.jp/home/course/viewer/default.aspx?k=scZZgWKFN5fm9Jw0gfA28T2JjAOLR1ULvguwoNE9%2fcFbNzEmChHx7yx2c5kYmLoDs%2bMB8WQCyh9crEHAJya2bO%2fwWbvH%2fu%2fRQpKYRDl4X2vM4dTH4BbwROMHl7ED%2bWakbdyJN1Wy2Nc5vY5nOa7S897SESrQwAahqczzD0SsIxgF%2b%2beZgklJpM2mOgnheNsR27AkvJ8%2bKKASBXtZeickYH2o7gopgKonQIySQ1WAGF1wUJ1AwrQSVBS97BNvZr4L'
-      }
-    },
-    { id: 'v1_3', title: 'STEP1-3 困ったら相談する・抱え込まない', step: 1, sub: ['動画', 'テスト', '報告書'] },
-    { id: 'v1_4', title: 'STEP1-4 “支援”と“支配”の境界線', step: 1, sub: ['動画', 'テスト', '報告書'] },
-    { 
-      id: 'v1_5', 
-      title: '"この人らしさ"を守るのが支援', 
-      step: 1, 
-      sub: ['動画', 'テスト', '報告書'],
-      uid: { '動画': 1037, 'テスト': 1036, '報告書': 1035 }
-    },
-    { 
-      id: 'v1_6', 
-      title: '「あれ？なんか違う」に敏感でいる。気づけたこと自体が価値', 
-      step: 1, 
-      sub: ['動画', 'テスト', '報告書'],
-      uid: { '動画': 1034, 'テスト': 1033, '報告書': 1040 }
-    },
-    { 
-      id: 'v1_7', 
-      title: '自分の感情にフタをしない', 
-      step: 1, 
-      sub: ['動画', 'テスト', '報告書'],
-      uid: { '動画': 1031, 'テスト': 1030, '報告書': 1039 }
-    },
-    { 
-      id: 'v1_8', 
-      title: '支援って何のためにするんだっけ？', 
-      step: 1, 
-      sub: ['動画', 'テスト', '報告書'],
-      uid: { '動画': 1028, 'テスト': 1027, '報告書': 1038 }
-    },
-    { id: 'v1_9', title: '自閉症', step: 1, sub: ['動画', 'テスト', '報告書'] },
-    { id: 'v1_10', title: '認知症', step: 1, sub: ['動画', 'テスト', '報告書'] },
-    { id: 'v1_11', title: '統合失調症', step: 1, sub: ['動画', 'テスト', '報告書'] },
-    { id: 'v1_12', title: '双極性感情障害', step: 1, sub: ['動画', 'テスト', '報告書'] },
-    { id: 'v1_13', title: '注意欠如多動症', step: 1, sub: ['動画', 'テスト', '報告書'] },
-    { id: 'v1_14', title: 'その声かけ、誰のため？', step: 1, sub: ['動画', 'テスト', '報告書'] },
-    { id: 'v1_15', title: '“聴く”ってどういうこと？', step: 1, sub: ['動画', 'テスト', '報告書'] },
-    { id: 'v1_16', title: '自分の“当たり前”が相手を困らせるとき', step: 1, sub: ['動画', 'テスト', '報告書'] },
-    { id: 'v1_17', title: '"本人の言葉にならない声"に耳を澄ます', step: 1, sub: ['動画', 'テスト', '報告書'] },
-    { 
-      id: 'v1_18', 
-      title: 'どんな時も“人としての大切さ”を忘れない', 
-      step: 1, 
-      sub: ['動画', 'テスト', '報告書'],
-      uid: { '動画': 1043, 'テスト': 1042, '報告書': 1041 }
-    },
-    { 
-      id: 'v1_19', 
-      title: '“できること”はなるべくやってもらう', 
-      step: 1, 
-      sub: ['動画', 'テスト', '報告書'],
-      uid: { '動画': 1052, 'テスト': 1051, '報告書': 1050 }
-    },
-    { 
-      id: 'v1_20', 
-      title: 'まず見て・感じることを大事にする', 
-      step: 1, 
-      sub: ['動画', 'テスト', '報告書'],
-      uid: { '動画': 1049, 'テスト': 1048, '報告書': 1047 }
-    },
-    { 
-      id: 'v1_21', 
-      title: '昨日と今日は違うと思って関わる', 
-      step: 1, 
-      sub: ['動画', 'テスト', '報告書'],
-      uid: { '動画': 1046, 'テスト': 1045, '報告書': 1044 }
-    },
-    { 
-      id: 'v1_22', 
-      title: 'ちゃんと話を“聴く”姿勢をもつ', 
-      step: 1, 
-      sub: ['動画', 'テスト', '報告書'],
-      uid: { '動画': 1058, 'テスト': 1057, '報告書': 1056 }
-    },
-    { 
-      id: 'v1_23', 
-      title: '注意やアドバイスを学びに変える力', 
-      step: 1, 
-      sub: ['動画', 'テスト', '報告書'],
-      uid: { '動画': 1055, 'テスト': 1054, '報告書': 1053 }
-    },
-    { id: 'v1_24', title: '"よかれと思って"の失敗を学びに変える', step: 1, sub: ['動画', 'テスト', '報告書'] },
-    { 
-      id: 'v1_survey', 
-      title: 'フリーケアプログラム 中間アンケート', 
-      step: 1, 
-      sub: ['アンケート'],
-      urls: {
-        'アンケート': 'https://biz.n.study.jp/home/course/viewer/enq.aspx?k=scZZgWKFN5fm9Jw0gfA28T2JjAOLR1ULvguwoNE9%2fcFbNzEmChHx7yx2c5kYmLoDs%2bMB8WQCyh9crEHAJya2bIhYE%2fyG1f0d%2b%2fXbOtp240ZpfOyXPqc0gHSw%2bgZ1dhHDDJ7o62kl4EBJVSllhneIL4vvE%2bEA1CogcdnF02wKfd9pqXAJ%2bgrvh7L%2fACSI9qW%2bXraYC3%2fysmL9vQqW85eTQLrCeH3ve%2f40GPsdOtJw5pnpmMrsx%2fjp2ra7nQMHPDuq'
-      }
-    }
+    { id: 'v1_1', title: 'STEP1-1 情報収集、アセスメント、変化の気づきとは？', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 745, 'テスト': 747, '報告書': 989 } },
+    { id: 'v1_2', title: 'STEP1-2 “変化に気づける支援者”になるには？', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 748, 'テスト': 749, '報告書': 988 } },
+    { id: 'v1_3', title: 'STEP1-3 困ったら相談する・抱え込まない', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 774, 'テスト': 775, '報告書': 987 } },
+    { id: 'v1_4', title: 'STEP1-4 “支援”と“支配”の境界線', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 762, 'テスト': 763, '報告書': 986 } },
+    { id: 'v1_5', title: '"この人らしさ"を守るのが支援', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 1037, 'テスト': 1036, '報告書': 1035 } },
+    { id: 'v1_6', title: '「あれ？なんか違う」に敏感でいる。気づけたこと自体が価値', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 1034, 'テスト': 1033, '報告書': 1040 } },
+    { id: 'v1_7', title: '自分の感情にフタをしない', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 1031, 'テスト': 1030, '報告書': 1039 } },
+    { id: 'v1_8', title: '支援って何のためにするんだっけ？', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 1028, 'テスト': 1027, '報告書': 1038 } },
+    { id: 'v1_9', title: '自閉症', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 813, 'テスト': 822, '報告書': 985 } },
+    { id: 'v1_10', title: '認知症', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 818, 'テスト': 820, '報告書': 984 } },
+    { id: 'v1_11', title: '統合失調症', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 819, 'テスト': 821, '報告書': 983 } },
+    { id: 'v1_12', title: '双極性感情障害', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 814, 'テスト': 823, '報告書': 982 } },
+    { id: 'v1_13', title: '注意欠如多動症', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 815, 'テスト': 824, '報告書': 981 } },
+    { id: 'v1_14', title: 'その声かけ、誰のため？', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 786, 'テスト': 787, '報告書': 980 } },
+    { id: 'v1_15', title: '“聴く”ってどういうこと？', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 789, 'テスト': 790, '報告書': 979 } },
+    { id: 'v1_16', title: '自分の“当たり前”が相手を困らせるとき', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 792, 'テスト': 793, '報告書': 978 } },
+    { id: 'v1_17', title: '"本人の言葉にならない声"に耳を澄ます', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 795, 'テスト': 796, '報告書': 977 } },
+    { id: 'v1_18', title: 'どんな時も“人としての大切さ”を忘れない', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 1043, 'テスト': 1042, '報告書': 1041 } },
+    { id: 'v1_19', title: '“できること”はなるべくやってもらう', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 1052, 'テスト': 1051, '報告書': 1050 } },
+    { id: 'v1_20', title: 'まず見て・感じることを大事にする', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 1049, 'テスト': 1048, '報告書': 1047 } },
+    { id: 'v1_21', title: '昨日と今日は違うと思って関わる', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 1046, 'テスト': 1045, '報告書': 1044 } },
+    { id: 'v1_22', title: 'ちゃんと話を“聴く”姿勢をもつ', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 1058, 'テスト': 1057, '報告書': 1056 } },
+    { id: 'v1_23', title: '注意やアドバイスを学びに変える力', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 1055, 'テスト': 1054, '報告書': 1053 } },
+    { id: 'v1_24', title: '"よかれと思って"の失敗を学びに変える', step: 1, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 1311, 'テスト': 1312, '報告書': 1313 } },
+    { id: 'v1_survey', title: 'フリーケアプログラム 中間アンケート', step: 1, sub: ['アンケート'], uid: { 'アンケート': 1308 } }
   ],
   2: [
-    { id: 'v2_1', title: 'STEP2-1 仮説思考とは？支援の振り返りとは？', step: 2, sub: ['動画', 'テスト', '報告書'] },
-    { id: 'v2_2', title: 'STEP2-2 この行動の“理由”をあと2つ考えてみる', step: 2, sub: ['動画', 'テスト', '報告書'] },
-    { id: 'v2_3', title: 'STEP2-3 相手と同じ目線で関わる', step: 2, sub: ['動画', 'テスト', '報告書'] },
-    { id: 'v2_4', title: 'STEP2-4 「正解は1つじゃない」って思っておく', step: 2, sub: ['動画', 'テスト', '報告書'] },
-    { id: 'v2_survey', title: 'フリーケアプログラム 中間アンケート', step: 2, sub: ['アンケート'] }
+    { id: 'v2_1', title: 'STEP2-1 仮説思考とは？支援の振り返りとは？', step: 2, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 765, 'テスト': 766, '報告書': 976 } },
+    { id: 'v2_2', title: 'STEP2-2 この行動の“理由”をあと2つ考えてみる', step: 2, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 768, 'テスト': 769, '報告書': 975 } },
+    { id: 'v2_3', title: 'STEP2-3 相手と同じ目線で関わる', step: 2, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 771, 'テスト': 772, '報告書': 974 } },
+    { id: 'v2_4', title: 'STEP2-4 「正解は1つじゃない」って思っておく', step: 2, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 777, 'テスト': 778, '報告書': 973 } },
+    { id: 'v2_survey', title: 'フリーケアプログラム 中間アンケート', step: 2, sub: ['アンケート'], uid: { 'アンケート': 1309 } }
   ],
   3: [
-    { id: 'v3_1', title: 'STEP3-1 支援とは？', step: 3, sub: ['動画', 'テスト', '報告書'] },
-    { id: 'v3_2', title: 'STEP3-2 利用者の“安心”をつくる関係づくり', step: 3, sub: ['動画', 'テスト', '報告書'] },
-    { id: 'v3_3', title: 'STEP3-3 どんな出来事も「自分にできること」を考える', step: 3, sub: ['動画', 'テスト', '報告書'] },
-    { id: 'v3_4', title: 'STEP3-4 支援することで、自分も成長していく', step: 3, sub: ['動画', 'テスト', '報告書'] },
-    { id: 'v3_survey', title: 'フリーケアプログラム 中間アンケート', step: 3, sub: ['アンケート'] }
+    { id: 'v3_1', title: 'STEP3-1 支援とは？', step: 3, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 751, 'テスト': 752, '報告書': 971 } },
+    { id: 'v3_2', title: 'STEP3-2 利用者の“安心”をつくる関係づくり', step: 3, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 754, 'テスト': 755, '報告書': 970 } },
+    { id: 'v3_3', title: 'STEP3-3 どんな出来事も「自分にできること」を考える', step: 3, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 780, 'テスト': 781, '報告書': 969 } },
+    { id: 'v3_4', title: 'STEP3-4 支援することで、自分も成長していく', step: 3, sub: ['動画', 'テスト', '報告書'], uid: { '動画': 783, 'テスト': 784, '報告書': 968 } },
+    { id: 'v3_survey', title: 'フリーケアプログラム 中間アンケート', step: 3, sub: ['アンケート'], uid: { 'アンケート': 1310 } }
   ],
   4: [
     { id: 'v4_present', title: 'STEP4 症例発表', step: 4, sub: ['発表'] },
-    { id: 'v4_final', title: 'STEP4 総合テスト', step: 4, sub: ['テスト'] }
+    { id: 'v4_final', title: 'STEP4 総合テスト', step: 4, sub: ['テスト'], uid: { 'テスト': 2409 } }
   ]
 };
 

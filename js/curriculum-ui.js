@@ -88,14 +88,14 @@ function getTaskUrl(task, subType) {
     var taskUrls = task.urls || {};
     if (taskUrls[subType]) return taskUrls[subType];
     
-    // UIDがある場合は cid=183&uid=xxx の形式で生成
+    // UIDがある場合は cid=199&uid=xxx の形式で生成
     var taskUids = task.uid || {};
     if (taskUids[subType]) {
         var uid = taskUids[subType];
         var baseUrl = 'https://biz.n.study.jp/home/course/viewer/';
-        if (subType === 'テスト') return baseUrl + 'test2.aspx?cid=183&uid=' + uid;
-        if (subType === 'アンケート') return baseUrl + 'enq.aspx?cid=183&uid=' + uid;
-        return baseUrl + 'default.aspx?cid=183&uid=' + uid;
+        if (subType === 'テスト') return baseUrl + 'test2.aspx?cid=199&uid=' + uid;
+        if (subType === 'アンケート') return baseUrl + 'enq.aspx?cid=199&uid=' + uid;
+        return baseUrl + 'default.aspx?cid=199&uid=' + uid;
     }
     
     return ELEARNING_URL;
