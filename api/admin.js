@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    api/admin.js — 管理者ダッシュボード用API
    スタッフ進捗一覧・アラート取得
    ============================================ */
@@ -17,8 +17,8 @@ export default async function handler(req, res) {
     const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_vCIiY9zPof_k2CfWC4SLqA_uUNcQ6jo';
 
     try {
-        // 1) 該当拠点のスタッフ一覧（研修対象のみ）
-        let staffQuery = `role=eq.staff&is_active=eq.true&order=created_at.desc`;
+        // 1) 該当拠点のスタッフ一覧
+        let staffQuery = `is_active=eq.true&order=created_at.desc`;
         if (facility_id) staffQuery += `&facility_id=eq.${facility_id}`;
 
         const staffList = await sbSelect(SUPABASE_URL, SUPABASE_KEY, 'staff_master', staffQuery);

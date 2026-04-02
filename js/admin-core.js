@@ -673,14 +673,15 @@ window.Admin = {
             }
 
             container.innerHTML = data.map(t => `
-                <div class="target-manage-card" style="background:var(--surface); padding:15px; border-radius:12px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center;">
+                <div class="target-manage-card" style="background:var(--surface); padding:15px; border-radius:12px; border:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
                     <div>
-                        <div style="font-weight:bold;">${t.name}</div>
-                        <div style="font-size:0.8rem; color:#666;">${t.care_level || '介護度未設定'}</div>
+                        <div style="font-weight:bold; font-size:1.1rem;">${t.name}</div>
+                        <div style="font-size:0.8rem; color:var(--primary); margin-top:4px; font-weight:bold;">ID: ${t.target_code || '---'}</div>
                     </div>
-                    <div style="display:flex; gap:8px;">
-                        <button class="btn-text-sm" onclick="Admin.editTargetName('${t.id}', '${t.name}')">編集</button>
-                        <button class="btn-text-sm" style="color:red;" onclick="Admin.deleteTargetDirect('${t.id}')">削除</button>
+                    <div style="display:flex; gap:10px;">
+                        <button class="btn btn-primary-sm" onclick="Admin.openFaceAssessment('${t.id}', '${t.name}')" style="background:#6c5ce7; border-color:#6c5ce7; color:white; padding:6px 12px; border-radius:6px; cursor:pointer;">フェイスアセス編集</button>
+                        <button class="btn-text-sm" onclick="Admin.editTargetName('${t.id}', '${t.name}')">名前編集</button>
+                        <button class="btn-text-sm" style="color:#e74c3c;" onclick="Admin.deleteTargetDirect('${t.id}')">削除</button>
                     </div>
                 </div>
             `).join('');
@@ -732,6 +733,91 @@ window.Admin = {
             this.renderAdminTargetListDirect();
         } catch (e) {
             showToast('削除に失敗しました');
+        }
+    },
+
+    // ===== フェイスアセスメント (Face Sheet) =====
+    async openFaceAssessment(targetId, targetName) {
+        this._currentFaceTargetId = targetId;
+        const modal = document.getElementById('face-assessment-modal');
+        const titleEl = document.getElementById('face-modal-title');
+        if (!modal || !titleEl) return;
+
+        titleEl.textContent = `${targetName} さんのフェイスアセスメント`;
+        modal.style.display = 'flex';
+
+        // 既存データの取得
+        try {
+            const { data, error } = await window.fcSupabase
+                .from('care_face_assessments')
+                .select('*')
+                .eq('target_id', targetId)
+                .single();
+
+            const form = document.getElementById('face-assessment-form');
+            if (form) {
+                form.reset();
+                if (data) {
+                    form.basic_info.value = data.basic_info || '';
+                    form.medical_history.value = data.medical_history || '';
+                    form.habits.value = data.habits || '';
+                    form.family_env.value = data.family_env || '';
+                }
+            }
+        } catch (e) {
+            console.warn('フェイスアセス取得エラー (初回登録の可能性あり):', e);
+        }
+    },
+
+    closeFaceAssessment() {
+        const modal = document.getElementById('face-assessment-modal');
+        if (modal) modal.style.display = 'none';
+        this._currentFaceTargetId = null;
+    },
+
+    async saveFaceAssessment() {
+        if (!this._currentFaceTargetId) return;
+        const form = document.getElementById('face-assessment-form');
+        if (!form) return;
+
+        const btn = document.getElementById('btn-save-face');
+        if (btn) { btn.disabled = true; btn.textContent = '保存中...'; }
+
+        const payload = {
+            target_id: this._currentFaceTargetId,
+            basic_info: form.basic_info.value,
+            medical_history: form.medical_history.value,
+            habits: form.habits.value,
+            family_env: form.family_env.value,
+            updated_by: Auth.getUser()?.staff_id || 'admin',
+            updated_at: new Date().toISOString()
+        };
+
+        try {
+            // upsert を試みる (target_id がユニークであることを前提にするか、別途ID管理)
+            // ここでは一旦、既存があるかチェックして挿入/更新を分岐
+            const { data: existing } = await window.fcSupabase
+                .from('care_face_assessments')
+                .select('id')
+                .eq('target_id', this._currentFaceTargetId)
+                .single();
+
+            let result;
+            if (existing) {
+                result = await window.fcSupabase.from('care_face_assessments').update(payload).eq('id', existing.id);
+            } else {
+                result = await window.fcSupabase.from('care_face_assessments').insert(payload);
+            }
+
+            if (result.error) throw result.error;
+
+            showToast('フェイスアセスメントを保存しました ✅');
+            this.closeFaceAssessment();
+        } catch (e) {
+            console.error('保存エラー:', e);
+            showToast('保存に失敗しました');
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = '保存する'; }
         }
     },
 
