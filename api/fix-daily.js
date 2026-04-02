@@ -101,7 +101,8 @@ ${customRules || '特になし'}
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
             contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.1, responseMimeType: "application/json" }
+            generationConfig: { temperature: 0.1 }
+
         })
     });
 
