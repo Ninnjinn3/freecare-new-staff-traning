@@ -1,4 +1,4 @@
-/* ============================================
+﻿/* ============================================
    api/judge.js — Vercel サーバーレス関数
    Gemini API でAI採点を実行（6観点100点満点）
    ============================================ */
@@ -64,7 +64,7 @@ export default async function handler(req, res) {
 
 // ===== Gemini API 呼び出し =====
 async function callGemini(apiKey, prompt, customRules = '') {
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
 
     const fullPrompt = `
 以下の指示に従って、介護記録の採点を行ってください。

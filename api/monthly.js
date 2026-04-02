@@ -1,4 +1,4 @@
-/* ============================================
+﻿/* ============================================
    api/monthly.js — 月次評価算出サーバーレス関数
    STEP1-3の記録から6観点×100点を自動算出
    ============================================ */
@@ -239,8 +239,8 @@ ${s3Text}
     const knowledge = await supabaseSelect(SUPABASE_URL, SUPABASE_KEY, 'ai_knowledge', 'select=title,content');
     const customRules = (knowledge || []).map(k => `【${k.title}】: ${k.content}`).join('\n');
 
-    // 月次要約は以前はproを使用していましたが、アクセス制限とコストを考慮し高速な gemini-2.0-flash を使用します
-    const modelName = 'gemini-2.0-flash'; 
+    // 月次要約は以前はproを使用していましたが、アクセス制限とコストを考慮し高速な gemini-2.5-flash を使用します
+    const modelName = 'gemini-2.5-flash'; 
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
     
     // プロンプトに知識を注入
