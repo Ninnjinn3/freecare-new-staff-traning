@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    api/monthly.js — 月次評価算出サーバーレス関数
    STEP1-3の記録から6観点×100点を自動算出
    ============================================ */
@@ -295,12 +295,12 @@ ${prompt}
 
     try {
         let cleanText = text.trim();
+        cleanText = cleanText.replace(/^```(json)?\s*/i, '').replace(/\s*```$/i, '');
         const jsonStart = cleanText.indexOf('{');
         const jsonEnd = cleanText.lastIndexOf('}');
-        if (jsonStart !== -1 && jsonEnd !== -1) {
-            cleanText = cleanText.substring(jsonStart, jsonEnd + 1);
-        }
-        
+        if (jsonStart !== -1 && jsonEnd !== -1) cleanText = cleanText.substring(jsonStart, jsonEnd + 1);
+        cleanText = cleanText.replace(/,\s*([}\]])/g, '$1');
+        cleanText = cleanText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
         let parsedData = JSON.parse(cleanText);
         // オブジェクトの中に breakdown 配列があるか確認
         let breakdown = parsedData.breakdown || (Array.isArray(parsedData) ? parsedData : null);

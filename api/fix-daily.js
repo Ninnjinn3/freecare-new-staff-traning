@@ -1,4 +1,4 @@
-﻿import { createClient } from '@supabase/supabase-js';
+import { createClient } from '@supabase/supabase-js';
 
 export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
@@ -109,12 +109,13 @@ ${customRules || '特になし'}
     const json = await resp.json();
     const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
     
-    // パース処理
+    // パース処理（ロバスト版）
     let cleanText = text.trim();
+    cleanText = cleanText.replace(/^```(json)?\s*/i, '').replace(/\s*```$/i, '');
     const start = cleanText.indexOf('{');
     const end = cleanText.lastIndexOf('}');
-    if (start !== -1 && end !== -1) {
-        cleanText = cleanText.substring(start, end + 1);
-    }
+    if (start !== -1 && end !== -1) cleanText = cleanText.substring(start, end + 1);
+    cleanText = cleanText.replace(/,\s*([}\]])/g, '$1');
+    cleanText = cleanText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
     return JSON.parse(cleanText);
 }

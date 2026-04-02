@@ -124,24 +124,22 @@ function parseGeminiResponse(text) {
     if (!text) throw new Error('AI回答が空です');
     try {
         let cleanText = text.trim();
-        // ```json や ``` などの装飾を徹底的に除去
-        cleanText = cleanText.replace(/^```(json)?\n?/, '').replace(/\n?```$/, '');
-        
+        // markdown装飾除去
+        cleanText = cleanText.replace(/^```(json)?\s*/i, '').replace(/\s*```$/i, '');
         const start = cleanText.indexOf('{');
         const end = cleanText.lastIndexOf('}');
-        if (start !== -1 && end !== -1) {
-            cleanText = cleanText.substring(start, end + 1);
-        }
-        
-        cleanText = cleanText.replace(/,\s*([}\]])/g, 'c:cursor株式会社フリーケア1');\n        cleanText = cleanText.replace(/[\x00-\x1F]+/g, ' ');\n        const result = JSON.parse(cleanText);
-        // デフォルト値の保証
-        if (!result.applied_knowledge) result.applied_knowledge = "";
+        if (start !== -1 && end !== -1) cleanText = cleanText.substring(start, end + 1);
+        // 末尾カンマ除去
+        cleanText = cleanText.replace(/,\s*([}\]])/g, '$1');
+        // 制御文字除去（改行・タブは保持）
+        cleanText = cleanText.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+        const result = JSON.parse(cleanText);
+        if (!result.applied_knowledge) result.applied_knowledge = '';
         return result;
     } catch (e) {
         console.error('JSON Parse Error in judge.js:', e, 'Raw text:', text);
-        // パース失敗時でも、UIを壊さないようにエラー通知を含むオブジェクトを返す
         return {
-            judgement: '×',
+            judgement: '\u00d7',
             score: 0,
             short_comment: 'AI評価の解析に失敗しました。',
             good_points: [],
