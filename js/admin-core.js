@@ -747,7 +747,10 @@ window.Admin = {
             </div>
             <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
                 <div style="font-weight:bold;color:var(--primary);font-size:1rem;">📋 STEP ${this._curriculumStep} のカリキュラム一覧</div>
-                <button onclick="Admin.addCurriculumTask()" style="background:var(--primary);color:white;border:none;padding:8px 16px;border-radius:8px;font-weight:bold;cursor:pointer;font-size:0.85rem;">＋ 課題を追加</button>
+                <div style="display:flex;gap:10px;">
+                    <button onclick="Admin.editStepLabels(${this._curriculumStep})" style="background:#f0effc;color:#4c5bb7;border:1px solid #4c5bb7;padding:8px 16px;border-radius:8px;font-weight:bold;cursor:pointer;font-size:0.85rem;">📝 質問項目を編集</button>
+                    <button onclick="Admin.addCurriculumTask()" style="background:var(--primary);color:white;border:none;padding:8px 16px;border-radius:8px;font-weight:bold;cursor:pointer;font-size:0.85rem;">＋ 課題を追加</button>
+                </div>
             </div>`;
 
         const tasks = this._getCurriculumTasks(this._curriculumStep);
@@ -822,6 +825,48 @@ window.Admin = {
         showToast('課題を削除しました');
         this.loadCurriculumSteps();
     },
+
+    editStepLabels(step) {
+        if (step === 4) {
+            showToast('STEP4の質問項目は現時点で固定です。');
+            return;
+        }
+
+        const labelsObj = JSON.parse(localStorage.getItem(`admin_step_labels_${step}`) || '{}');
+
+        if (step === 1) {
+            const current = labelsObj['step1-notice'] || '利用者様の変化や気付いたこと';
+            const val = prompt('STEP1 質問1:', current);
+            if (val) labelsObj['step1-notice'] = val;
+        } else if (step === 2) {
+            const q1 = prompt('STEP2 質問1:', labelsObj['step2-change'] || '気付いた変化を1つ記載');
+            const q2 = prompt('STEP2 質問2:', labelsObj['step2-priority-reason'] || 'この優先順位で並べた理由');
+            const q3 = prompt('STEP2 質問3:', labelsObj['step2-expected-change'] || '優先順位1番の支援を行うことで、変化すると考えられること');
+            if (q1) labelsObj['step2-change'] = q1;
+            if (q2) labelsObj['step2-priority-reason'] = q2;
+            if (q3) labelsObj['step2-expected-change'] = q3;
+        } else if (step === 3) {
+            const q1 = prompt('STEP3 質問1:', labelsObj['step3-notice'] || '① 気付き');
+            const q2 = prompt('STEP3 質問2:', labelsObj['step3-support'] || '② 支援内容');
+            const q3 = prompt('STEP3 質問3:', labelsObj['step3-reason'] || '③ その支援を行った理由');
+            const q4 = prompt('STEP3 質問4:', labelsObj['step3-prediction'] || '④ 支援後の変化の予測');
+            const q5 = prompt('STEP3 質問5:', labelsObj['step3-reaction'] || '⑤ 支援後の反応');
+            const q6 = prompt('STEP3 質問6 (上記選択理由):', labelsObj['step3-decision-reason'] || '⑥ 上記を選択した理由');
+            if (q1) labelsObj['step3-notice'] = q1;
+            if (q2) labelsObj['step3-support'] = q2;
+            if (q3) labelsObj['step3-reason'] = q3;
+            if (q4) labelsObj['step3-prediction'] = q4;
+            if (q5) labelsObj['step3-reaction'] = q5;
+            if (q6) labelsObj['step3-decision-reason'] = q6;
+        }
+
+        localStorage.setItem(`admin_step_labels_${step}`, JSON.stringify(labelsObj));
+        showToast(`STEP${step}の質問項目を更新しました ✅`);
+        
+        // 即時反映のためにグローバルなラベル更新関数を呼ぶ
+        if (window.applyDynamicStepLabels) window.applyDynamicStepLabels();
+    },
+
 
     // 旧互換
     editCurriculumStep(id, currentName) {
@@ -946,18 +991,10 @@ window.Admin = {
     },
 
     async _renderFacilityTabs(container) {
-        const isF = this._facilityView === 'facility';
-        let html = `<div style="display:flex;gap:8px;margin-bottom:18px;">
-            <button onclick="Admin._facilityView='facility';Admin._renderFacilityTabs(document.getElementById('admin-facility-list-container'));" style="padding:8px 18px;border-radius:8px;border:none;font-weight:bold;cursor:pointer;background:${isF?'var(--primary)':'#eee'};color:${isF?'white':'#555'};transition:0.2s;">🏛️ 部門一覧</button>
-            <button onclick="Admin._facilityView='staff';Admin._renderFacilityTabs(document.getElementById('admin-facility-list-container'));" style="padding:8px 18px;border-radius:8px;border:none;font-weight:bold;cursor:pointer;background:${!isF?'var(--primary)':'#eee'};color:${!isF?'white':'#555'};transition:0.2s;">👤 スタッフ所属編集</button>
-        </div>`;
-        container.innerHTML = html + '<p style="text-align:center;color:#aaa">読み込み中...</p>';
-        if (isF) {
-            await this._renderFacilityList(container, html);
-        } else {
-            await this._renderStaffEditList(container, html);
-        }
+        container.innerHTML = '<p style="text-align:center;color:#aaa">読み込み中...</p>';
+        await this._renderStaffEditList(container, '');
     },
+
 
     async _renderFacilityList(container, tabHtml) {
         try {
@@ -992,23 +1029,49 @@ window.Admin = {
                 body: JSON.stringify({ action: 'list', facility_id: facilityId, include_inactive: false })
             });
             const d = await resp.json();
-            const staffList = d.staff || [];
-            const rows = staffList.map(s => {
+            const staffList = (d.staff || []).filter(s => {
+                const sidStr = String(s.staff_id);
+                // 1000系（本部）は除外
+                return !sidStr.startsWith('1') && !sidStr.startsWith('F');
+            });
+            
+            // 部門ごとにグループ化
+            const grouped = {};
+            staffList.forEach(s => {
                 const dept = Admin.getDeptName(s.staff_id);
-                return `
-                <div style="background:#fff;border:1px solid #e8eaf6;border-radius:10px;padding:12px 15px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
-                    <div>
-                        <div style="font-weight:bold;">${s.name} <span style="font-size:0.78rem;color:#888;">(${s.staff_id})</span></div>
-                        <div style="font-size:0.8rem;color:#666;margin-top:3px;">STEP ${s.current_step||1} / 役割: ${s.role} / 部門: ${dept}</div>
-                    </div>
-                    <button onclick="Admin.editStaff('${s.staff_id}','${s.name}',${s.current_step||1},'${s.role}','${s.facility_id||''}')" style="background:#4c5bb7;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:0.82rem;cursor:pointer;">✏️ 編集</button>
-                </div>`;
-            }).join('');
+                if (!grouped[dept]) grouped[dept] = [];
+                grouped[dept].push(s);
+            });
+
+            // HTML生成
+            let rows = '';
+            const depts = ['グループホーム', '訪問看護（精神）', '三国', '就労B', 'デイサービス', '生活介護', '小児', 'その他'];
+            depts.forEach(dept => {
+                if (grouped[dept] && grouped[dept].length > 0) {
+                    rows += `<div style="margin-top:20px;margin-bottom:10px;font-size:1.1rem;font-weight:bold;color:#4c5bb7;border-bottom:2px solid #e8eaf6;padding-bottom:5px;">🏢 ${dept}</div>`;
+                    grouped[dept].forEach(s => {
+                        rows += `
+                        <div style="background:#fff;border:1px solid #e8eaf6;border-radius:10px;padding:12px 15px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                            <div>
+                                <div style="font-weight:bold;">${s.name} <span style="font-size:0.78rem;color:#888;">(${s.staff_id})</span></div>
+                                <div style="font-size:0.8rem;color:#666;margin-top:3px;">STEP ${s.current_step||1} / 役割: ${s.role}</div>
+                            </div>
+                            <button onclick="Admin.editStaff('${s.staff_id}','${s.name}',${s.current_step||1},'${s.role}','${s.facility_id||''}')" style="background:#4c5bb7;color:white;border:none;padding:6px 12px;border-radius:6px;font-size:0.82rem;cursor:pointer;">✏️ 編集</button>
+                        </div>`;
+                    });
+                }
+            });
+            
+            if (rows === '') {
+                rows = '<p style="text-align:center;color:#666;">表示対象のスタッフがいません。</p>';
+            }
+
             container.innerHTML = tabHtml + rows;
         } catch(e) {
             container.innerHTML = tabHtml + '<p style="color:red;text-align:center;">取得失敗</p>';
         }
     },
+
 
     async editFacility(id, currentName, currentRegion) {
         const newName = prompt('施設名を入力してください:', currentName);
