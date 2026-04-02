@@ -133,7 +133,7 @@ function parseGeminiResponse(text) {
             cleanText = cleanText.substring(start, end + 1);
         }
         
-        const result = JSON.parse(cleanText);
+        cleanText = cleanText.replace(/,\s*([}\]])/g, 'c:cursor株式会社フリーケア1');\n        cleanText = cleanText.replace(/[\x00-\x1F]+/g, ' ');\n        const result = JSON.parse(cleanText);
         // デフォルト値の保証
         if (!result.applied_knowledge) result.applied_knowledge = "";
         return result;
@@ -224,7 +224,12 @@ const JSON_FORMAT = `
      → 添削例「【昼食後、食堂で】Aさんが【お腹をさすりながら】お腹が痛いと言っていた」
 5. \`judgement\` が【○】の場合は、\`improvement_example\` を空文字 "" にします。
 
-## 回答形式（必ずこのJSON形式で回答してください）:
+## 【重要】回答形式（絶対に厳守）:
+- 出力は必ず有効なJSONであること
+- 文字列内に改行を入れる場合は必ず 「\\n」 とエスケープすること
+- 途中で勝手なフォーマット崩れや余計な記号を入れないこと
+
+回答フォーマット:
 {
   "judgement": "○ または ×",
   "score": 合計スコア（0〜100の整数）,
