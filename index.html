@@ -94,11 +94,11 @@
           <span class="card-icon">📋</span>
           <span class="card-title">介護対象者</span>
         </div>
-        <!-- ドロップダウン選択 -->
-        <select id="home-target-select" onchange="onTargetSelectChange(this)" style="width:100%; padding:10px 12px; border-radius:var(--radius); border:2px solid var(--border);
-                 font-size:1rem; background:var(--surface); color:var(--text); margin-bottom:var(--space-sm);">
-          <option value="">── 介護対象者を選択してください ──</option>
-        </select>
+        <div class="searchable-select-container" id="home-target-wrapper">
+          <input type="text" id="home-target-input" placeholder="名前を打って検索..." class="searchable-select-input">
+          <button type="button" id="home-target-arrow" class="searchable-select-arrow">▼</button>
+          <div id="home-target-dropdown" class="autocomplete-dropdown"></div>
+        </div>
         <div id="home-selected-target" style="margin-top: var(--space-sm)"></div>
         <div style="display:flex; gap:8px; margin-top:var(--space-sm); align-items:center;">
           <button class="btn-link" onclick="navigateTo('screen-assessment-list')" style="font-size:0.85rem;">📂
@@ -207,12 +207,11 @@
           <input type="date" id="step1-date" required>
         </div>
         <div class="form-group">
-          <label for="step1-target">介護対象者</label>
-          <div class="autocomplete-wrapper">
-            <select id="step1-target" onchange="onTargetSelectChange(this)"
-              style="width:100%; padding:10px 12px; border-radius:var(--radius); border:2px solid var(--border); font-size:1rem; background:var(--surface); color:var(--text); margin-bottom:var(--space-sm);">
-              <option value="">── 介護対象者を選択してください ──</option>
-            </select>
+          <label>介護対象者</label>
+          <div class="searchable-select-container" id="step1-target-wrapper">
+            <input type="text" id="step1-target-input" placeholder="名前を打って検索..." class="searchable-select-input">
+            <button type="button" id="step1-target-arrow" class="searchable-select-arrow">▼</button>
+            <div id="step1-target-dropdown" class="autocomplete-dropdown"></div>
           </div>
           <div id="step1-selected-target" style="margin-top: var(--space-sm)"></div>
         </div>
@@ -286,10 +285,10 @@
         </div>
         <div class="form-group">
           <label>対象者</label>
-          <div id="step2-target-display" class="autocomplete-wrapper">
-            <input type="text" class="autocomplete-input" id="step2-target-input" placeholder="名前を入力して検索..."
-              autocomplete="off">
-            <div class="autocomplete-dropdown" id="step2-target-dropdown"></div>
+          <div class="searchable-select-container" id="step2-target-wrapper">
+            <input type="text" id="step2-target-input" placeholder="名前を打って検索..." class="searchable-select-input">
+            <button type="button" id="step2-target-arrow" class="searchable-select-arrow">▼</button>
+            <div id="step2-target-dropdown" class="autocomplete-dropdown"></div>
           </div>
           <div id="step2-selected-target" style="margin-top: var(--space-sm)"></div>
         </div>
@@ -337,10 +336,10 @@
         </div>
         <div class="form-group">
           <label>対象者</label>
-          <div class="autocomplete-wrapper">
-            <input type="text" class="autocomplete-input" id="step3-target-input" placeholder="名前を入力して検索..."
-              autocomplete="off">
-            <div class="autocomplete-dropdown" id="step3-target-dropdown"></div>
+          <div class="searchable-select-container" id="step3-target-wrapper">
+            <input type="text" id="step3-target-input" placeholder="名前を打って検索..." class="searchable-select-input">
+            <button type="button" id="step3-target-arrow" class="searchable-select-arrow">▼</button>
+            <div id="step3-target-dropdown" class="autocomplete-dropdown"></div>
           </div>
           <div id="step3-selected-target" style="margin-top: var(--space-sm)"></div>
         </div>
@@ -504,10 +503,10 @@
           <div class="admin-section-title" style="margin-bottom: var(--space-md);">Ⅰ．基本情報</div>
           <div class="form-group">
             <label>対象者</label>
-            <div class="autocomplete-wrapper">
-              <input type="text" class="autocomplete-input" id="step4-target-input" placeholder="名前を入力して検索..."
-                autocomplete="off">
-              <div class="autocomplete-dropdown" id="step4-target-dropdown"></div>
+            <div class="searchable-select-container" id="step4-target-wrapper">
+              <input type="text" id="step4-target-input" placeholder="名前を打って検索..." class="searchable-select-input">
+              <button type="button" id="step4-target-arrow" class="searchable-select-arrow">▼</button>
+              <div id="step4-target-dropdown" class="autocomplete-dropdown"></div>
             </div>
             <div id="step4-selected-target" style="margin-top: var(--space-sm)"></div>
           </div>
@@ -1499,16 +1498,13 @@
 
   <!-- 送信済み課題修正画面 -->
   <section id="screen-edit-list" class="screen">
-    <header class="header">
-      <button class="icon-btn" onclick="navigateTo('screen-home')">
-        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-      </button>
-      <h1 class="header-title" style="font-size: 1.1rem;">送信済み課題修正</h1>
-      <div style="width: 40px;"></div>
-    </header>
+    <div class="screen-content">
+      <div class="step-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+        <h2 class="step-title">送信済み課題修正</h2>
+      </div>
 
-    <div class="content-scrollable">
-      <div class="edit-category-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; padding: 20px;">
+      <div class="edit-category-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
         <button class="category-card" onclick="RecordEdit.loadStep(1)" style="aspect-ratio: 1; border-radius: 20px; border: none; background: #E3F2FD; color: #1976D2; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); cursor: pointer;">
           <span style="font-size: 2rem;">💡</span>
           <span style="font-weight: bold;">気付き</span>
@@ -1527,7 +1523,7 @@
         </button>
       </div>
 
-      <div id="edit-list-container" style="padding: 0 20px 100px;">
+      <div id="edit-list-container" style="padding-bottom: 100px;">
         <div style="text-align: center; color: #999; margin-top: 40px;">
           カテゴリーを選択してください
         </div>

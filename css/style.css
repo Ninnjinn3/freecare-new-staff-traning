@@ -2949,3 +2949,102 @@ input:checked+.slider:before {
   position: relative;
   z-index: 2;
 }
+
+/* === Searchable Select (Combobox) === */
+.searchable-select-container {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: var(--radius-md);
+  overflow: visible; /* Dropdown display */
+  transition: border-color 0.2s;
+  margin-bottom: var(--space-sm);
+}
+
+.searchable-select-container:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(88, 204, 2, 0.15);
+}
+
+.searchable-select-input {
+  flex: 1;
+  border: none !important;
+  background: transparent !important;
+  padding: 14px 16px !important;
+  font-size: 1rem !important;
+  min-height: 52px !important;
+  box-shadow: none !important;
+  border-radius: var(--radius-md) 0 0 var(--radius-md) !important;
+}
+
+.searchable-select-arrow {
+  background: var(--bg-secondary);
+  border: none;
+  border-left: 1px solid var(--border);
+  color: var(--text-secondary);
+  padding: 0 16px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0 var(--radius-md) var(--radius-md) 0;
+}
+
+.searchable-select-arrow:hover {
+  background: var(--primary-bg);
+  color: var(--primary);
+}
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  z-index: 1000;
+  max-height: 250px;
+  overflow-y: auto;
+  display: none;
+  animation: slideDown 0.2s ease-out;
+}
+
+.autocomplete-dropdown.active {
+  display: block;
+}
+
+.autocomplete-option {
+  padding: 14px 16px;
+  cursor: pointer;
+  font-size: 1rem;
+  border-bottom: 1px solid var(--bg-secondary);
+  transition: background 0.15s;
+  color: var(--text);
+}
+
+.autocomplete-option:last-child {
+  border-bottom: none;
+}
+
+.autocomplete-option:hover {
+  background: var(--primary-bg);
+  color: var(--primary-dark);
+}
+
+.autocomplete-option.empty {
+  color: var(--text-muted);
+  cursor: default;
+  text-align: center;
+  padding: 20px;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-5px); }
+  to { opacity: 1; transform: translateY(0); }
+}

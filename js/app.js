@@ -216,77 +216,115 @@ function initHome() {
 
 // ===== 対象者ドロップダウン =====
 async function initTargetDropdown() {
-    const selects = [
-        document.getElementById('home-target-select'),
-        document.getElementById('step1-target')
-    ];
-
-    try {
-        const targets = await getTargetList(true); // Supabaseから最新を取得
-
-        selects.forEach(select => {
-            if (!select) return;
-            // オプションを再描画
-            select.innerHTML = '<option value="">── 介護対象者を選択してください ──</option>';
-            targets.forEach(t => {
-                const opt = document.createElement('option');
-                opt.value = t.id || t.db_id;
-                opt.textContent = t.name;
-                opt.dataset.name = t.name;
-                opt.dataset.level = t.care_level || '';
-                select.appendChild(opt);
-            });
-
-            // 既に選択済みなら復元
-            if (selectedTarget) {
-                select.value = selectedTarget.id || selectedTarget.db_id || '';
-            }
-
-            if (targets.length === 0) {
-                select.innerHTML = '<option value="">※ まずは対象者を新規追加してください</option>';
-            }
-        });
-    } catch (e) {
-        console.error('対象者ドロップダウン読み込みエラー:', e);
-    }
+    // 新しい検索可能セレクターの初期化に移行
+    await initSearchableTargetSelect('home');
+    await initSearchableTargetSelect('step1');
 }
 
-function onTargetSelectChange(selectEl) {
-    const selectedId = selectEl.value;
+/**
+ * 検索機能付き対象者選択UIの初期化
+ * @param {string} prefix 'home', 'step1', 'step2' 等
+ */
+async function initSearchableTargetSelect(prefix) {
+    const container = document.getElementById(`${prefix}-target-wrapper`);
+    const input = document.getElementById(`${prefix}-target-input`);
+    const arrow = document.getElementById(`${prefix}-target-arrow`);
+    const dropdown = document.getElementById(`${prefix}-target-dropdown`);
+    const selectedContainer = document.getElementById(`${prefix}-selected-target`);
+    
+    if (!input || !dropdown) return;
 
-    // 他のドロップダウンの同期
-    const selects = [
-        document.getElementById('home-target-select'),
-        document.getElementById('step1-target')
-    ];
-    selects.forEach(s => {
-        if (s && s !== selectEl) {
-            s.value = selectedId;
+    const targets = await getTargetList(true);
+
+    // 初期状態の描画（選択済みがあれば）
+    if (prefix === 'home' || prefix === 'step1') {
+        if (selectedTarget) renderSelectedTarget(selectedContainer, selectedTarget);
+    } else {
+        if (stepSelectedTargets[prefix]) renderSelectedTarget(selectedContainer, stepSelectedTargets[prefix]);
+    }
+
+    // 入力時の検索
+    input.addEventListener('input', function() {
+        const query = this.value.trim();
+        renderDropdownOptions(query);
+        dropdown.classList.add('active');
+    });
+
+    // 矢印クリックで全表示・非表示切り替え
+    if (arrow) {
+        arrow.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const isActive = dropdown.classList.contains('active');
+            if (isActive) {
+                dropdown.classList.remove('active');
+            } else {
+                renderDropdownOptions(''); // 全表示
+                dropdown.classList.add('active');
+                input.focus();
+            }
+        });
+    }
+
+    // フォーカス時
+    input.addEventListener('focus', () => {
+        renderDropdownOptions(input.value.trim());
+        dropdown.classList.add('active');
+    });
+
+    // ドロップダウン内のクリック
+    dropdown.addEventListener('click', (e) => {
+        const option = e.target.closest('.autocomplete-option');
+        if (!option || !option.dataset.id) return;
+        
+        const picked = targets.find(t => t.id === option.dataset.id || t.db_id === option.dataset.id);
+        if (!picked) return;
+
+        selectTarget(prefix, picked);
+        dropdown.classList.remove('active');
+        input.value = '';
+    });
+
+    // 外側クリックで閉じる
+    document.addEventListener('click', (e) => {
+        if (!container || !container.contains(e.target)) {
+            dropdown.classList.remove('active');
         }
     });
 
-    if (!selectedId) {
-        selectedTarget = null;
-        document.getElementById('home-selected-target') && renderSelectedTarget(document.getElementById('home-selected-target'), null);
-        document.getElementById('step1-selected-target') && renderSelectedTarget(document.getElementById('step1-selected-target'), null);
-        return;
+    function renderDropdownOptions(query) {
+        const matches = targets.filter(t => 
+            !query || t.name.includes(query) || t.name.replace(/\s/g, '').includes(query.replace(/\s/g, ''))
+        );
+        
+        if (matches.length === 0) {
+            dropdown.innerHTML = '<div class="autocomplete-option empty">該当なし</div>';
+        } else {
+            dropdown.innerHTML = matches.map(t => `
+                <div class="autocomplete-option" data-id="${t.id || t.db_id}">
+                    ${t.name}
+                </div>
+            `).join('');
+        }
     }
-    const opt = selectEl.options[selectEl.selectedIndex];
-    selectedTarget = {
-        id: selectedId,
-        db_id: selectedId,
-        name: opt.dataset.name || opt.textContent,
-        care_level: opt.dataset.level || ''
-    };
-
-    const homeSelected = document.getElementById('home-selected-target');
-    if (homeSelected) renderSelectedTarget(homeSelected, selectedTarget);
-
-    // STEP1ではカード表示を無くしてスッキリさせることも可能ですが、念のため元通り表示します。
-    // （不要なら消しても良いですが現状維持）
-
-    showToast(`${selectedTarget.name}さんを選択しました ✅`);
 }
+
+function selectTarget(prefix, picked) {
+    if (prefix === 'home' || prefix === 'step1') {
+        selectedTarget = picked;
+        // 同期
+        ['home', 'step1'].forEach(p => {
+            const container = document.getElementById(`${p}-selected-target`);
+            if (container) renderSelectedTarget(container, picked);
+        });
+    } else {
+        stepSelectedTargets[prefix] = picked;
+        const container = document.getElementById(`${prefix}-selected-target`);
+        if (container) renderSelectedTarget(container, picked);
+    }
+    showToast(`${picked.name}さんを選択しました ✅`);
+}
+
+// onTargetSelectChange は新しい検索UIでは使用しません (initSearchableTargetSelect 内で制御)
 
 /**
  * 対象者選択カードの描画
@@ -303,7 +341,6 @@ function renderSelectedTarget(container, target) {
                 <span style="font-size:1.2rem;">👤</span>
                 <div>
                     <div style="font-weight:bold; font-size:0.95rem;">${target.name}</div>
-                    <div style="font-size:0.75rem; opacity:0.7;">${target.care_level || '介護度未設定'}</div>
                 </div>
             </div>
             <button type="button" onclick="clearSelectedTarget()" style="background:none; border:none; color:var(--text-secondary); cursor:pointer; font-size:1.2rem; padding:4px;">✕</button>
@@ -318,54 +355,24 @@ function setStepSelectedTarget(stepName, target) {
     if (!target || !target.id) return;
 
     // グローバルな selectedTarget を更新
-    window.selectedTarget = {
+    const picked = {
         id: target.id,
         db_id: target.id,
         name: target.name || '',
         care_level: target.care_level || ''
     };
 
-    // STEP1 または ホーム (ドロップダウン) の場合
-    if (stepName === 'step1' || stepName === 'home') {
-        const selectId = stepName === 'step1' ? 'step1-target' : 'home-target-select';
-        const select = document.getElementById(selectId);
-        if (select) {
-            // もしIDがリストになければ一時的に追加
-            const exists = Array.from(select.options).some(opt => opt.value === target.id);
-            if (!exists) {
-                const opt = document.createElement('option');
-                opt.value = target.id;
-                opt.textContent = target.name;
-                opt.dataset.name = target.name;
-                select.appendChild(opt);
-            }
-            select.value = target.id;
-        }
-        
-        // 選択カードの描画
-        const containerId = stepName === 'step1' ? 'step1-selected-target' : 'home-selected-target';
-        const container = document.getElementById(containerId);
-        if (container) renderSelectedTarget(container, window.selectedTarget);
-    } 
-    // STEP2, 3, 4 (オートコンプリート) の場合
-    else {
-        stepSelectedTargets[stepName] = window.selectedTarget;
-        const container = document.getElementById(`${stepName}-selected-target`);
-        if (container) renderSelectedTarget(container, window.selectedTarget);
-        
-        const input = document.getElementById(`${stepName}-target-input`);
-        if (input) input.value = '';
-    }
+    selectTarget(stepName === 'home' || stepName === 'step1' ? 'home' : stepName, picked);
 }
 
 function clearSelectedTarget() {
     selectedTarget = null;
-    const selects = [
-        document.getElementById('home-target-select'),
-        document.getElementById('step1-target')
-    ];
-    selects.forEach(s => {
-        if (s) s.value = '';
+    ['home', 'step1', 'step2', 'step3', 'step4'].forEach(p => {
+        const container = document.getElementById(`${p}-selected-target`);
+        if (container) renderSelectedTarget(container, null);
+        
+        // オートコンプリートのキャッシュもクリア
+        if (stepSelectedTargets[p]) stepSelectedTargets[p] = null;
     });
     showToast('対象者の選択を解除しました');
 }
@@ -374,58 +381,8 @@ function clearSelectedTarget() {
 const stepSelectedTargets = {}; // { step2: null, step3: null }
 
 async function initStepAutocomplete(stepName) {
-    // step1はドロップダウンに移行したため除外
-    if (stepName === 'step1') return;
-    const input = document.getElementById(`${stepName}-target-input`);
-    const dropdown = document.getElementById(`${stepName}-target-dropdown`);
-    const selectedContainer = document.getElementById(`${stepName}-selected-target`);
-    if (!input || !dropdown) return;
-
-    const targets = await getTargetList(true); // 最新を取得
-
-    // 既に選択済みなら表示（ホーム画面で選んだものを引走）
-    if (selectedTarget) {
-        stepSelectedTargets[stepName] = selectedTarget;
-        renderSelectedTarget(selectedContainer, selectedTarget);
-        input.value = '';
-    }
-
-    input.addEventListener('input', function () {
-        const query = this.value.trim();
-        if (!query) { dropdown.classList.remove('active'); return; }
-        const matches = targets.filter(t =>
-            t.name.includes(query) || t.name.replace(/\s/g, '').includes(query.replace(/\s/g, ''))
-        );
-        dropdown.innerHTML = matches.length === 0
-            ? '<div class="autocomplete-option" style="color: var(--text-muted)">該当なし</div>'
-            : matches.map(t => `<div class="autocomplete-option" data-id="${t.id}" data-name="${t.name}">
-                ${t.name}
-              </div>`).join('');
-        dropdown.classList.add('active');
-    });
-
-    dropdown.addEventListener('click', function (e) {
-        const option = e.target.closest('.autocomplete-option');
-        if (!option || !option.dataset.id) return;
-        const picked = targets.find(t => t.id === option.dataset.id);
-        stepSelectedTargets[stepName] = picked;
-        input.value = '';
-        dropdown.classList.remove('active');
-        renderSelectedTarget(selectedContainer, picked);
-        showToast(`${picked.name}さんを選択しました ✅`);
-    });
-
-    input.addEventListener('blur', () => setTimeout(() => dropdown.classList.remove('active'), 200));
-    input.addEventListener('focus', function () {
-        if (!this.value.trim()) {
-            dropdown.innerHTML = targets.map(t =>
-                `<div class="autocomplete-option" data-id="${t.id}" data-name="${t.name}">
-                    ${t.name}
-                </div>`
-            ).join('');
-            dropdown.classList.add('active');
-        }
-    });
+    // 共通の initSearchableTargetSelect に移行
+    await initSearchableTargetSelect(stepName);
 }
 
 function getStepSelectedTarget(stepName) {
