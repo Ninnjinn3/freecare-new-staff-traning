@@ -202,36 +202,41 @@ function showResult(result) {
     const missingSection = document.getElementById('result-missing');
     const missingList = document.getElementById('result-missing-list');
     missingList.innerHTML = '';
-    if (result.missing_points.length > 0) {
-        missingSection.hidden = false;
+    missingSection.hidden = false;
+    if (result.missing_points && result.missing_points.length > 0) {
         result.missing_points.forEach(p => {
             const li = document.createElement('li');
             li.textContent = p;
             missingList.appendChild(li);
         });
+    } else if (!isCorrect) {
+        const li = document.createElement('li');
+        li.textContent = '現状の文章では具体的な状況が読み取れませんでした。';
+        missingList.appendChild(li);
     } else {
-        missingSection.hidden = true;
+        missingSection.hidden = true; // ○の場合は隠す
     }
 
     // Improvement example
     const improveSection = document.getElementById('result-improve');
-    if (result.improvement_example) {
+    const improveText = document.getElementById('result-improve-text');
+    if (!isCorrect) {
         improveSection.hidden = false;
-        document.getElementById('result-improve-text').textContent = result.improvement_example;
+        improveText.innerHTML = result.improvement_example ? result.improvement_example.replace(/\n/g, '<br>') : '（情報が十分でないため改善例を作成できませんでした。「いつ」「どこで」「誰が」「何を」もう少し足して再提出してみましょう）';
     } else {
-        improveSection.hidden = true;
+        improveSection.hidden = true; // ○の場合は隠す
     }
 
     // Applied Knowledge
     const knowledgeSection = document.getElementById('result-knowledge');
     const knowledgeText = document.getElementById('result-knowledge-text');
-    if (result.applied_knowledge && result.applied_knowledge.trim() !== "") {
-        if (knowledgeSection && knowledgeText) {
+    if (knowledgeSection && knowledgeText) {
+        if (result.applied_knowledge && result.applied_knowledge.trim() !== "") {
             knowledgeSection.hidden = false;
             knowledgeText.textContent = result.applied_knowledge;
+        } else {
+            knowledgeSection.hidden = true;
         }
-    } else {
-        if (knowledgeSection) knowledgeSection.hidden = true;
     }
 
     // Breakdown Visualization

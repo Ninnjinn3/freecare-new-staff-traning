@@ -506,33 +506,32 @@ const Monthly = {
                             </div>
                         `;
                     } else {
-                        const mPoints = (r.ai_missing || []).map(p => `<li style="margin-bottom:6px; display:flex; gap:8px;"><span>❌</span> <span>${p}</span></li>`).join('');
+                        const mPoints = (r.ai_missing || []).length > 0 ? (r.ai_missing || []).map(p => `<li style="margin-bottom:6px; display:flex; gap:8px;"><span>❌</span> <span>${p}</span></li>`).join('') : '<li style="margin-bottom:6px; display:flex; gap:8px;"><span>❌</span> <span>現状の文章では具体的な状況が読み取れませんでした。</span></li>';
+                        const improveText = r.ai_improve ? r.ai_improve.replace(/\n/g, '<br>') : '（情報が不足しているため改善例を作成できませんでした。「いつ」「どこで」「誰が」「何を」もう少し足して再提出してみましょう）';
+                        const commentText = (r.ai_comment || r.ai_advice || '短すぎたり具体性がないとAIが判断できない場合があります。もう少し状況を書き足してみましょう！').replace(/\n/g, '<br>');
+                        
                         feedbackHtml = `
                             <div style="margin-top: 15px; padding: 18px; background: #fffafb; border-radius: 12px; border: 1px solid #fee2e2;">
                                 <div style="display: flex; align-items: center; gap: 8px; color: #991b1b; font-weight: bold; margin-bottom: 12px; font-size: 1rem;">
                                     <span style="background: #fee2e2; padding: 2px 6px; border-radius: 4px;">🔍</span> 修正点とアドバイス
                                 </div>
                                 
-                                ${mPoints ? `
                                 <div style="margin-bottom: 15px;">
                                     <div style="font-weight: bold; color: #b91c1c; margin-bottom: 8px; font-size: 0.85rem; opacity: 0.8;">【不足している点】</div>
                                     <ul style="list-style: none; padding: 0; margin: 0; color: #4b5563; font-size: 0.9rem;">${mPoints}</ul>
                                 </div>
-                                ` : ''}
 
-                                ${r.ai_improve ? `
                                 <div style="margin-bottom: 15px;">
                                     <div style="font-weight: bold; color: #065f46; margin-bottom: 8px; font-size: 0.85rem; opacity: 0.8;">【改善例（こう書くと100点！）】</div>
                                     <div style="background: #ecfdf5; padding: 12px; border-radius: 8px; border-left: 4px solid #10b981; color: #065f46; font-size: 0.9rem; line-height: 1.6;">
-                                        ${r.ai_improve.replace(/\n/g, '<br>')}
+                                        ${improveText}
                                     </div>
                                 </div>
-                                ` : ''}
 
                                 <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #fee2e2;">
                                     <div style="font-weight: bold; color: #4b5563; margin-bottom: 4px; font-size: 0.85rem; opacity: 0.8;">【総評】</div>
                                     <div style="color: #4b5563; font-size: 0.9rem; line-height: 1.6; font-weight: 500;">
-                                        ${(r.ai_comment || r.ai_advice || '改善点を確認して、振り返りに活かしましょう。').replace(/\n/g, '<br>')}
+                                        ${commentText}
                                     </div>
                                 </div>
                             </div>
