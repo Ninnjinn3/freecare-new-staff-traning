@@ -210,8 +210,9 @@ const Monthly = {
             let reportData = data ? data.breakdown_json : null;
             let score = data ? data.score : 0;
             let passed = data ? data.passed : false;
+            let improvement = data ? (data.improvement || '') : '';
 
-            this.renderEvaluation(reportData, score, passed, currentTarget);
+            this.renderEvaluation(reportData, score, passed, currentTarget, improvement);
             await this.renderDailyRecords(currentTarget);
 
             const needsReeval = !reportData || (Array.isArray(reportData) && reportData.some(b => 
@@ -230,10 +231,10 @@ const Monthly = {
 
                 const newData = await Monthly.calculate(currentTarget, force);
                 if (newData && !newData.cached) {
-                    this.renderEvaluation(newData.breakdown, newData.score, newData.passed, currentTarget);
+                    this.renderEvaluation(newData.breakdown, newData.score, newData.passed, currentTarget, newData.improvement);
                     showToast('最新の記録に基づき、AI評価を更新しました ✨');
                 } else if (newData && !reportData) {
-                    this.renderEvaluation(newData.breakdown, newData.score, newData.passed, currentTarget);
+                    this.renderEvaluation(newData.breakdown, newData.score, newData.passed, currentTarget, newData.improvement);
                 }
             }
 
@@ -247,7 +248,7 @@ const Monthly = {
     },
 
     // 6項目の評価描画
-    renderEvaluation(breakdown, totalScore, passed, yearMonth) {
+    renderEvaluation(breakdown, totalScore, passed, yearMonth, globalImprovement = '') {
         const isEditable = DB.isCycleActive(yearMonth);
         const bRoot = document.getElementById('score-breakdown');
 
@@ -261,7 +262,7 @@ const Monthly = {
 
             if (bRoot) {
                 bRoot.innerHTML = `
-                    <div class="card" style="text-align: center; padding: 40px var(--space-lg); margin-top: 20px; border: 2px dashed var(--primary);">
+                    <div class="card" style="text-align: center; padding: 40px var(--space-lg); margin-top: 20px; border: 2px dashed var(--primary); border-radius: 16px;">
                         <div style="font-size: 3rem; margin-bottom: 20px;">⏳</div>
                         <h3 style="margin-bottom: 15px; color: var(--primary);">ただいま記録修正・提出期間中です</h3>
                         <p style="color: var(--text-secondary); margin-bottom: 25px; line-height: 1.6;">
@@ -290,7 +291,7 @@ const Monthly = {
         if (!breakdown || !Array.isArray(breakdown) || breakdown.length === 0) {
             if (bRoot) {
                 bRoot.innerHTML = `
-                    <div class="card" style="text-align: center; padding: 40px var(--space-lg); margin-top: 20px; border: 2px dashed var(--border);">
+                    <div class="card" style="text-align: center; padding: 40px var(--space-lg); margin-top: 20px; border: 2px dashed var(--border); border-radius: 16px;">
                         <div style="font-size: 3rem; margin-bottom: 20px;">📝</div>
                         <h3 style="margin-bottom: 15px; color: var(--text);">今月分の月次評価はまだ作成されていません</h3>
                         <p style="color: var(--text-secondary); margin-bottom: 25px; line-height: 1.6;">
@@ -328,115 +329,111 @@ const Monthly = {
 
         if (!bRoot) return;
 
-        let html = '<div class="evaluation-sheet">';
+        let html = '<div class="evaluation-sheet" style="display: flex; flex-direction: column; gap: 30px;">';
         
-        // サマリーテーブルを追加（以前の形式を継承）
+        // サマリーテーブル
         html += `
-            <div class="eval-title">サービスの質向上委員会<br>スコアリング評価シート</div>
-            <table class="eval-table">
-                <thead>
-                    <tr><th>項目</th><th>配点</th><th>得点</th><th>判定</th></tr>
-                </thead>
-                <tbody>
-        `;
-        breakdown.forEach(item => {
-            html += `
-                <tr>
-                    <td>${item.name}</td>
-                    <td class="center">${item.max}点</td>
-                    <td class="center" style="font-weight:bold; color: ${item.score === item.max ? 'var(--success)' : 'var(--danger)'}">${item.score}点</td>
-                    <td>${item.judgement || '-'}</td>
-                </tr>
-            `;
-        });
-        html += `
-                <tr class="total-row">
-                    <td>合計</td>
-                    <td class="center">100点</td>
-                    <td class="center">${totalScore}点</td>
-                    <td>${passed ? '合格' : '不合格'}</td>
-                </tr>
-            </tbody></table>
+            <div class="eval-card" style="background: white; border-radius: 16px; padding: 25px; border: 1px solid var(--border); box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <div style="font-weight: 800; color: var(--primary); margin-bottom: 15px; text-align: center; font-size: 1.1rem; text-transform: uppercase; letter-spacing: 0.1em;">月次スコアリング・サマリー</div>
+                <table class="report-table" style="width: 100%; border-collapse: collapse;">
+                    <thead>
+                        <tr style="background: #f8fafc; border-bottom: 2px solid var(--border);">
+                            <th style="padding: 12px; text-align: left;">評価観点</th>
+                            <th style="padding: 12px; width: 80px; text-align: center;">得点</th>
+                            <th style="padding: 12px; width: 80px; text-align: center;">配点</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${breakdown.map(item => `
+                            <tr style="border-bottom: 1px solid #f1f5f9;">
+                                <td style="padding: 12px; font-weight: 500;">${item.name}</td>
+                                <td style="padding: 12px; text-align: center; font-weight: 800; color: ${item.score >= (item.max * 0.8) ? 'var(--success)' : (item.score >= (item.max * 0.5) ? 'var(--warning)' : 'var(--danger)')};">${item.score}</td>
+                                <td style="padding: 12px; text-align: center; color: var(--text-muted); font-size: 0.85rem;">${item.max}</td>
+                            </tr>
+                        `).join('')}
+                        <tr style="background: #f8fafc; font-weight: 800; border-top: 2px solid var(--border);">
+                            <td style="padding: 12px;">総合得点</td>
+                            <td style="padding: 12px; text-align: center; color: var(--primary); font-size: 1.2rem;">${totalScore}</td>
+                            <td style="padding: 12px; text-align: center;">100</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <div style="margin-top: 15px; text-align: center;">
+                    <span style="display: inline-block; padding: 6px 20px; border-radius: 100px; font-weight: 800; background: ${passed ? 'var(--success)' : 'var(--danger)'}; color: white;">
+                        ${passed ? '🎉 合格判定' : '💪 不合格（要改善）'}
+                    </span>
+                </div>
+            </div>
         `;
 
         // 各項目の詳細カード
         breakdown.forEach((item, index) => {
-            const scorePercent = (item.score / item.max) * 100;
-            const barColor = scorePercent >= 80 ? 'var(--success)' : (scorePercent >= 50 ? 'var(--warning)' : 'var(--danger)');
+            const criteria = (item.criteriaRef && item.criteriaRef.length > 0) ? item.criteriaRef : [
+                { pts: '-', desc: '詳細な基準データをAIが分析中、または再評価を行ってください。', selected: false }
+            ];
 
             html += `
-                <div class="eval-item-card card" style="margin-top: 25px; border-top: 4px solid ${barColor};">
-                    <div class="eval-item-header">
-                        <h4 class="eval-item-title">${item.name} (${item.max}点満点) → <span style="color:${barColor}; font-weight:bold;">${item.score}点</span></h4>
+                <div class="eval-card" style="background: white; border-radius: 16px; padding: 25px; box-shadow: 0 4px 20px rgba(0,0,0,0.06); border: 1px solid var(--border); border-top: 4px solid var(--primary);">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 20px; border-bottom: 1px solid #edf2f7; padding-bottom: 15px; gap: 15px;">
+                        <div>
+                            <h4 style="margin: 0; color: var(--primary); font-size: 1.2rem; font-weight: 800; display: flex; align-items: center; gap: 8px;">
+                                <span style="background: var(--primary); color: white; width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border-radius: 6px; font-size: 0.85rem;">${index + 1}</span>
+                                ${item.name}
+                            </h4>
+                            <p style="margin: 4px 0 0 0; font-size: 0.85rem; color: var(--text-muted);">AIが1ヶ月間の全記録を多角的に分析しました</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 1.5rem; font-weight: 900; color: var(--primary); line-height: 1;">${item.score} <span style="font-size: 0.85rem; font-weight: bold; color: var(--text-muted); opacity:0.6;">/ ${item.max}</span></div>
+                        </div>
                     </div>
-                    
-                    <div class="criteria-list" style="margin-top: 15px;">
-                        <p style="font-size: 0.9rem; font-weight: bold; color: var(--text-secondary); margin-bottom: 8px;">【採点基準との照合】</p>
-                        <table class="criteria-table" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                            <thead>
-                                <tr style="background: var(--surface); text-align: left; border-bottom: 2px solid var(--border);">
-                                    <th style="padding: 8px; width: 60px; text-align: center;">点数</th>
-                                    <th style="padding: 8px;">基準</th>
-                                    <th style="padding: 8px; width: 50px; text-align: center;">判定</th>
-                                </tr>
-                            </thead>
+
+                    <div style="background: #f8fafc; border-radius: 12px; overflow: hidden; border: 1px solid #eef2f6; margin-bottom: 20px;">
+                        <div style="padding: 8px 15px; background: #f1f5f9; color: #475569; font-size: 0.8rem; font-weight: bold; border-bottom: 1px solid #eef2f6; text-transform: uppercase;">Check Points / 採点基準との照合</div>
+                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
                             <tbody>
-                                ${(item.criteriaRef || []).map(c => `
-                                    <tr style="border-bottom: 1px solid var(--border); ${(c.check || c.selected) ? 'background: rgba(88, 204, 2, 0.08);' : ''}">
-                                        <td style="padding: 10px; text-align: center; font-weight: bold; color: var(--text-secondary);">${c.pts || c.points || 0}</td>
-                                        <td style="padding: 10px; color: var(--text);">${c.desc || c.description || '基準データなし'}</td>
-                                        <td style="padding: 10px; text-align: center; font-size: 1.2rem;">${(c.check || c.selected) ? '✅' : '―'}</td>
+                                ${criteria.map(c => `
+                                    <tr style="${(c.selected || c.check) ? 'background: #f0fdf4;' : ''} border-bottom: 1px solid #f1f5f9;">
+                                        <td style="padding: 10px; width: 45px; text-align: center; font-weight: bold; color: ${(c.selected || c.check) ? '#166534' : '#94a3b8'};">${c.pts || c.points || '―'}</td>
+                                        <td style="padding: 10px; color: ${(c.selected || c.check) ? '#166534' : '#475569'}; line-height: 1.4;">${c.desc || c.description || '―'}</td>
+                                        <td style="padding: 10px; width: 40px; text-align: center; font-size: 1.1rem;">${(c.selected || c.check) ? '✅' : '<span style="color:#e2e8f0;">―</span>'}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
                         </table>
                     </div>
 
-                    <div class="eval-content-section" style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border);">
-                        
-                        ${(item.goodPoints && item.goodPoints.length > 0) ? `
-                        <div style="margin-bottom: 20px;">
-                            <div style="font-weight: bold; color: #27ae60; margin-bottom: 10px; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
-                                <span style="background: #e8f5e9; padding: 4px 8px; border-radius: 4px;">✅</span> 良い点
-                            </div>
-                            <ul style="list-style: none; padding: 0; margin: 0; color: #2d3436; font-size: 0.95rem; line-height: 1.7;">
-                                ${item.goodPoints.map(p => `<li style="display: flex; gap: 10px; margin-bottom: 8px; padding-left: 10px; border-left: 2px solid #27ae60;">${p}</li>`).join('')}
-                            </ul>
+                    <div style="padding: 15px; background: #fff; border-radius: 10px; border: 1px solid #f1f5f9; position: relative;">
+                        <div style="font-weight: bold; color: #64748b; font-size: 0.8rem; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; text-transform: uppercase;">
+                            <span style="color: var(--primary)">#</span> Analysis / フィードバック
                         </div>
-                        ` : ''}
- 
-                        ${(item.badPoints && item.badPoints.length > 0) ? `
-                        <div style="margin-bottom: 20px;">
-                            <div style="font-weight: bold; color: #e74c3c; margin-bottom: 10px; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
-                                <span style="background: #ffebee; padding: 4px 8px; border-radius: 4px;">❌</span> 不足している点
-                            </div>
-                            <ul style="list-style: none; padding: 0; margin: 0; color: #2d3436; font-size: 0.95rem; line-height: 1.7;">
-                                ${item.badPoints.map(p => `<li style="display: flex; gap: 10px; margin-bottom: 8px; padding-left: 10px; border-left: 2px solid #e74c3c;">${p}</li>`).join('')}
-                            </ul>
-                        </div>
-                        ` : ''}
- 
-                        ${item.improvement ? `
-                        <div style="margin-bottom: 20px;">
-                            <div style="font-weight: bold; color: #00796b; margin-bottom: 10px; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
-                                <span style="background: #e0f2f1; padding: 4px 8px; border-radius: 4px;">💡</span> ${item.max}点を取るための改善例
-                            </div>
-                            <div style="background: #f1f8f7; padding: 18px; border-radius: 12px; border: 1px solid #b2dfdb; font-size: 0.95rem; color: #004d40; line-height: 1.7; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);">
-                                ${String(item.improvement).replace(/\n/g, '<br>')}
-                            </div>
-                        </div>
-                        ` : ''}
- 
-                        <div style="margin-top: 25px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
-                            <div style="font-weight: bold; color: #64748b; margin-bottom: 8px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">AI Overall Feedback / 総評</div>
-                            <div style="font-size: 0.95rem; color: #334155; line-height: 1.6; font-weight: 500;">
-                                ${item.comment ? String(item.comment).replace(/\n/g, '<br>') : (item.judgement || '―')}
-                            </div>
+                        <div style="font-size: 0.9rem; color: #334155; line-height: 1.7;">
+                            ${(item.comment || '日々の記録を継続して行いましょう。').replace(/\n/g, '<br>')}
                         </div>
                     </div>
                 </div>
             `;
         });
+
+        if (globalImprovement) {
+            html += `
+                <div class="eval-card" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 20px; padding: 30px; color: white; box-shadow: 0 15px 35px rgba(15, 23, 42, 0.2); position: relative; overflow: hidden; margin-top: 10px;">
+                    <div style="position: absolute; right: -20px; bottom: -20px; font-size: 10rem; opacity: 0.05; transform: rotate(-15deg); color: white;">🏆</div>
+                    <div style="position: relative; z-index: 1;">
+                        <h3 style="margin: 0 0 15px 0; font-size: 1.3rem; font-weight: 800; display: flex; align-items: center; gap: 10px; color: #38bdf8;">
+                            <span style="background: #38bdf8; color: #0f172a; width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 1rem;">💡</span>
+                            来月、100点を取るための戦略
+                        </h3>
+                        <div style="font-size: 1.05rem; line-height: 1.8; color: #cbd5e1; font-weight: 400; border-left: 3px solid #38bdf8; padding-left: 20px;">
+                            ${String(globalImprovement).replace(/\n/g, '<br>')}
+                        </div>
+                        <div style="margin-top: 20px; font-size: 0.75rem; color: #64748b; text-align: right; text-transform: uppercase; letter-spacing: 0.1em;">
+                            Monthly Evaluation Summary & Strategy Report
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
         html += '</div>';
         bRoot.innerHTML = html;
     },

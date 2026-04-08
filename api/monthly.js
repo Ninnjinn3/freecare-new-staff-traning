@@ -183,29 +183,56 @@ function calculateBreakdown(step1, step2, step3, isError = false) {
 
 // ===== AI 月次評価算出 =====
 async function evaluateMonthlyWithAI(step1, step2, step3, apiKey) {
-    // 各STEPの記録テキストをより詳しく抽出
-    const s1Items = step1.slice(0, 15).map((r, i) => `[気付き${i+1}] ${r.notice_text || ''}`);
-    const s2Items = step2.slice(0, 10).map((r, i) => `[仮説${i+1}] 仮説: ${r.hypothesis || ''} / 理由: ${r.reason || ''} / 支援案: ${r.support_plan || ''}`);
-    const s3Items = step3.slice(0, 5).map((r, i) => `[振り返り${i+1}] 実施内容: ${r.support_done || ''} / 結果: ${r.result || ''} / 判定: ${r.judgement || ''}`);
+    // 記録の質をAIに伝えるため、詳細にマッピング
+    const s1Items = step1.slice(0, 20).map((r, i) => 
+        `[気付き] 日付:${r.date} 内容:${r.notice_text}`
+    );
+    const s2Items = step2.slice(0, 15).map((r, i) => {
+        const hypos = (r.hypotheses_json || []).map(h => `${h.hypo}(なぜ:${h.why1}->${h.why2}->${h.why3})`).join(' / ');
+        return `[仮説思考] 日付:${r.date} 変化:${r.change_noticed} 仮説群:${hypos}`;
+    });
+    const s3Items = step3.slice(0, 10).map((r, i) => 
+        `[振り返り] 日付:${r.date} 支援:${r.support} 反応:${r.reaction} 判断:${r.decision}`
+    );
 
     const s1Text = s1Items.join('\n') || '記録なし';
     const s2Text = s2Items.join('\n') || '記録なし';
     const s3Text = s3Items.join('\n') || '記録なし';
 
-    const prompt = `スタッフの月次評価（6観点×100点満点）を行いJSONで返してください。
+    const prompt = `
+あなたはベテランの介護指導員として、スタッフの1ヶ月の記録を統合的に評価してください。
 
-■評価基準:
-1.変化の明確さ(15):STEP1。具体的か。
-2.多層的分析(20):STEP2。深掘りがあるか。
-3.優先順位(15):STEP2。根拠があるか。
-4.検証計画(15):STEP2。具体的指標。
-5.支援実効性(20):STEP3。本人意思反映。
-6.修正力(15):STEP3。改善に繋げているか。
+■評価のルール:
+1. 以下の6つの観点に対し、各最大点数（max）の範囲内で1点単位で厳格に採点（score）してください。
+2. 各観点ごとに、複数の具体的な採点項目（criteriaRef）を生成してください。
+3. **improvement（改善例）**には、このスタッフが次に100点を取るための、具体的かつ実戦的なアドバイスを300文字程度で記載してください。
+4. **comment（総評）**には、この1ヶ月の成長や気づきの鋭さを褒めつつ、更なる高みへの期待を込めてください。
 
-■ルール:
-- userContentには該当記録を箇条書きで引用。
-- commentには詳細な総評（3-4文）。
-- JSON形式：{"breakdown": [{"name":,"max":,"score":,"judgement":,"comment":,"userContent":,"criteriaRef":[]}],"applied_knowledge":""}`;
+■観点詳細:
+1.気づいた変化の明確さ(max 15): STEP1の具体性
+2.要因の多層的分析(max 20): STEP2の「なぜなぜ分析」の深さ
+3.要因の関連性と優先順位(max 15): 最も重要な原因を選べているか
+4.検証計画の論理性(max 15): 支援案が仮説に基づいているか
+5.支援計画の実効性(max 20): STEP3での実施と反応の捉え方
+6.振り返り・修正力(max 15): 結果を受けて次の行動を判断できているか
+
+■出力形式 (JSON形式厳守):
+{
+  "breakdown": [
+    {
+      "name": "観点名",
+      "max": 数値,
+      "score": 数値,
+      "comment": "この観点に対する個別フィードバック",
+      "userContent": "判断材料となった記録の引用（箇条書き）",
+      "criteriaRef": [
+        {"pts": 点数, "desc": "具体的な評価基準内容", "selected": true/false}
+      ]
+    }
+  ],
+  "applied_knowledge": "適用された専門知識や施設ルール",
+  "improvement": "具体的でパーソナライズされた100点満点への改善アドバイス"
+}`;
 
 
     console.log(`Evaluating Monthly AI for Staff:${step1[0]?.staff_id || ' unknown'}. Records: S1:${step1.length}, S2:${step2.length}, S3:${step3.length}`);
