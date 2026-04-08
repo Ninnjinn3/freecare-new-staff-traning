@@ -547,12 +547,24 @@ async function loadHistory() {
 
     let records = [];
 
+    const formatDateTime = (isoStr, dateOnly) => {
+        if (!isoStr) return dateOnly || '--';
+        const d = new Date(isoStr);
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const h = String(d.getHours()).padStart(2, '0');
+        const min = String(d.getMinutes()).padStart(2, '0');
+        return `${y}-${m}-${day} ${h}:${min}`;
+    };
+
     try {
         if (filter === 'all' || filter === 'step1') {
             const step1 = await API.getStep1Records(user.staff_id, null);
             records = records.concat(step1.map(r => ({
                 ...r,
                 stepLabel: 'STEP1',
+                displayDate: formatDateTime(r.created_at, r.date),
                 text: r.notice_text
             })));
         }
@@ -562,6 +574,7 @@ async function loadHistory() {
             records = records.concat(step2.map(r => ({
                 ...r,
                 stepLabel: 'STEP2',
+                displayDate: formatDateTime(r.created_at, r.date),
                 text: r.change_noticed
             })));
         }
@@ -571,19 +584,30 @@ async function loadHistory() {
             records = records.concat(step3.map(r => {
                 let notice = '';
                 try {
-                    const data = JSON.parse(r.reflection_json || '{}');
-                    notice = data.notice || '';
+                    const data = typeof r.reflection_json === 'string' ? JSON.parse(r.reflection_json) : r.reflection_json;
+                    notice = data?.notice || '';
                 } catch (e) { }
                 return {
                     ...r,
                     stepLabel: 'STEP3',
+                    displayDate: formatDateTime(r.created_at, r.date),
                     text: notice || r.support_done
                 };
             }));
         }
 
-        // 日付降順
-        records.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+        if (filter === 'all' || filter === 'step4') {
+            const step4 = await API.getStep4Records(user.staff_id);
+            records = records.concat(step4.map(r => ({
+                ...r,
+                stepLabel: 'STEP4',
+                displayDate: formatDateTime(r.created_at, r.date),
+                text: r.noticed_change || '症例報告書'
+            })));
+        }
+
+        // 日時降順（作成日時を優先）
+        records.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
 
         if (records.length === 0) {
             listEl.innerHTML = '<p class="empty-state">記録がありません</p>';
@@ -593,9 +617,9 @@ async function loadHistory() {
         listEl.innerHTML = records.map(r => `
         <div class="history-item" style="margin-bottom: 12px; padding: 12px; background: white; border-radius: 8px; border-left: 4px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05);">
           <div class="history-item-header" style="display:flex; justify-content:space-between; margin-bottom: 8px;">
-            <strong style="font-size:1.1rem; color:var(--text);">${r.date || '--'} <span style="font-size:0.9rem; font-weight:normal; color:#666;">[${r.stepLabel}] - ${r.target_name || ''}さん</span></strong>
+            <strong style="font-size:1.0rem; color:var(--text);">${r.displayDate} <span style="font-size:0.85rem; font-weight:normal; color:#666;">[${r.stepLabel}] - ${r.target_name || ''}さん</span></strong>
           </div>
-          <div class="history-text" style="font-size:0.95rem; line-height:1.4; color:#333;">${r.text || ''}</div>
+          <div class="history-text" style="font-size:0.9rem; line-height:1.4; color:#333; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;">${r.text || ''}</div>
         </div>
       `).join('');
     } catch (e) {

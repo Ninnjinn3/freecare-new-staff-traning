@@ -73,31 +73,33 @@ function parseGeminiResponse(text) {
     }
 }
 
+// 採点基準の定義
 const RUBRIC = `
-1.変化の明確さ(15): 具体性(いつ/どこ/誰/反応)。比較ありで高点。文章の短さは問いませんが、具体性は維持してください。
-2.多層分析(20): 3つ以上仮説。なぜを3回深掘り。
-3.優先順位(15): 根拠ある順位。
-4.検証計画(15): 具体的な指標・期限。
-5.実効性(20): 本人意思反映。
-6.修正力(15): 結果を評価し改善へ。
+1.変化の明確さ: 具体性(いつ/どこ/誰/反応)。文字数の多寡は問わず、事象が具体的に捉えられているか。
+2.多層分析（STEP2）: 「仮説」から始まり、「なぜ」を3段階で深掘りし、根本原因（真因）に迫っているか。
+3.優先順位: 根拠ある順位付け。
+4.検証・振り返り（STEP3）: 支援後の反応を客観的に捉え、次のアクションへ繋げているか。
 `;
 
 const RULES = `
-- 文章の長さは評価に直接影響しません。短くても本質的な変化や考察が的確に書かれていれば「○」とし、高得点を与えてください。逆に、長くても抽象的な表現ばかりの場合は低評価とします。
-- 不足(missing_points)ありなら判定は必ず「×」。
-- 添削例(improvement_example)は【添削方式】で記述。
+- **文字数による減点は一切禁止**。1行でも、専門的な気づきや具体的な個別性があれば「○」とし、高得点を与えること。
+- 短くても質の高い（具体性のある）記録を「理想」として提示すること。
+- 不足点(missing_points)がある場合のみ判定を「×」とする。
+- 添削例(improvement_example)は、ユーザーの短文を活かしたまま、より専門的に洗練させた例を提示すること。
 `;
 
-const JSON_OUT = `出力形式(JSON): {"judgement":"○/×", "score":100, "breakdown":{}, "short_comment":"", "good_points":[], "missing_points":[], "improvement_example":""}`;
+const JSON_OUT = `出力形式(JSON): {"judgement":"○/×", "score":15, "short_comment":"総評", "good_points":[], "missing_points":[], "improvement_example":"修正例"}`;
 
 function buildStep1Prompt(data) {
-    return `STEP1: 気付き。具現性を重視。\n${RUBRIC}\n${RULES}\n内容:「${data.notice_text}」\n${JSON_OUT}`;
+    return `STEP1: 気付き。観察の具体性を重視。\n${RUBRIC}\n${RULES}\n内容:「${data.notice_text}」\n${JSON_OUT}`;
 }
+
 function buildStep2Prompt(data) {
-    const hText = (data.hypotheses || []).map(h => `なぜ:${h.why1}->${h.why2}->${h.why3} 支援:${h.support}`).join('\n');
-    return `STEP2: 仮説思考。論理性を重視。\n${RUBRIC}\n${RULES}\n変化:「${data.change_noticed}」\n仮説:\n${hText}\n${JSON_OUT}`;
+    const hText = (data.hypotheses || []).map(h => `仮説:${h.hypo} -> なぜ1:${h.why1} -> なぜ2:${h.why2} -> なぜ3:${h.why3} (支援:${h.support})`).join('\n');
+    return `STEP2: 仮説思考。仮説から根本原因への論理的深掘りを重視。\n${RUBRIC}\n${RULES}\n気付き:「${data.change_noticed}」\n思考プロセス:\n${hText}\n優先理由:「${data.priority_reason}」\n期待される変化:「${data.expected_change}」\n${JSON_OUT}`;
 }
+
 function buildStep3Prompt(data) {
     const r = data.reflection || {};
-    return `STEP3: 振り返り。修正力を重視。\n${RUBRIC}\n${RULES}\n支援:${r.support} 反応:${r.reaction} 判断:${r.decision}\n${JSON_OUT}`;
+    return `STEP3: 振り返り。客観的評価と修正力を重視。\n${RUBRIC}\n${RULES}\n支援:${r.support} 反応:${r.reaction} 判断:${r.decision}\n${JSON_OUT}`;
 }

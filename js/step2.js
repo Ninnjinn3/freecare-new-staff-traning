@@ -89,12 +89,14 @@ const Step2 = {
                 const num = i + 1;
                 const card = document.getElementById(`hypothesis-${num}`);
                 if (card) {
+                    const hypothesis = card.querySelector(`[name="h${num}_hypo"]`);
                     const why1 = card.querySelector(`[name="h${num}_why1"]`);
                     const why2 = card.querySelector(`[name="h${num}_why2"]`);
                     const why3 = card.querySelector(`[name="h${num}_why3"]`);
                     const support = card.querySelector(`[name="h${num}_support"]`);
                     const priority = card.querySelector(`[name="h${num}_priority"]`);
                     
+                    if (hypothesis) hypothesis.value = h.hypo || '';
                     if (why1) why1.value = h.why1 || '';
                     if (why2) why2.value = h.why2 || '';
                     if (why3) why3.value = h.why3 || '';
@@ -133,8 +135,12 @@ function addHypothesisCard() {
     </div>
     <div class="why-chain">
       <div class="why-step">
+        <span class="why-label" style="background:#6c5ce7; color:white;">仮説</span>
+        <input type="text" name="h${num}_hypo" placeholder="仮説を記載" required>
+      </div>
+      <div class="why-step">
         <span class="why-label">なぜ？①</span>
-        <input type="text" name="h${num}_why1" placeholder="仮説を記載" required>
+        <input type="text" name="h${num}_why1" placeholder="なぜそう考えたか（背景）">
       </div>
       <div class="why-step">
         <span class="why-label">なぜ？②</span>
@@ -215,6 +221,7 @@ async function submitStep2(event) {
     cards.forEach((card) => {
         const id = card.id.split('-')[1];
         hypotheses.push({
+            hypo: card.querySelector(`[name="h${id}_hypo"]`)?.value || '',
             why1: card.querySelector(`[name="h${id}_why1"]`)?.value || '',
             why2: card.querySelector(`[name="h${id}_why2"]`)?.value || '',
             why3: card.querySelector(`[name="h${id}_why3"]`)?.value || '',

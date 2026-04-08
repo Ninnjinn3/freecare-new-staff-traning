@@ -459,6 +459,7 @@
           <option value="step1">STEP1 気付き</option>
           <option value="step2">STEP2 仮説思考</option>
           <option value="step3">STEP3 振り返り</option>
+          <option value="step4">STEP4 症例報告</option>
         </select>
       </div>
       <div class="history-list" id="history-list">
@@ -1009,137 +1010,113 @@
         <h2 class="step-title">❓ ヘルプ</h2>
       </div>
 
-      <!-- 使い方ガイド & FAQ -->
       <div class="help-guide">
-
         <h3 style="margin-top: 0; font-size: 1.1rem; color: var(--primary);">🔰 プログラムの基本ルール</h3>
 
         <div class="help-item">
           <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. フリーケアプログラムの目的は何ですか？</span>
+            <span>Q. 提出の期限（サイクル）はいつですか？</span>
             <span class="help-toggle">▼</span>
           </div>
           <div class="help-item-body" hidden>
             <p>
-              介護現場での「気づき」「仮説思考」「振り返り」のサイクルを回すことで、専門性を高め、成長を加速させるための人材育成プログラムです。各ステップでの成果は、その月の「月次評価」として人事評価点（最大10点）に直接反映されます。
+              <strong>毎月11日〜翌月10日</strong>が1つの評価サイクルです。<br>
+              例：3月11日〜4月10日に提出された記録が、4月分として集計・評価されます。
             </p>
           </div>
         </div>
 
         <div class="help-item">
           <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. 各月に行うべき「最低限のタスク（必須条件）」は何ですか？</span>
-            <span class="help-toggle">▼</span>
-          </div>
-          <div class="help-item-body" hidden>
-            <ul>
-              <li><strong>毎月のテスト・報告書：</strong> 毎月1本の研修動画を視聴し、テスト100点獲得および報告書の提出が必須です（未完了の場合、その月の記録はすべて【採点対象外】となります）。
-              </li>
-              <li><strong>期限の厳守：</strong> 毎月「26日〜翌月10日」があなたの提出期間です。</li>
-              <li><strong>日々の記録提出：</strong> 出勤日には必ず対象者の記録（STEP1〜3のいずれか）を行ってください。</li>
-            </ul>
-          </div>
-        </div>
-
-        <div class="help-item">
-          <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. ずっと同じSTEPに留まった場合、ペナルティ（減点）はありますか？</span>
+            <span>Q. AI判定は文章が短くても合格になりますか？</span>
             <span class="help-toggle">▼</span>
           </div>
           <div class="help-item-body" hidden>
             <p>
-              はい。<strong>6ヶ月間</strong>同じSTEP（フェーズ）に滞在し続けた場合、人事評価点から<strong>「2点減点」</strong>されます。その後も進級できない状態が続けば、減点が繰り返されます。AIの改善アドバイスを参考にしながら、確実に点数を上げて進級を目指しましょう。
+              <strong>はい、合格になります。</strong><br>
+              文量の多さではなく、内容の「質（具体性や専門的な気づき）」を最優先して評価します。1行程度でも、事実に基づいた具体的な記録であれば「○（合格）」判定となります。
             </p>
           </div>
         </div>
 
-        <h3 style="margin-top: var(--space-lg); font-size: 1.1rem; color: var(--primary);">📝 記録（STEP1〜3）の書き方・つまずき解消
-        </h3>
-
         <div class="help-item">
           <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. 【STEP1 気付き】何を書けばいいか分かりません</span>
+            <span>Q. 投稿した内容を修正・編集することはできますか？</span>
             <span class="help-toggle">▼</span>
           </div>
           <div class="help-item-body" hidden>
             <p>
-              利用者様の日々の些細な変化を「客観的」に記録します。主観（何となくおかしい等）ではなく、<strong>「いつ・どこで・誰が・どうなった（＋普段との明確な違い）」</strong>の要素を揃えることが100点を取るコツです。
+              ホーム画面にある<strong>「送信済み課題修正」</strong>ボタンから、これまでに提出した全記録の確認と修正が可能です。<br>
+              修正して再提出すると、AIによる再判定を受けることができます。
             </p>
-            <div style="background:#f5f5f5; padding:8px; border-radius:4px; margin-top:8px; font-size:0.9rem;">
-              <strong>⭕ 良い例：</strong>「朝9時の活動時、Aさんが〇〇について3回同じ質問をした。普段は1回伝えると理解される。」<br>
-              <strong>❌ 悪い例：</strong>「今日Aさんはなんだか体調が悪そうだった。」
-            </div>
           </div>
         </div>
 
+        <h3 style="margin-top: var(--space-lg); font-size: 1.1rem; color: var(--primary);">📝 各STEPの書き方のコツ</h3>
+
         <div class="help-item">
           <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. 【STEP2 仮説思考】仮説の「多層的分析」とは何ですか？</span>
+            <span>Q. 【STEP1 気付き】どのような内容が高評価ですか？</span>
             <span class="help-toggle">▼</span>
           </div>
           <div class="help-item-body" hidden>
             <p>
-              変化の原因を「1つの理由」に決めつけず、<strong>「身体的要因（痛み・疲労）」「心理的要因（不安・孤独感）」「環境的要因（室温・騒音）」</strong>など、複数の視点から掘り下げて考えることです。考えられる要因を洗い出した上で、最も解決すべきものに優先順位をつけることが高評価に繋がります。
+              「いつ・どこで・誰が・どうなった（＋普段との明確な違い）」が揃っている記録です。主観的な感想ではなく、客観的な事実を具体的に書くことがポイントです。
             </p>
           </div>
         </div>
 
         <div class="help-item">
           <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. 【STEP3 振り返り】上手な振り返りの書き方を教えてください</span>
+            <span>Q. 【STEP2 仮説思考】新しい「仮説＋なぜ3つ」の書き方は？</span>
             <span class="help-toggle">▼</span>
           </div>
           <div class="help-item-body" hidden>
             <p>
-              行った支援による<strong>「具体的な結果の評価」</strong>と<strong>「次の改善案」</strong>がセットになっている必要があります。「よかった」「だめだった」で終わるのではなく、「なぜその結果になったのか」「明日はどう工夫するか（支援内容の継続・変更・終了の判断理由）」を明記してください。
+              まず「こうではないか？」という<strong>仮説</strong>を立て、それに対して「なぜそう思うのか？」を<strong>3段階</strong>で深掘りしていきます。一つの可能性に絞らず、多角的な視点から原因を探ることで論理的思考が磨かれます。
             </p>
           </div>
         </div>
 
-        <h3 style="margin-top: var(--space-lg); font-size: 1.1rem; color: var(--primary);">⚠️ よくあるトラブルシューティング</h3>
-
         <div class="help-item">
           <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. 月次評価の点数が低く、なかなか次に進めません</span>
+            <span>Q. 【STEP3 振り返り】何を中心に書くべきですか？</span>
             <span class="help-toggle">▼</span>
           </div>
           <div class="help-item-body" hidden>
             <p>
-              AIサポーター（フリーケアくん）に日々の記録や評価結果について質問してみてください。「私のSTEP2の記録、どこを直せば100点になりますか？」など具体的に質問すると、足りない要素（論理性や多層的分析など）をズバリ教えてくれます。「月次評価の改善アクション」もあわせて熟読しましょう。
+              支援を行った結果、利用者様にどのような変化（反応）があったかを客観的に捉え、「プランを継続するか、変更するか、終了するか」の判断根拠を明確に記載してください。
+            </p>
+          </div>
+        </div>
+
+        <h3 style="margin-top: var(--space-lg); font-size: 1.1rem; color: var(--primary);">⚠️ その他</h3>
+
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>Q. 月次評価の点数を上げるにはどうすればいいですか？</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <p>
+              AIサポーター（フリーケアくん）に質問してみてください。「どう書けば点数が上がりますか？」など具体的に聞くと、不足している視点やアドバイスを教えてくれます。
             </p>
           </div>
         </div>
 
         <div class="help-item">
           <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. アプリの操作を間違えた、または過去の記録を修正したい</span>
+            <span>Q. AIの判定に時間がかかります</span>
             <span class="help-toggle">▼</span>
           </div>
           <div class="help-item-body" hidden>
-            <p>セキュリティおよび評価の公平性の観点から、一度送信した当番日の記録はアプリ上からスタッフ自身で編集・削除することはできません。重大な誤送信があった場合は、施設管理者にお申し出ください。</p>
-          </div>
-        </div>
-
-        <div class="help-item">
-          <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. 対象の利用者様がリストに出てきません</span>
-            <span class="help-toggle">▼</span>
-          </div>
-          <div class="help-item-body" hidden>
-            <p>「介護対象者一覧」からご自身で対象者を追加することができます。メニューから「対象者・フェイスシート」へ進み、「＋新規対象者を追加」から基礎情報を入力して登録してください。</p>
-          </div>
-        </div>
-
-        <div class="help-item">
-          <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. AI（フリーケアくん）の返事がおかしい・回答に時間がかかる</span>
-            <span class="help-toggle">▼</span>
-          </div>
-          <div class="help-item-body" hidden>
-            <p>AIの処理には数秒〜十数秒程度の時間がかかる場合があります。エラーが出てしまった場合は、お手数ですが数秒待ってからもう一度送信ボタンを押してください。それでも直らない場合はネットワーク環境をご確認ください。
+            <p>
+              内容を分析するために数秒〜十数秒かかる場合があります。ボタンを一度押した後は、結果が表示されるまでそのままお待ちください。
             </p>
           </div>
         </div>
+      </div>
+    </div>
   </section>
 
   <!-- ===== Screen: AIサポーター ===== -->
