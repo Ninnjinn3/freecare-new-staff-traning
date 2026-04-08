@@ -394,7 +394,7 @@ const Monthly = {
 
                     <div class="eval-content-section" style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border);">
                         <div style="font-weight: bold; color: var(--text-secondary); margin-bottom: 8px; font-size: 0.95rem;">【AIによるコメント（該当する記録の要約）】</div>
-                        <div style="background: #fdfdfd; border-left: 3px solid #b2bec3; padding: 12px; font-size: 0.9rem; color: #2d3436; margin-bottom: 20px;">${(item.userContent || '（記載なし）').replace(/\n/g, '<br>')}</div>
+                        <div style="background: #fdfdfd; border-left: 3px solid #b2bec3; padding: 12px; font-size: 0.9rem; color: #2d3436; margin-bottom: 20px;">${String(item.userContent || '（記載なし）').replace(/\n/g, '<br>')}</div>
                         
                         ${(item.goodPoints && item.goodPoints.length > 0) ? `
                         <div style="margin-bottom: 20px;">
@@ -404,7 +404,7 @@ const Monthly = {
                             </ul>
                         </div>
                         ` : ''}
-
+ 
                         ${(item.badPoints && item.badPoints.length > 0) ? `
                         <div style="margin-bottom: 20px;">
                             <div style="font-weight: bold; color: #e74c3c; margin-bottom: 8px; font-size: 0.95rem;">【不足している点】</div>
@@ -413,19 +413,19 @@ const Monthly = {
                             </ul>
                         </div>
                         ` : ''}
-
+ 
                         ${item.improvement ? `
                         <div style="margin-bottom: 10px;">
                             <div style="font-weight: bold; color: #16a085; margin-bottom: 8px; font-size: 0.95rem;">【${item.max}点を取るための改善例】</div>
                             <div style="background: rgba(22, 160, 133, 0.05); padding: 15px; border-radius: 8px; border-left: 4px solid #16a085; font-size: 0.9rem; color: #2d3436; line-height: 1.6;">
-                                ${item.improvement.replace(/\n/g, '<br>')}
+                                ${String(item.improvement).replace(/\n/g, '<br>')}
                             </div>
                         </div>
                         ` : ''}
-
+ 
                         <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dotted var(--border);">
                             <div style="font-weight: bold; color: var(--text-secondary); margin-bottom: 6px; font-size: 0.9rem;">【AIからの総評】</div>
-                            <div style="font-size: 0.9rem; color: #636e72;">${item.comment ? item.comment.replace(/\n/g, '<br>') : (item.judgement || 'ー')}</div>
+                            <div style="font-size: 0.9rem; color: #636e72;">${item.comment ? String(item.comment).replace(/\n/g, '<br>') : (item.judgement || 'ー')}</div>
                         </div>
                     </div>
                 </div>
