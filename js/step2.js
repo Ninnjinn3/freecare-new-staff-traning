@@ -325,7 +325,10 @@ async function submitStep2(event) {
         priority_reason: priorityReason,
         expected_change: expectedChange,
         ai_judgement: aiResult.judgement,
-        ai_comment: aiResult.short_comment
+        ai_comment: aiResult.short_comment,
+        ai_good_points: aiResult.good_points,
+        ai_missing: aiResult.missing_points,
+        ai_improve: aiResult.improvement_example
     };
 
     let savePromise;

@@ -470,25 +470,61 @@ const Monthly = {
                     }
 
                     let content = '';
-                    if (r.step === 1) content = r.notice_text;
-                    else if (r.step === 2) content = `【仮説】${r.hypothesis}<br>【理由】${r.reason}`;
-                    else content = `【支援】${r.support_done}<br>【結果】${r.result}`;
+                    if (r.step === 1) {
+                        content = r.notice_text;
+                    } else if (r.step === 2) {
+                        const hList = (r.hypotheses_json || []).map((h, i) => `【仮説${i+1}】${h.why1} -> ${h.why2 || '...'} -> ${h.why3 || '...'}<br>└ 支援: ${h.support || 'なし'}`).join('<br>');
+                        content = `<strong>変化:</strong> ${r.change_noticed}<br>${hList}`;
+                    } else if (r.step === 3) {
+                        const ref = r.reflection_json || {};
+                        content = `<strong>気付き:</strong> ${ref.notice || 'ー'}<br><strong>支援:</strong> ${ref.support || 'ー'}<br><strong>反応:</strong> ${ref.reaction || 'ー'}<br><strong>判断:</strong> ${r.decision || 'ー'}`;
+                    }
 
                     let feedbackHtml = '';
-                    if (r.ai_advice || r.ai_comment) {
+                    if (isPass) {
+                        // 合格時は簡潔に
                         feedbackHtml = `
-                            <div style="margin-top: 10px; padding: 10px; background: #f8f9fa; border-radius: 8px; font-size: 0.9rem;">
-                                <div style="font-weight: bold; color: ${bc}; margin-bottom: 4px;">【AI評価: ${r.ai_judgement || 'ー'}】</div>
-                                <div style="color: var(--text-secondary); line-height: 1.5;">${(r.ai_advice || r.ai_comment || 'アドバイスはありません').replace(/\n/g, '<br>')}</div>
+                            <div style="margin-top: 10px; padding: 10px; background: #f0f7f4; border-radius: 8px; font-size: 0.9rem; border: 1px solid #d3f9d8; color: #2b8a3e;">
+                                <strong>✅ AI評価: 合格</strong><br>${(r.ai_comment || 'ナイス記録です！').replace(/\n/g, '<br>')}
+                            </div>
+                        `;
+                    } else {
+                        // 不合格時は詳しく
+                        const mPoints = (r.ai_missing || []).map(p => `<li style="margin-bottom:4px;">❌ ${p}</li>`).join('');
+                        feedbackHtml = `
+                            <div style="margin-top: 10px; padding: 12px; background: #fff5f5; border-radius: 8px; border: 1px solid #ffc9c9; font-size: 0.9rem;">
+                                <div style="font-weight: bold; color: #e03131; margin-bottom: 8px; border-bottom: 1px solid #ffc9c9; padding-bottom: 4px;">🔍 修正点とアドバイス</div>
+                                
+                                ${mPoints ? `
+                                <div style="margin-bottom: 12px;">
+                                    <div style="font-weight: bold; color: #e03131; margin-bottom: 4px; font-size: 0.85rem;">【不足している点】</div>
+                                    <ul style="list-style: none; padding: 0; margin: 0; color: #495057;">${mPoints}</ul>
+                                </div>
+                                ` : ''}
+
+                                ${r.ai_improve ? `
+                                <div style="margin-bottom: 12px;">
+                                    <div style="font-weight: bold; color: #087f5b; margin-bottom: 4px; font-size: 0.85rem;">【改善例（こう書くと100点！）】</div>
+                                    <div style="background: rgba(12, 166, 120, 0.05); padding: 10px; border-radius: 6px; border-left: 3px solid #0ca678; color: #2d3436; line-height: 1.5;">
+                                        ${r.ai_improve.replace(/\n/g, '<br>')}
+                                    </div>
+                                </div>
+                                ` : ''}
+
+                                <div style="font-weight: bold; color: #495057; margin-bottom: 4px; font-size: 0.85rem;">【総評】</div>
+                                <div style="color: #495057; line-height: 1.5;">${(r.ai_comment || '改善点を確認しましょう').replace(/\n/g, '<br>')}</div>
                             </div>
                         `;
                     }
 
                     return `<div class="card" style="margin-bottom:var(--space-sm);padding:0;border-left:4px solid ${bc};overflow:hidden;">
                         <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-sm);cursor:pointer;" onclick="var d=this.nextElementSibling;d.hidden=!d.hidden;this.querySelector('.rtg').textContent=d.hidden?'▼':'▲';">
-                            <div>
+                            <div style="flex:1;">
                                 <strong style="font-size:1rem">${r.date}</strong>
                                 <span style="font-weight:normal;font-size:0.9rem;color:var(--text-muted)"> - STEP${r.step} (${r.target_name || '対象者なし'})</span>
+                                <div style="font-size: 0.8rem; color: #868e96; margin-top: 2px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 250px;">
+                                    ${(r.notice_text || r.change_noticed || '詳細を見る').substring(0, 30)}...
+                                </div>
                             </div>
                             <div style="display:flex;align-items:center;gap:12px;">
                                 ${editBtn}
@@ -496,8 +532,8 @@ const Monthly = {
                                 <span class="rtg" style="font-size:0.8rem;color:var(--text-muted)">▼</span>
                             </div>
                         </div>
-                        <div hidden style="padding:0 var(--space-sm) var(--space-sm);border-top:1px solid var(--border);">
-                            <p style="font-size:0.95rem;color:var(--text);line-height:1.6;margin-top:10px;white-space:pre-wrap;">${content}</p>
+                        <div hidden style="padding:0 var(--space-sm) var(--space-sm);border-top:1px solid var(--border);background: #fdfdfd;">
+                            <div style="font-size:0.95rem;color:var(--text);line-height:1.6;margin-top:12px;white-space:pre-wrap; background: #fff; padding: 12px; border-radius: 8px; border: 1px solid #eee;">${content}</div>
                             ${feedbackHtml}
                         </div>
                     </div>`;
