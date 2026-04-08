@@ -382,10 +382,10 @@ const Monthly = {
                             </thead>
                             <tbody>
                                 ${(item.criteriaRef || []).map(c => `
-                                    <tr style="border-bottom: 1px solid var(--border); ${c.check ? 'background: rgba(88, 204, 2, 0.1);' : ''}">
-                                        <td style="padding: 8px; text-align: center; font-weight: bold; color: var(--text-secondary);">${c.pts}</td>
-                                        <td style="padding: 8px; color: var(--text);">${c.desc}</td>
-                                        <td style="padding: 8px; text-align: center; font-size: 1.2rem;">${c.check ? '✅' : 'ー'}</td>
+                                    <tr style="border-bottom: 1px solid var(--border); ${(c.check || c.selected) ? 'background: rgba(88, 204, 2, 0.08);' : ''}">
+                                        <td style="padding: 10px; text-align: center; font-weight: bold; color: var(--text-secondary);">${c.pts || c.points || 0}</td>
+                                        <td style="padding: 10px; color: var(--text);">${c.desc || c.description || '基準データなし'}</td>
+                                        <td style="padding: 10px; text-align: center; font-size: 1.2rem;">${(c.check || c.selected) ? '✅' : '―'}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
@@ -393,39 +393,45 @@ const Monthly = {
                     </div>
 
                     <div class="eval-content-section" style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border);">
-                        <div style="font-weight: bold; color: var(--text-secondary); margin-bottom: 8px; font-size: 0.95rem;">【AIによるコメント（該当する記録の要約）】</div>
-                        <div style="background: #fdfdfd; border-left: 3px solid #b2bec3; padding: 12px; font-size: 0.9rem; color: #2d3436; margin-bottom: 20px;">${String(item.userContent || '（記載なし）').replace(/\n/g, '<br>')}</div>
                         
                         ${(item.goodPoints && item.goodPoints.length > 0) ? `
                         <div style="margin-bottom: 20px;">
-                            <div style="font-weight: bold; color: #27ae60; margin-bottom: 8px; font-size: 0.95rem;">【良い点】</div>
-                            <ul style="list-style: none; padding: 0; margin: 0; color: #2d3436; font-size: 0.9rem; line-height: 1.6;">
-                                ${item.goodPoints.map(p => `<li style="display: flex; gap: 8px; margin-bottom: 6px;"><span style="color: #27ae60;">✅</span><span>${p}</span></li>`).join('')}
+                            <div style="font-weight: bold; color: #27ae60; margin-bottom: 10px; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="background: #e8f5e9; padding: 4px 8px; border-radius: 4px;">✅</span> 良い点
+                            </div>
+                            <ul style="list-style: none; padding: 0; margin: 0; color: #2d3436; font-size: 0.95rem; line-height: 1.7;">
+                                ${item.goodPoints.map(p => `<li style="display: flex; gap: 10px; margin-bottom: 8px; padding-left: 10px; border-left: 2px solid #27ae60;">${p}</li>`).join('')}
                             </ul>
                         </div>
                         ` : ''}
  
                         ${(item.badPoints && item.badPoints.length > 0) ? `
                         <div style="margin-bottom: 20px;">
-                            <div style="font-weight: bold; color: #e74c3c; margin-bottom: 8px; font-size: 0.95rem;">【不足している点】</div>
-                            <ul style="list-style: none; padding: 0; margin: 0; color: #2d3436; font-size: 0.9rem; line-height: 1.6;">
-                                ${item.badPoints.map(p => `<li style="display: flex; gap: 8px; margin-bottom: 6px;"><span style="color: #e74c3c;">❌</span><span>${p}</span></li>`).join('')}
+                            <div style="font-weight: bold; color: #e74c3c; margin-bottom: 10px; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="background: #ffebee; padding: 4px 8px; border-radius: 4px;">❌</span> 不足している点
+                            </div>
+                            <ul style="list-style: none; padding: 0; margin: 0; color: #2d3436; font-size: 0.95rem; line-height: 1.7;">
+                                ${item.badPoints.map(p => `<li style="display: flex; gap: 10px; margin-bottom: 8px; padding-left: 10px; border-left: 2px solid #e74c3c;">${p}</li>`).join('')}
                             </ul>
                         </div>
                         ` : ''}
  
                         ${item.improvement ? `
-                        <div style="margin-bottom: 10px;">
-                            <div style="font-weight: bold; color: #16a085; margin-bottom: 8px; font-size: 0.95rem;">【${item.max}点を取るための改善例】</div>
-                            <div style="background: rgba(22, 160, 133, 0.05); padding: 15px; border-radius: 8px; border-left: 4px solid #16a085; font-size: 0.9rem; color: #2d3436; line-height: 1.6;">
+                        <div style="margin-bottom: 20px;">
+                            <div style="font-weight: bold; color: #00796b; margin-bottom: 10px; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="background: #e0f2f1; padding: 4px 8px; border-radius: 4px;">💡</span> ${item.max}点を取るための改善例
+                            </div>
+                            <div style="background: #f1f8f7; padding: 18px; border-radius: 12px; border: 1px solid #b2dfdb; font-size: 0.95rem; color: #004d40; line-height: 1.7; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);">
                                 ${String(item.improvement).replace(/\n/g, '<br>')}
                             </div>
                         </div>
                         ` : ''}
  
-                        <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dotted var(--border);">
-                            <div style="font-weight: bold; color: var(--text-secondary); margin-bottom: 6px; font-size: 0.9rem;">【AIからの総評】</div>
-                            <div style="font-size: 0.9rem; color: #636e72;">${item.comment ? String(item.comment).replace(/\n/g, '<br>') : (item.judgement || 'ー')}</div>
+                        <div style="margin-top: 25px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <div style="font-weight: bold; color: #64748b; margin-bottom: 8px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">AI Overall Feedback / 総評</div>
+                            <div style="font-size: 0.95rem; color: #334155; line-height: 1.6; font-weight: 500;">
+                                ${item.comment ? String(item.comment).replace(/\n/g, '<br>') : (item.judgement || '―')}
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -440,7 +446,7 @@ const Monthly = {
         const recordsList = document.getElementById('monthly-records-list');
         if (!recordsList) return;
 
-        recordsList.innerHTML = '<p style="text-align:center;color:var(--text-muted)">読み込み中...</p>';
+        recordsList.innerHTML = '<div style="text-align:center; padding: 40px; color:var(--text-muted);"><div class="loading-spinner" style="margin-bottom: 10px;"></div>読み込み中...</div>';
         try {
             const user = Auth.getUser();
             const [s1, s2, s3] = await Promise.all([
@@ -466,53 +472,67 @@ const Monthly = {
 
                     let editBtn = '';
                     if (canEdit) {
-                        editBtn = `<button class="btn-link" onclick="Monthly.editRecord(${r.step}, '${r.id}')" style="font-size:0.8rem; color:var(--primary); padding:4px 8px; border:1px solid var(--primary); border-radius:4px; cursor:pointer;">編集する</button>`;
+                        editBtn = `<button class="btn-link" onclick="Monthly.editRecord(${r.step}, '${r.id}')" style="font-size:0.75rem; color:var(--primary); padding:4px 10px; border:1px solid var(--primary); border-radius:100px; cursor:pointer; background:white; transition: all 0.2s;">編集する</button>`;
                     }
 
                     let content = '';
                     if (r.step === 1) {
                         content = r.notice_text;
                     } else if (r.step === 2) {
-                        const hList = (r.hypotheses_json || []).map((h, i) => `【仮説${i+1}】${h.why1} -> ${h.why2 || '...'} -> ${h.why3 || '...'}<br>└ 支援: ${h.support || 'なし'}`).join('<br>');
-                        content = `<strong>変化:</strong> ${r.change_noticed}<br>${hList}`;
+                        const hList = (r.hypotheses_json || []).map((h, i) => `<div style="margin-bottom:8px; padding:8px; background:#f8fafc; border-radius:6px; font-size:0.9rem;"><strong>【仮説${i+1}】</strong><br>${h.why1} -> ${h.why2 || '...'} -> ${h.why3 || '...'}<br>└ <span style="color:var(--primary)">支援:</span> ${h.support || 'なし'}</div>`).join('');
+                        content = `<div style="margin-bottom:10px; font-weight:bold;">変化: ${r.change_noticed}</div>${hList}`;
                     } else if (r.step === 3) {
                         const ref = r.reflection_json || {};
-                        content = `<strong>気付き:</strong> ${ref.notice || 'ー'}<br><strong>支援:</strong> ${ref.support || 'ー'}<br><strong>反応:</strong> ${ref.reaction || 'ー'}<br><strong>判断:</strong> ${r.decision || 'ー'}`;
+                        content = `<div style="display:grid; gap:8px; font-size:0.9rem;">
+                            <div><strong>気付き:</strong> ${ref.notice || 'ー'}</div>
+                            <div><strong>支援内容:</strong> ${ref.support || 'ー'}</div>
+                            <div><strong>対象者の反応:</strong> ${ref.reaction || 'ー'}</div>
+                            <div style="margin-top:4px; padding-top:4px; border-top:1px solid #eee;"><strong>今後の判断:</strong> <span style="color:var(--primary); font-weight:bold;">${r.decision || 'ー'}</span></div>
+                        </div>`;
                     }
 
                     let feedbackHtml = '';
                     if (isPass) {
-                        // 合格時は簡潔に
                         feedbackHtml = `
-                            <div style="margin-top: 10px; padding: 10px; background: #f0f7f4; border-radius: 8px; font-size: 0.9rem; border: 1px solid #d3f9d8; color: #2b8a3e;">
-                                <strong>✅ AI評価: 合格</strong><br>${(r.ai_comment || 'ナイス記録です！').replace(/\n/g, '<br>')}
+                            <div style="margin-top: 15px; padding: 15px; background: #f0fdf4; border-radius: 12px; border: 1px solid #dcfce7;">
+                                <div style="display: flex; align-items: center; gap: 8px; color: #166534; font-weight: bold; margin-bottom: 6px;">
+                                    <span style="font-size: 1.2rem;">✅</span> AI評価: 合格
+                                </div>
+                                <div style="font-size: 0.9rem; color: #166534; line-height: 1.6;">
+                                    ${(r.ai_comment || '素晴らしい気づきと記録です。この調子で継続しましょう！').replace(/\n/g, '<br>')}
+                                </div>
                             </div>
                         `;
                     } else {
-                        // 不合格時は詳しく
-                        const mPoints = (r.ai_missing || []).map(p => `<li style="margin-bottom:4px;">❌ ${p}</li>`).join('');
+                        const mPoints = (r.ai_missing || []).map(p => `<li style="margin-bottom:6px; display:flex; gap:8px;"><span>❌</span> <span>${p}</span></li>`).join('');
                         feedbackHtml = `
-                            <div style="margin-top: 10px; padding: 12px; background: #fff5f5; border-radius: 8px; border: 1px solid #ffc9c9; font-size: 0.9rem;">
-                                <div style="font-weight: bold; color: #e03131; margin-bottom: 8px; border-bottom: 1px solid #ffc9c9; padding-bottom: 4px;">🔍 修正点とアドバイス</div>
+                            <div style="margin-top: 15px; padding: 18px; background: #fffafb; border-radius: 12px; border: 1px solid #fee2e2;">
+                                <div style="display: flex; align-items: center; gap: 8px; color: #991b1b; font-weight: bold; margin-bottom: 12px; font-size: 1rem;">
+                                    <span style="background: #fee2e2; padding: 2px 6px; border-radius: 4px;">🔍</span> 修正点とアドバイス
+                                </div>
                                 
                                 ${mPoints ? `
-                                <div style="margin-bottom: 12px;">
-                                    <div style="font-weight: bold; color: #e03131; margin-bottom: 4px; font-size: 0.85rem;">【不足している点】</div>
-                                    <ul style="list-style: none; padding: 0; margin: 0; color: #495057;">${mPoints}</ul>
+                                <div style="margin-bottom: 15px;">
+                                    <div style="font-weight: bold; color: #b91c1c; margin-bottom: 8px; font-size: 0.85rem; opacity: 0.8;">【不足している点】</div>
+                                    <ul style="list-style: none; padding: 0; margin: 0; color: #4b5563; font-size: 0.9rem;">${mPoints}</ul>
                                 </div>
                                 ` : ''}
 
                                 ${r.ai_improve ? `
-                                <div style="margin-bottom: 12px;">
-                                    <div style="font-weight: bold; color: #087f5b; margin-bottom: 4px; font-size: 0.85rem;">【改善例（こう書くと100点！）】</div>
-                                    <div style="background: rgba(12, 166, 120, 0.05); padding: 10px; border-radius: 6px; border-left: 3px solid #0ca678; color: #2d3436; line-height: 1.5;">
+                                <div style="margin-bottom: 15px;">
+                                    <div style="font-weight: bold; color: #065f46; margin-bottom: 8px; font-size: 0.85rem; opacity: 0.8;">【改善例（こう書くと100点！）】</div>
+                                    <div style="background: #ecfdf5; padding: 12px; border-radius: 8px; border-left: 4px solid #10b981; color: #065f46; font-size: 0.9rem; line-height: 1.6;">
                                         ${r.ai_improve.replace(/\n/g, '<br>')}
                                     </div>
                                 </div>
                                 ` : ''}
 
-                                <div style="font-weight: bold; color: #495057; margin-bottom: 4px; font-size: 0.85rem;">【総評】</div>
-                                <div style="color: #495057; line-height: 1.5;">${(r.ai_comment || r.ai_advice || '改善点を確認しましょう').replace(/\n/g, '<br>')}</div>
+                                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #fee2e2;">
+                                    <div style="font-weight: bold; color: #4b5563; margin-bottom: 4px; font-size: 0.85rem; opacity: 0.8;">【総評】</div>
+                                    <div style="color: #4b5563; font-size: 0.9rem; line-height: 1.6; font-weight: 500;">
+                                        ${(r.ai_comment || r.ai_advice || '改善点を確認して、振り返りに活かしましょう。').replace(/\n/g, '<br>')}
+                                    </div>
+                                </div>
                             </div>
                         `;
                     }

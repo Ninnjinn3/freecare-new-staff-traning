@@ -1011,107 +1011,126 @@
       </div>
 
       <div class="help-guide">
-        <h3 style="margin-top: 0; font-size: 1.1rem; color: var(--primary);">🔰 プログラムの基本ルール</h3>
+        <h3 style="margin-top: 0; font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+            <span style="background: var(--primary); color: white; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;">1</span>
+            プログラムの基本ルール
+        </h3>
 
         <div class="help-item">
           <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. 提出の期限（サイクル）はいつですか？</span>
+            <span>Q. 提出の期限（評価サイクル）を詳しく教えてください</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary); margin-bottom: 10px;">
+                <p style="font-weight: bold; margin-bottom: 5px;">毎月11日 〜 翌月10日 が1サイクル</p>
+                <div style="font-size: 0.9rem; line-height: 1.6;">
+                    ・<strong>集計期間:</strong> 前月11日から当月10日まで<br>
+                    ・<strong>提出期限:</strong> 毎月10日の23:59まで<br>
+                    ・<strong>評価公開:</strong> 毎月11日の0:00に自動更新
+                </div>
+            </div>
+            <p style="font-size: 0.9rem;">※10日を過ぎると、その月の記録は「修正・新規提出」ができなくなり、月次点数が確定しますのでご注意ください。</p>
+          </div>
+        </div>
+
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>Q. AI判定の基準（合格のコツ）は何ですか？</span>
             <span class="help-toggle">▼</span>
           </div>
           <div class="help-item-body" hidden>
             <p>
-              <strong>毎月11日〜翌月10日</strong>が1つの評価サイクルです。<br>
-              例：3月11日〜4月10日に提出された記録が、4月分として集計・評価されます。
+              <strong>文量の多さよりも「具体性」を重視します。</strong><br>
+              AIは以下の要素が含まれているかをチェックしています：
+            </p>
+            <ul style="font-size: 0.9rem; padding-left: 20px;">
+                <li><strong>客観的事実:</strong> 「体調が悪そう」ではなく「食事が3割しか進まなかった」</li>
+                <li><strong>比較:</strong> 「普段は〇〇だが、今日は××だった」という変化</li>
+                <li><strong>専門的視点:</strong> 身体症状だけでなく、心理面や環境面の考察</li>
+            </ul>
+          </div>
+        </div>
+
+        <h3 style="margin-top: var(--space-lg); font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+            <span style="background: var(--primary); color: white; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;">2</span>
+            書き方の具体例（Before / After）
+        </h3>
+
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>【STEP1】気づきの書き方例</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <div style="display: grid; gap: 10px;">
+                <div style="padding: 10px; background: #fff5f5; border-radius: 6px; border: 1px solid #ffc9c9;">
+                    <span style="color: #e03131; font-weight: bold;">× 惜しい例（抽象的）</span><br>
+                    「Aさんが少し元気がないように見えた。様子を見ていく。」
+                </div>
+                <div style="padding: 10px; background: #f0fdf4; border-radius: 6px; border: 1px solid #dcfce7;">
+                    <span style="color: #166534; font-weight: bold;">✅ 100点例（具体的）</span><br>
+                    「10時の回診時、普段はスタッフに挨拶をされるAさんが、今日はうつむいたままで声かけにも反応が薄かった。バイタルに異常はないが、食欲も普段の半分程度であった。」
+                </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>【STEP2】仮説思考の書き方例</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <p style="font-size: 0.9rem; margin-bottom: 10px;">原因を一つに絞らず、複数の視点（身体・心理・環境）で考えます。</p>
+            <div style="padding: 12px; background: #f1f8f7; border-radius: 8px; border: 1px solid #b2dfdb;">
+                <strong>仮説1（身体）:</strong> 夜間の睡眠不足により、日中の覚醒レベルが低下しているのではないか？<br>
+                <strong>仮説2（心理）:</strong> 面会の予定がキャンセルになり、一時的な落胆があるのではないか？<br>
+                <strong>仮説3（環境）:</strong> 室温が普段より高く、軽い脱水症状を起こしているのではないか？
+            </div>
+          </div>
+        </div>
+
+        <h3 style="margin-top: var(--space-lg); font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 8px;">
+            <span style="background: var(--primary); color: white; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;">3</span>
+            トラブル解決・活用テクニック
+        </h3>
+
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>Q. AIサポーター（フリーケアくん）への上手な質問方法は？</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <p style="font-size: 0.9rem;">以下のような具体的な質問をすると、より質の高い回答が得られます：</p>
+            <div style="background: white; border: 1px solid var(--border); padding: 10px; border-radius: 6px; margin-top: 8px;">
+                ・「この記録を100点にするには何を書き足せばいい？」<br>
+                ・「〇〇さんの〇〇という症状に対して、どんな仮説が考えられる？」<br>
+                ・「月次評価のこのアドバイスの意味を分かりやすく教えて」
+            </div>
+          </div>
+        </div>
+
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>Q. 記録を保存したのに、月次評価に反映されません</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <p style="font-size: 0.9rem;">
+              月次評価画面の右上にある<strong>「再評価」</strong>ボタンを押してください。最新の記録を読み込んでAIが再計算を行います。
             </p>
           </div>
         </div>
 
         <div class="help-item">
           <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. AI判定は文章が短くても合格になりますか？</span>
+            <span>Q. アカウント情報を変更したい / 退職する場合</span>
             <span class="help-toggle">▼</span>
           </div>
           <div class="help-item-body" hidden>
-            <p>
-              <strong>はい、合格になります。</strong><br>
-              文量の多さではなく、内容の「質（具体性や専門的な気づき）」を最優先して評価します。1行程度でも、事実に基づいた具体的な記録であれば「○（合格）」判定となります。
-            </p>
-          </div>
-        </div>
-
-        <div class="help-item">
-          <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. 投稿した内容を修正・編集することはできますか？</span>
-            <span class="help-toggle">▼</span>
-          </div>
-          <div class="help-item-body" hidden>
-            <p>
-              ホーム画面にある<strong>「送信済み課題修正」</strong>ボタンから、これまでに提出した全記録の確認と修正が可能です。<br>
-              修正して再提出すると、AIによる再判定を受けることができます。
-            </p>
-          </div>
-        </div>
-
-        <h3 style="margin-top: var(--space-lg); font-size: 1.1rem; color: var(--primary);">📝 各STEPの書き方のコツ</h3>
-
-        <div class="help-item">
-          <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. 【STEP1 気付き】どのような内容が高評価ですか？</span>
-            <span class="help-toggle">▼</span>
-          </div>
-          <div class="help-item-body" hidden>
-            <p>
-              「いつ・どこで・誰が・どうなった（＋普段との明確な違い）」が揃っている記録です。主観的な感想ではなく、客観的な事実を具体的に書くことがポイントです。
-            </p>
-          </div>
-        </div>
-
-        <div class="help-item">
-          <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. 【STEP2 仮説思考】新しい「仮説＋なぜ3つ」の書き方は？</span>
-            <span class="help-toggle">▼</span>
-          </div>
-          <div class="help-item-body" hidden>
-            <p>
-              まず「こうではないか？」という<strong>仮説</strong>を立て、それに対して「なぜそう思うのか？」を<strong>3段階</strong>で深掘りしていきます。一つの可能性に絞らず、多角的な視点から原因を探ることで論理的思考が磨かれます。
-            </p>
-          </div>
-        </div>
-
-        <div class="help-item">
-          <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. 【STEP3 振り返り】何を中心に書くべきですか？</span>
-            <span class="help-toggle">▼</span>
-          </div>
-          <div class="help-item-body" hidden>
-            <p>
-              支援を行った結果、利用者様にどのような変化（反応）があったかを客観的に捉え、「プランを継続するか、変更するか、終了するか」の判断根拠を明確に記載してください。
-            </p>
-          </div>
-        </div>
-
-        <h3 style="margin-top: var(--space-lg); font-size: 1.1rem; color: var(--primary);">⚠️ その他</h3>
-
-        <div class="help-item">
-          <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. 月次評価の点数を上げるにはどうすればいいですか？</span>
-            <span class="help-toggle">▼</span>
-          </div>
-          <div class="help-item-body" hidden>
-            <p>
-              AIサポーター（フリーケアくん）に質問してみてください。「どう書けば点数が上がりますか？」など具体的に聞くと、不足している視点やアドバイスを教えてくれます。
-            </p>
-          </div>
-        </div>
-
-        <div class="help-item">
-          <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. AIの判定に時間がかかります</span>
-            <span class="help-toggle">▼</span>
-          </div>
-          <div class="help-item-body" hidden>
-            <p>
-              内容を分析するために数秒〜十数秒かかる場合があります。ボタンを一度押した後は、結果が表示されるまでそのままお待ちください。
+            <p style="font-size: 0.9rem;">
+              設定画面（ホーム右下の⚙️アイコン）から、パスワードの変更やログアウトが可能です。退職の際のアカウント削除については、施設管理者へお申し出ください。
             </p>
           </div>
         </div>
