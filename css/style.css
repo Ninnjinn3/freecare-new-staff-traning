@@ -2779,6 +2779,26 @@ input:checked+.slider:before {
   text-decoration: underline;
 }
 
+.btn-delete-sm {
+  background: #fff5f5;
+  color: #e03131;
+  border: 1px solid #ffc9c9;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-delete-sm:hover {
+  background: #e03131;
+  color: #fff;
+  border-color: #e03131;
+  box-shadow: 0 2px 4px rgba(224, 49, 49, 0.2);
+}
+
+
 
 /* === Result Breakdown === */
 .result-breakdown {

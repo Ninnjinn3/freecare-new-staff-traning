@@ -986,6 +986,7 @@ async function renderAssessmentList() {
                     </div>
                     <div style="display:flex; gap:8px; align-items:center;">
                         <button class="btn-edit-sm" onclick="event.stopPropagation(); openEditAssessment('${id}')">✏️ 編集</button>
+                        <button class="btn-delete-sm" onclick="event.stopPropagation(); deleteAssessment('${id}', '${escapeHtml(t.name || '')}')">🗑️ 削除</button>
                         <span style="color:var(--text-secondary); font-size:1.1rem; transition:transform 0.2s;" class="detail-toggle-icon">▼</span>
                     </div>
                 </div>
@@ -1160,6 +1161,24 @@ async function updateAssessment(event) {
         navigateTo('screen-assessment-list');
     } catch (e) {
         showToast('更新エラー: ' + (e?.message || JSON.stringify(e)));
+    }
+}
+
+// ===== 介護対象者を削除（非活性化） =====
+async function deleteAssessment(id, name) {
+    if (!confirm(`${name} さんを削除してもよろしいですか？\n※これまでの記録は残りますが、選択一覧には表示されなくなります。`)) return;
+
+    try {
+        const success = await API.deleteTarget(id);
+        if (success) {
+            cachedTargets = null;
+            showToast(`${name} さんを削除しました`);
+            renderAssessmentList(); // リストを再描画
+        } else {
+            throw new Error('削除に失敗しました');
+        }
+    } catch (e) {
+        showToast('削除エラー: ' + (e?.message || '通信に失敗しました'));
     }
 }
 
