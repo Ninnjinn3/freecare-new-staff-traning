@@ -67,7 +67,17 @@ async function callGemini(apiKey, prompt, customRules = '') {
 
 function parseGeminiResponse(text) {
     try {
-        return JSON.parse(text);
+        // Remove markdown formatting if present
+        let cleanText = text.trim();
+        if (cleanText.startsWith('```json')) {
+            cleanText = cleanText.substring(7);
+        } else if (cleanText.startsWith('```')) {
+            cleanText = cleanText.substring(3);
+        }
+        if (cleanText.endsWith('```')) {
+            cleanText = cleanText.substring(0, cleanText.length - 3);
+        }
+        return JSON.parse(cleanText.trim());
     } catch (e) {
         return { judgement: '×', score: 0, short_comment: '解析失敗', improvement_example: '再度お試しください' };
     }
@@ -82,6 +92,7 @@ const RUBRIC = `
 
 const RULES = `
 - **最重要：100点満点の書き換え例を生成せよ**。ユーザーの文章が短くても、その文脈（対象者や状況）を維持したまま、不足している要素（具体的な日時、数値、表情、比較対象など）を勝手に補完・肉付けして、「こう書けば100点だった」という具体的な手本を1〜2文で提示すること。
+- **【厳守】固定例文の禁止**: 「朝9時、フロアであいさつを呼びかけたが...」といった固定の例文や、以前のプロンプト例をそのまま流用してはいけません。必ず「今回ユーザーが入力した文章と対象者」をベースにしたオリジナルの改善例を回答してください。どんな短い文章でも、その人が遭遇した場面に合わせて想像を膨らませて作文してください。
 - **短文への対応**: 文量の少なさを理由に否定してはならない。1行でも具体的な気づきがあれば「○」とする。不十分で「×」とする場合は、必ず具体的な不足点と、その内容に基づいた「100点満点の書き換え例」を提示すること。
 - **定型文の禁止**: 「次回は気をつけましょう」「具体的に書きましょう」などの抽象的なアドバイスは禁止。
 - **専門的な助言**: 介護職としての専門的視点（身体、心理、生活、環境）からのアドバイスを1つ以上含めること。
@@ -108,6 +119,7 @@ function buildStep1Prompt(data) {
 この記録を介護のプロの視点で採点してください。
 - 文量が短くても「具体性（いつ、どこで、どんな表情で、何をしたか等）」があれば高く評価。
 - 不足している場合は、対象者「${data.target_name}」の状況を推測し、具体例を盛り込んだ100点の手本を作成してください。
+- 例文（朝9時、フロアで〜など）は絶対に使わず、必ず入力内容の「${data.notice_text}」をふくらませた手本にすること。
 
 ${RUBRIC}
 ${RULES}
