@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
-    const { staff_id, year_month, current_step } = req.body;
+    const { staff_id, year_month, current_step, force } = req.body;
     if (!staff_id || !year_month) {
         return res.status(400).json({ error: 'staff_id and year_month required' });
     }
@@ -20,6 +20,26 @@ export default async function handler(req, res) {
     const SUPABASE_KEY = process.env.SUPABASE_ANON_KEY || 'sb_publishable_vCIiY9zPof_k2CfWC4SLqA_uUNcQ6jo';
 
     try {
+        // [キャッシュ優先ロジック] すでにその月の評価データがあるか確認
+        if (!force) {
+            const existing = await supabaseSelect(SUPABASE_URL, SUPABASE_KEY, 'monthly_evaluations', `staff_id=eq.${staff_id}&year_month=eq.${year_month}`);
+            if (existing && existing.length > 0) {
+                const evalData = existing[0];
+                // 型変換（DB内とAPI期待値の合わせ）
+                return res.status(200).json({
+                    score: evalData.score,
+                    breakdown: evalData.breakdown_json,
+                    totalRecords: evalData.total_records,
+                    passCount: evalData.pass_count,
+                    failCount: evalData.fail_count,
+                    passed: evalData.passed,
+                    level: getLevel(evalData.score),
+                    hrPoints: evalData.hr_points,
+                    actions: generateActions(evalData.breakdown_json),
+                    cached: true // キャッシュから返したことを示すフラグ
+                });
+            }
+        }
         // 1) その月のSTEP1-3全記録を取得
         const [step1Records, step2Records, step3Records] = await Promise.all([
             supabaseSelect(SUPABASE_URL, SUPABASE_KEY, 'daily_step1', `staff_id=eq.${staff_id}&year_month=eq.${year_month}`),

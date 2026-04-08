@@ -5,7 +5,7 @@
 
 const Monthly = {
     // 月次スコア算出（API経由で実データから算出）
-    async calculate(targetMonthStr = null) {
+    async calculate(targetMonthStr = null, force = false) {
         const user = Auth.getUser();
         if (!user) return null;
 
@@ -18,7 +18,8 @@ const Monthly = {
                 body: JSON.stringify({
                     staff_id: user.staff_id,
                     year_month: cycle.yearMonth,
-                    current_step: user.current_step || 1
+                    current_step: user.current_step || 1,
+                    force: force
                 })
             });
 
@@ -223,28 +224,26 @@ const Monthly = {
                 b.comment.includes('AI要約の生成に失敗しました')
             ));
 
-            /* 
-            // 自動的な月次評価の更新を停止（コスト削減と意図しない実行を防ぐため）
-            // 再評価が必要な場合は、ユーザーが手動で「再評価ボタン」を押す運用に変更します
+            // 自動的な月次評価のチェック/更新（キャッシュ優先なので安全）
             if (needsReeval || force) {
-                // UI上のインジケータ表示
                 const statusEl = document.getElementById('monthly-pass-status');
-                if (statusEl) {
-                    statusEl.innerHTML += ' <span style="font-size:0.8rem; font-weight:normal; color:var(--text-muted)">(AI評価を最新化中...)</span>';
+                if (statusEl && !reportData) {
+                    statusEl.innerHTML += ' <span style="font-size:0.8rem; font-weight:normal; color:var(--text-muted)">(AI評価を準備中...)</span>';
                 }
                 
-                console.log('Fetching new monthly evaluation (Background)...');
                 if (autoForce) localStorage.removeItem(`needs_reeval_${currentTarget}`);
 
-                // バックグラウンドで計算実行
-                const newData = await Monthly.calculate(currentTarget);
-                if (newData) {
-                    // 最新データで再描画
+                // 計算実行（API側ですでにデータがあればそれが即座に返り、AIは動きません）
+                const newData = await Monthly.calculate(currentTarget, force);
+                if (newData && !newData.cached) {
+                    // 真にAIが再計算した場合のみトーストを表示
                     this.renderEvaluation(newData.breakdown, newData.score, newData.passed, currentTarget);
                     showToast('最新の記録に基づき、AI評価を更新しました ✨');
+                } else if (newData && !reportData) {
+                    // 初回読み込み時
+                    this.renderEvaluation(newData.breakdown, newData.score, newData.passed, currentTarget);
                 }
             }
-            */
 
         } catch (e) {
             console.error('Monthly Render Error:', e);
