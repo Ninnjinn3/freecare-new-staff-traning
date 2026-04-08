@@ -42,7 +42,7 @@ export default async function handler(req, res) {
 }
 
 async function callGemini(apiKey, prompt, customRules = '') {
-    const model = 'gemini-2.5-flash';
+    const model = 'gemini-2.5-flash-lite';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
 
     const fullPrompt = `以下の指示に従い介護記録を採点してください。\n\n【施設ルール】:\n${customRules || '特になし'}\n\n${prompt}`;
