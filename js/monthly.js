@@ -223,6 +223,9 @@ const Monthly = {
                 b.comment.includes('AI要約の生成に失敗しました')
             ));
 
+            /* 
+            // 自動的な月次評価の更新を停止（コスト削減と意図しない実行を防ぐため）
+            // 再評価が必要な場合は、ユーザーが手動で「再評価ボタン」を押す運用に変更します
             if (needsReeval || force) {
                 // UI上のインジケータ表示
                 const statusEl = document.getElementById('monthly-pass-status');
@@ -241,6 +244,7 @@ const Monthly = {
                     showToast('最新の記録に基づき、AI評価を更新しました ✨');
                 }
             }
+            */
 
         } catch (e) {
             console.error('Monthly Render Error:', e);
