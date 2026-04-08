@@ -57,187 +57,115 @@ const Step1 = {
     },
 
 
-    // AI判定（Phase 1: ルールベース）
+    // AI判定（Phase 1: ルールの削除 - プロンプトに集約）
     judge(noticeText) {
-        const text = noticeText.trim();
-        const result = {
-            judgement: '○',
-            short_comment: '',
-            good_points: [],
-            missing_points: [],
-            improvement_example: ''
-        };
+        return { judgement: '○', short_comment: '送信中...' };
+    },
 
-        let score = 0;
-
-        // チェック1: 文字数（30文字以上あるか）
-        if (text.length >= 30) {
-            score += 20;
-            result.good_points.push('十分な記述量があります');
-        } else {
-            result.missing_points.push('記述が短すぎます。具体的な状況を詳しく記載しましょう');
+    // 編集モード起動
+    enterEditMode(record) {
+        document.getElementById('step1-date').value = record.date;
+        document.getElementById('step1-notice').value = record.notice_text;
+        document.getElementById('step1-char-count').textContent = record.notice_text.length;
+        
+        // 対象者セット
+        if (typeof setStepSelectedTarget === 'function') {
+            setStepSelectedTarget('step1', { id: record.target_id, name: record.target_name });
         }
-
-        // チェック2: 日時・時間の記載
-        const timePattern = /(\d{1,2}[時じ:]|\d{1,2}月\d{1,2}日|朝|昼|夕方|夜|午前|午後)/;
-        if (timePattern.test(text)) {
-            score += 20;
-            result.good_points.push('日時・時間帯が具体的に記録されています');
-        } else {
-            result.missing_points.push('いつ（時間帯）の出来事かを記載しましょう');
-        }
-
-        // チェック3: 場所・場面の記載
-        const placePattern = /(フロア|居室|食堂|トイレ|浴室|玄関|廊下|リビング|ベッド|車椅子|テーブル|デイ|訪問)/;
-        if (placePattern.test(text)) {
-            score += 20;
-            result.good_points.push('場所・場面が記録されています');
-        } else {
-            result.missing_points.push('どこで起きたことかを記載しましょう');
-        }
-
-        // チェック4: 変化・比較の記載
-        const changePattern = /(いつも|普段|以前|変化|今日は|最近|初めて|違う|なかった|なくなった|増えた|減った|できていた)/;
-        if (changePattern.test(text)) {
-            score += 20;
-            result.good_points.push('変化・比較が記録されています');
-        } else {
-            result.missing_points.push('「普段は〜だが、今日は〜」のように変化を比較して記載しましょう');
-        }
-
-        // チェック5: 本人の反応・言動
-        const reactionPattern = /(言った|話した|訴えた|表情|笑顔|涙|怒|不安|嫌|痛い|うなずいた|拒否|声|目|視線|手|動)/;
-        if (reactionPattern.test(text)) {
-            score += 20;
-            result.good_points.push('本人の反応・言動が記録されています');
-        } else {
-            result.missing_points.push('本人の表情・言動・反応を具体的に記載しましょう');
-        }
-
-    // 判定
-    if (score >= 60) {
-        result.judgement = '○';
-        result.short_comment = result.good_points.length >= 3
-            ? '具体的で観察力のある記録です！'
-            : '基本的な要素は押さえられています。さらに詳細を加えるとより良い記録になります。';
-    } else {
-        result.judgement = '×';
-        result.short_comment = '記録に不足している要素があります。改善点を確認しましょう。';
-        result.improvement_example = '例: 「朝9時、フロアであいさつを呼びかけたが、Aさんは視線を合わせず返答もなかった。普段は笑顔で返している。眉間にしわが寄り、やや険しい表情だった。」';
+        
+        const submitBtn = document.getElementById('step1-submit-btn');
+        if (submitBtn) submitBtn.textContent = '修正して再提出する';
+        
+        showToast('編集モード：内容を修正してください');
     }
-
-    return result;
-},
-
-// 編集モード起動
-enterEditMode(record) {
-    document.getElementById('step1-date').value = record.date;
-    document.getElementById('step1-notice').value = record.notice_text;
-    document.getElementById('step1-char-count').textContent = record.notice_text.length;
-    
-    // 対象者セット
-    if (typeof setStepSelectedTarget === 'function') {
-        setStepSelectedTarget('step1', { id: record.target_id, name: record.target_name });
-    }
-    
-    const submitBtn = document.getElementById('step1-submit-btn');
-    if (submitBtn) submitBtn.textContent = '修正して再判定を受ける';
-    
-    showToast('編集モード：内容を修正してください');
-}
 };
 
 // フォーム送信
 async function submitStep1(event) {
-event.preventDefault();
+    event.preventDefault();
 
-const user = Auth.getUser();
-if (!user) return;
+    const user = Auth.getUser();
+    if (!user) return;
 
-const date = document.getElementById('step1-date').value;
-const notice = document.getElementById('step1-notice').value;
+    const date = document.getElementById('step1-date').value;
+    const notice = document.getElementById('step1-notice').value;
 
-// 対象者はオートコンプリートで選択されたものを使用
-const target = getStepSelectedTarget('step1');
-if (!target) {
-    showToast('対象者を選択してください');
-    return;
-}
+    const target = getStepSelectedTarget('step1');
+    if (!target) {
+        showToast('対象者を選択してください');
+        return;
+    }
 
-// 編集中のレコードID取得
-const editingId = window.editingRecord?.step === 1 ? window.editingRecord.id : null;
+    const editingId = window.editingRecord?.step === 1 ? window.editingRecord.id : null;
 
-// ボタン無効化（二重送信防止）
-const btn = document.getElementById('step1-submit-btn');
-btn.disabled = true;
-btn.textContent = editingId ? '更新中...' : 'AI判定中...';
+    const btn = document.getElementById('step1-submit-btn');
+    btn.disabled = true;
+    btn.textContent = '送信中...';
 
-// Gemini AI判定（Vercel経由）
-const judgeData = {
-    target_name: target.name,
-    date: date,
-    notice_text: notice
-};
+    // Gemini AI判定
+    const judgeData = {
+        target_name: target.name,
+        date: date,
+        notice_text: notice
+    };
 
-let aiResult;
-try {
-    aiResult = await API.judgeStep1(judgeData);
-} catch (e) {
-    btn.disabled = false;
-    btn.textContent = editingId ? '修正して再判定を受ける' : '送信して判定を受ける';
-    showToast('エラー: ' + e.message);
-    return; 
-}
+    let aiResult;
+    try {
+        aiResult = await API.judgeStep1(judgeData);
+    } catch (e) {
+        btn.disabled = false;
+        btn.textContent = editingId ? '修正して再提出する' : '送信して判定を受ける';
+        showToast('エラー: ' + e.message);
+        return; 
+    }
 
-// Supabaseに保存
-const cycle = DB.getCurrentCycle(new Date(), date);
-if (cycle.isPastDeadline && !editingId) {
-    showToast('提出期限を過ぎているため保存できません。');
+    const cycle = DB.getCurrentCycle(new Date(), date);
+    if (cycle.isPastDeadline && !editingId) {
+        showToast('提出期限を過ぎているため保存できません。');
+        btn.disabled = false;
+        btn.textContent = '送信して判定を受ける';
+        return;
+    }
+
+    const payload = {
+        staff_id: user.staff_id,
+        target_id: target.id || null,
+        target_name: target.name,
+        year_month: cycle.yearMonth,
+        date: date,
+        notice_text: notice,
+        char_count: notice.length,
+        ai_judgement: aiResult.judgement,
+        ai_comment: aiResult.short_comment,
+        ai_good_points: aiResult.good_points,
+        ai_missing: aiResult.missing_points,
+        ai_improve: aiResult.improvement_example
+    };
+
+    let isSuccess = false;
+    if (editingId) {
+        const updated = await API.updateStep1(editingId, payload);
+        isSuccess = !!updated;
+        window.editingRecord = null;
+    } else {
+        isSuccess = await API.saveStep1(payload);
+    }
+
     btn.disabled = false;
     btn.textContent = '送信して判定を受ける';
-    return;
-}
 
-const payload = {
-    staff_id: user.staff_id,
-    target_id: target.id || null,
-    target_name: target.name,
-    year_month: cycle.yearMonth,
-    date: date,
-    notice_text: notice,
-    char_count: notice.length,
-    ai_judgement: aiResult.judgement,
-    ai_comment: aiResult.short_comment,
-    ai_good_points: aiResult.good_points,
-    ai_missing: aiResult.missing_points,
-    ai_improve: aiResult.improvement_example
-};
-
-let isSuccess = false;
-if (editingId) {
-    const updated = await API.updateStep1(editingId, payload);
-    isSuccess = !!updated;
-    window.editingRecord = null; // 編集完了
-} else {
-    isSuccess = await API.saveStep1(payload);
-}
-
-btn.disabled = false;
-btn.textContent = '送信して判定を受ける';
-
-
-if (isSuccess) {
-    showToast(editingId ? '記録を更新しました ✅' : '本日の記録を提出しました ✅');
-    showResult(aiResult); // 結果画面へ
-    
-    if (!editingId) {
-        document.getElementById('step1-form').reset();
-        document.getElementById('step1-date').value = new Date().toISOString().split('T')[0];
-        document.getElementById('step1-char-count').textContent = '0';
+    if (isSuccess) {
+        showToast(editingId ? '記録を更新しました ✅' : '記録の提出が完了しました ✅');
+        
+        // リザルト画面をスキップしてホームへ
+        if (!editingId) {
+            document.getElementById('step1-form').reset();
+            document.getElementById('step1-char-count').textContent = '0';
+        }
+        navigateTo('screen-home');
+    } else {
+        showToast('保存に失敗しました。');
     }
-} else {
-    showToast('保存に失敗しました。もう一度お試しください。');
-}
 }
 
 // ◯☓結果画面表示

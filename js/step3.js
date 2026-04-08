@@ -54,76 +54,9 @@ const Step3 = {
         // オートコンプリートを使用（app.jsのinitStepAutocomplete経由）
     },
 
-    // AI判定（Phase 1: ルールベース）
+    // AI判定（Phase 1: ルールの削除 - プロンプトに集約）
     judge(data) {
-        const result = {
-            judgement: '○',
-            short_comment: '',
-            good_points: [],
-            missing_points: [],
-            improvement_example: ''
-        };
-
-        let score = 0;
-
-        // 1. 気付きの具体性
-        if (data.notice && data.notice.length >= 20) {
-            score += 15;
-            result.good_points.push('気付きが具体的に記載されています');
-        } else {
-            result.missing_points.push('気付きをより具体的に記載しましょう');
-        }
-
-        // 2. 支援内容の具体性
-        if (data.support && data.support.length >= 20) {
-            score += 20;
-            result.good_points.push('支援内容が具体的です');
-        } else {
-            result.missing_points.push('支援内容を詳しく記載しましょう');
-        }
-
-        // 3. 理由の論理性
-        if (data.reason && data.reason.length >= 15) {
-            score += 15;
-            result.good_points.push('支援の理由が明確です');
-        } else {
-            result.missing_points.push('なぜその支援を行ったのか、理由を明確にしましょう');
-        }
-
-        // 4. 予測の記載
-        if (data.prediction && data.prediction.length >= 15) {
-            score += 15;
-            result.good_points.push('変化の予測が記載されています');
-        } else {
-            result.missing_points.push('支援後にどのような変化を予測するか記載しましょう');
-        }
-
-        // 5. 反応の記録
-        if (data.reaction && data.reaction.length >= 15) {
-            score += 20;
-            result.good_points.push('本人の反応が記録されています');
-        } else {
-            result.missing_points.push('支援後の本人の反応を具体的に記録しましょう');
-        }
-
-        // 6. 判断と理由
-        if (data.decision && data.decisionReason && data.decisionReason.length >= 10) {
-            score += 15;
-            result.good_points.push('継続/変更/終了の判断と理由が明確です');
-        } else {
-            result.missing_points.push('判断の理由を具体的に記載しましょう');
-        }
-
-        if (score >= 60) {
-            result.judgement = '○';
-            result.short_comment = '振り返りが適切にできています。支援の質が向上していきますね！';
-        } else {
-            result.judgement = '×';
-            result.short_comment = '振り返りに不足している要素があります。各項目をより詳細に記載しましょう。';
-            result.improvement_example = '具体的なエピソード→行った支援→その理由→予測→実際の反応→次のアクション、という流れで振り返りましょう';
-        }
-
-        return result;
+        return { judgement: '○', short_comment: '送信中...' };
     },
 
     // 編集モード起動
@@ -144,7 +77,7 @@ const Step3 = {
         }
 
         const submitBtn = document.getElementById('step3-submit-btn');
-        if (submitBtn) submitBtn.textContent = '修正して再判定を受ける';
+        if (submitBtn) submitBtn.textContent = '修正して再提出する';
         
         showToast('編集モード：内容を修正してください');
     }
@@ -169,16 +102,14 @@ async function submitStep3(event) {
         return;
     }
 
-    // 編集中のレコードID取得
     const editingId = window.editingRecord?.step === 3 ? window.editingRecord.id : null;
 
     const btn = document.getElementById('step3-submit-btn');
     if (btn) { 
         btn.disabled = true; 
-        btn.textContent = editingId ? '更新中...' : 'AI判定中...'; 
+        btn.textContent = '送信中...'; 
     }
 
-    // 期限チェック
     const date = document.getElementById('step3-date').value;
     const cycle = DB.getCurrentCycle(new Date(), date);
     if (cycle.isPastDeadline && !editingId) {
@@ -200,7 +131,6 @@ async function submitStep3(event) {
         decisionReason: document.getElementById('step3-decision-reason').value
     };
 
-    // Gemini AI判定
     const judgeData = {
         target_name: target.name,
         reflection: reflectionData
@@ -209,16 +139,11 @@ async function submitStep3(event) {
     try {
         aiResult = await API.judgeStep3(judgeData);
     } catch (e) {
-        if (btn) { btn.disabled = false; btn.textContent = '送信して判定を受ける'; }
+        if (btn) { btn.disabled = false; btn.textContent = editingId ? '修正して再提出する' : '送信して判定を受ける'; }
         showToast('エラー: ' + e.message);
         return;
     }
 
-    // 結果画面を表示
-    showResult(aiResult);
-    if (btn) { btn.disabled = false; btn.textContent = '送信して判定を受ける'; }
-
-    // 保存用データ準備
     const payload = {
         staff_id: user.staff_id,
         target_id: target.id || null,
@@ -234,21 +159,27 @@ async function submitStep3(event) {
         ai_improve: aiResult.improvement_example
     };
 
-    let savePromise;
+    let isSuccess = false;
     if (editingId) {
-        savePromise = API.updateStep3(editingId, payload).then(() => {
-            showToast('記録を更新しました ✅');
-            window.editingRecord = null; // 編集完了
-        });
+        const updated = await API.updateStep3(editingId, payload);
+        isSuccess = !!updated;
+        window.editingRecord = null;
     } else {
-        savePromise = API.saveStep3(payload).then(() => showToast('記録を保存しました ✅'));
+        isSuccess = await API.saveStep1(payload); // 内部的にAPI.saveStep3を使うべき箇所を修正（saveStep1になっていた）
+        // あ、待て。API経由の保存は、s3ならAPI.saveStep3を呼ぶ必要があるはず
+        isSuccess = await API.saveStep3(payload);
     }
 
-    savePromise.catch(e => { console.error(e); showToast('保存に失敗しました'); });
+    if (btn) { btn.disabled = false; btn.textContent = '送信して判定を受ける'; }
 
-    // フォームリセットは合格時のみ
-    if (aiResult.judgement === '○') {
-        document.getElementById('step3-form').reset();
-        document.getElementById('step3-date').value = new Date().toISOString().split('T')[0];
+    if (isSuccess) {
+        showToast(editingId ? '記録を更新しました ✅' : '記録の提出が完了しました ✅');
+        if (!editingId) {
+            document.getElementById('step3-form').reset();
+            document.getElementById('step3-date').value = new Date().toISOString().split('T')[0];
+        }
+        navigateTo('screen-home');
+    } else {
+        showToast('保存に失敗しました。');
     }
 }

@@ -70,7 +70,7 @@ const DB = {
         
         // 11日〜翌月10日を1つのサイクルとするルール
         // 例: 3/11 〜 4/10 は「3月分」
-        if (d.getDate() <= MONTHLY_CYCLE.inputEnd) {
+        if (d.getDate() <= 10) {
             // 1日〜10日の場合は、前月のサイクルに属する
             const prev = new Date(d);
             prev.setMonth(d.getMonth() - 1);
@@ -80,59 +80,48 @@ const DB = {
         
         const targetYearMonth = `${cycleYear}-${String(cycleMonth + 1).padStart(2, '0')}`;
         
-        // 3. 算出された targetYearMonth に対する「提出期限」を計算
-        let deadlineYear = cycleYear;
-        let deadlineMonth = cycleMonth + 1;
-        if (deadlineMonth > 11) {
-            deadlineMonth = 0;
-            deadlineYear++;
-        }
-        // 期限は M+1月の10日
-        const deadlineDate = new Date(deadlineYear, deadlineMonth, MONTHLY_CYCLE.inputEnd);
+        // --- 対象期間の算出 ---
+        // 開始日: 当月11日
+        const startDate = new Date(cycleYear, cycleMonth, 11);
+        // 終了日: 翌月10日
+        const endDate = new Date(cycleYear, cycleMonth + 1, 10);
         
-        // 4. refDate（今日）から見て、期限が過ぎているか判定
+        // 提出期限は M+1月の10日 23:59:59
+        const deadlineDate = new Date(cycleYear, cycleMonth + 1, 10, 23, 59, 59);
+        
+        // 今日の日付（refDate）から見て、期限が過ぎているか判定
         const today = new Date(refDate);
-        today.setHours(0,0,0,0);
-        const daysLeft = Math.ceil((deadlineDate - today) / (1000 * 60 * 60 * 24));
-        const isPastDeadline = daysLeft < 0;
+        const diffMs = deadlineDate - today;
+        const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
+        const isPastDeadline = diffMs < 0;
         
-        // フェーズ判定
-        let phase = 'input';
-        const currentDay = refDate.getDate();
-        if (isPastDeadline) {
-            if (currentDay >= MONTHLY_CYCLE.evalStart && currentDay <= MONTHLY_CYCLE.evalEnd) {
-                phase = 'evaluation';
-            } else {
-                phase = 'feedback';
-            }
-        }
+        // ラベル作成
+        const rangeStr = `${startDate.getMonth() + 1}/${startDate.getDate()}〜${endDate.getMonth() + 1}/${endDate.getDate()}`;
+        const label = `${cycleYear}年${String(cycleMonth + 1).padStart(2, '0')}月分 (${rangeStr})`;
 
         return {
             yearMonth: targetYearMonth,
             cycleYear,
             cycleMonth: cycleMonth + 1,
-            phase,
+            startDate,
+            endDate,
+            rangeStr,
+            label,
             deadlineDate,
             daysLeft: Math.max(0, daysLeft),
-            deadlineStr: `${deadlineMonth + 1}月${MONTHLY_CYCLE.inputEnd}日`,
+            deadlineStr: `${endDate.getMonth() + 1}月${endDate.getDate()}日`,
             isPastDeadline
         };
     },
 
     // 指定した年月(YYYY-MM)の編集期間が終了しているかチェック
-    // 翌月10日を過ぎていれば「終了(false)」
     isCycleActive(yearMonthStr) {
         if (!yearMonthStr) return false;
         
-        // 今日の日付から見た「本来アクティブであるべきサイクル」を取得
-        const currentActiveCycle = this.getCurrentCycle(new Date());
-        
-        // 指定された月が「現在進行中のサイクル」でないなら、それは過去分なので active ではない(false)
-        if (yearMonthStr !== currentActiveCycle.yearMonth) {
-            return false;
-        }
-
         const [y, m] = yearMonthStr.split('-').map(Number);
+        // JSのDateはMonthが0-indexed。yearMonthStr="2026-03" -> y=2026, m=3
+        // 3月分の期限は、4月10日 23:59:59。
+        // new Date(2026, 3, 10, ...) は 2026年4月10日になるので正しい。
         const deadline = new Date(y, m, 10, 23, 59, 59);
         return new Date() <= deadline;
     },
@@ -140,16 +129,21 @@ const DB = {
     getCycleOptions(count = 6) {
         const options = [];
         const activeCycle = this.getCurrentCycle(new Date());
-        let year = activeCycle.cycleYear;
-        let month = activeCycle.cycleMonth; // 1-12
+        let currentYear = activeCycle.cycleYear;
+        let currentMonth = activeCycle.cycleMonth;
+
         for (let i = 0; i < count; i++) {
-            const val = `${year}-${String(month).padStart(2, '0')}`;
-            const label = `${year}年${String(month).padStart(2, '0')}月分`;
-            options.push({ value: val, label: label });
-            month--;
-            if (month < 1) {
-                month = 12;
-                year--;
+            // その年月の情報を取得するために、各年月の11日を仮の基準日として計算
+            // 2026-03-11 -> 3月分
+            const tempDate = new Date(currentYear, currentMonth - 1, 11);
+            const info = this.getCurrentCycle(new Date(), tempDate);
+            
+            options.push({ value: info.yearMonth, label: info.label });
+            
+            currentMonth--;
+            if (currentMonth < 1) {
+                currentMonth = 12;
+                currentYear--;
             }
         }
         return options;

@@ -179,14 +179,14 @@ const Monthly = {
     async render(targetMonthStr = null) {
         // 月選択ドロップダウンの初期化
         const selectEl = document.getElementById('monthly-month-select');
-        const activeCycleStr = DB.getCurrentCycle().yearMonth;
-        const currentTarget = targetMonthStr || activeCycleStr;
+        const activeCycle = DB.getCurrentCycle();
+        const currentTarget = targetMonthStr || activeCycle.yearMonth;
 
-        if (selectEl && selectEl.options.length === 0) {
+        if (selectEl) {
             const options = DB.getCycleOptions(6);
             selectEl.innerHTML = options.map(opt => `<option value="${opt.value}" ${opt.value === currentTarget ? 'selected' : ''}>${opt.label}</option>`).join('');
+            selectEl.value = currentTarget;
         }
-        if (selectEl) selectEl.value = currentTarget;
 
         const container = document.getElementById('monthly-report');
         if (!container) return;
@@ -198,33 +198,28 @@ const Monthly = {
         try {
             const user = Auth.getUser();
 
-            // レガシーUIを隠す（確実に最初に実行）
+            // レガシーUIを隠す
             this.toggleLegacyUI(false);
             
-            // 自動再評価の判定
             const autoForce = localStorage.getItem(`needs_reeval_${currentTarget}`) === 'true';
             const force = (window.forceReevaluating === true) || autoForce;
             if (window.forceReevaluating === true) window.forceReevaluating = false;
 
-            // キャッシュ（現在の評価）を取得
             const data = await API.getMonthlyEvaluation(user.staff_id, currentTarget);
             
             let reportData = data ? data.breakdown_json : null;
             let score = data ? data.score : 0;
             let passed = data ? data.passed : false;
 
-            // 描画実行（まずは現在のデータを出す）
             this.renderEvaluation(reportData, score, passed, currentTarget);
             await this.renderDailyRecords(currentTarget);
 
-            // 再評価（自動または手動）が必要な場合
             const needsReeval = !reportData || (Array.isArray(reportData) && reportData.some(b => 
                 !b.comment || 
                 b.comment.includes('AIのフィードバックはありません') || 
                 b.comment.includes('AI要約の生成に失敗しました')
             ));
 
-            // 自動的な月次評価のチェック/更新（キャッシュ優先なので安全）
             if (needsReeval || force) {
                 const statusEl = document.getElementById('monthly-pass-status');
                 if (statusEl && !reportData) {
@@ -233,14 +228,11 @@ const Monthly = {
                 
                 if (autoForce) localStorage.removeItem(`needs_reeval_${currentTarget}`);
 
-                // 計算実行（API側ですでにデータがあればそれが即座に返り、AIは動きません）
                 const newData = await Monthly.calculate(currentTarget, force);
                 if (newData && !newData.cached) {
-                    // 真にAIが再計算した場合のみトーストを表示
                     this.renderEvaluation(newData.breakdown, newData.score, newData.passed, currentTarget);
                     showToast('最新の記録に基づき、AI評価を更新しました ✨');
                 } else if (newData && !reportData) {
-                    // 初回読み込み時
                     this.renderEvaluation(newData.breakdown, newData.score, newData.passed, currentTarget);
                 }
             }
@@ -260,18 +252,26 @@ const Monthly = {
         const bRoot = document.getElementById('score-breakdown');
 
         if (isEditable) {
+            // 選択された月のサイクル情報を取得（その月の11日を基準に計算）
+            const [y, m] = yearMonth.split('-').map(Number);
+            const cycleInfo = DB.getCurrentCycle(new Date(), new Date(y, m - 1, 11));
+            const pubDate = new Date(cycleInfo.deadlineDate);
+            pubDate.setDate(pubDate.getDate() + 1);
+            pubDate.setHours(0, 0, 0, 0);
+
             if (bRoot) {
                 bRoot.innerHTML = `
                     <div class="card" style="text-align: center; padding: 40px var(--space-lg); margin-top: 20px; border: 2px dashed var(--primary);">
                         <div style="font-size: 3rem; margin-bottom: 20px;">⏳</div>
                         <h3 style="margin-bottom: 15px; color: var(--primary);">ただいま記録修正・提出期間中です</h3>
                         <p style="color: var(--text-secondary); margin-bottom: 25px; line-height: 1.6;">
-                            ${yearMonth.split('-')[1]}月分の取り組みは、**翌月10日**まで修正・提出が可能です。<br>
+                            <strong>${cycleInfo.cycleMonth}月分（${cycleInfo.rangeStr}）</strong>の取り組みは、<br>
+                            <strong>**${cycleInfo.deadlineStr}**</strong> まで修正・提出が可能です。<br>
                             月次評価（合否判定）は、提出期間が終了した後に公開されます。<br>
                             日々のフィードバック（○/×）を確認しながら、より良い記録を目指しましょう！
                         </p>
                         <div style="font-size: 0.9rem; background: #f0f7ff; padding: 15px; border-radius: 8px; color: #0056b3; display: inline-block;">
-                            📅 公開予定：${parseInt(yearMonth.split('-')[1]) === 12 ? 1 : parseInt(yearMonth.split('-')[1]) + 1}月11日 0:00〜
+                            📅 公開予定：${pubDate.getMonth() + 1}月${pubDate.getDate()}日 0:00〜
                         </div>
                     </div>
                 `;
@@ -512,7 +512,7 @@ const Monthly = {
                                 ` : ''}
 
                                 <div style="font-weight: bold; color: #495057; margin-bottom: 4px; font-size: 0.85rem;">【総評】</div>
-                                <div style="color: #495057; line-height: 1.5;">${(r.ai_comment || '改善点を確認しましょう').replace(/\n/g, '<br>')}</div>
+                                <div style="color: #495057; line-height: 1.5;">${(r.ai_comment || r.ai_advice || '改善点を確認しましょう').replace(/\n/g, '<br>')}</div>
                             </div>
                         `;
                     }

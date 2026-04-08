@@ -429,16 +429,26 @@ function updateDeadlineAlert() {
     const cycle = DB.getCurrentCycle();
     const deadlineEl = document.getElementById('home-deadline');
     const alertCard = document.getElementById('deadline-alert');
+    const titleEl = document.getElementById('deadline-alert-title');
 
-    if (cycle.phase === 'input') {
+    if (titleEl) {
+        titleEl.textContent = `${cycle.cycleMonth}月分 提出期限`;
+    }
+
+    // 提出期間中かどうか（翌月10日まで）
+    if (!cycle.isPastDeadline) {
         const spaces = '&nbsp;'.repeat(6);
         deadlineEl.innerHTML = `${cycle.deadlineStr}${spaces}<span style="margin-left: 12px; font-weight: bold; color: #d9534f;">あと${cycle.daysLeft}日</span>`;
         alertCard.classList.toggle('alert-urgent', cycle.daysLeft <= 3);
-    } else if (cycle.phase === 'evaluation') {
-        deadlineEl.textContent = '評価期間中';
-        alertCard.classList.remove('alert-urgent');
     } else {
-        deadlineEl.textContent = 'フィードバック期間';
+        // 期限を過ぎている場合はフェーズに応じた表示（評価期間またはフィードバック期間）
+        // 11日〜17日は評価期間、それ以降はフィードバック期間とする
+        const currentDay = new Date().getDate();
+        if (currentDay >= 11 && currentDay <= 17) {
+            deadlineEl.textContent = '評価期間中（公開をお待ちください）';
+        } else {
+            deadlineEl.textContent = 'フィードバック公開中';
+        }
         alertCard.classList.remove('alert-urgent');
     }
 }
