@@ -601,19 +601,25 @@ async function loadHistory() {
         if (filter === 'all' || filter === 'step2') {
             const step2 = (await API.getStep2Records(user.staff_id, null)) || [];
             records = records.concat(step2.map(r => {
-                let detailText = `【状況】: ${r.change_noticed || 'ー'}\n`;
-                detailText += `※(詳細データ ${r.hypotheses_json ? '有' : '無'})\n`;
+                let detailText = `【解析ログ】: ${r.hypotheses_json ? '詳細データあり' : '詳細データなし'}\n`;
+                detailText += `【状況】: ${r.change_noticed || 'ー'}\n`;
+                
                 try {
                     const hypoData = typeof r.hypotheses_json === 'string' ? JSON.parse(r.hypotheses_json) : (r.hypotheses_json || {});
                     const cards = Array.isArray(hypoData) ? hypoData : (hypoData.cards || []);
                     
-                    cards.forEach((h, i) => {
-                        detailText += `\n【仮説${i + 1}】\n`;
-                        detailText += `${h.why1 || 'ー'} -> ${h.why2 || 'ー'} -> ${h.why3 || 'ー'}\n`;
-                        detailText += `└ 支援: ${h.support || 'なし'}\n`;
-                    });
+                    if (cards.length > 0) {
+                        detailText += `\n--- 仮説一覧 (${cards.length}件) ---\n`;
+                        cards.forEach((h, i) => {
+                            detailText += `【仮説${i + 1}】\n`;
+                            detailText += `${h.why1 || 'ー'} -> ${h.why2 || 'ー'} -> ${h.why3 || 'ー'}\n`;
+                            detailText += `└ 支援: ${h.support || 'なし'}\n\n`;
+                        });
+                    } else {
+                        detailText += `\n(表示可能な仮説データがありません)\n`;
+                    }
                 } catch (e) {
-                    detailText += '\n(仮説データの解析に失敗しました)';
+                    detailText += `\n(仮説データの解析エラー: ${e.message})\n`;
                 }
 
                 return {
