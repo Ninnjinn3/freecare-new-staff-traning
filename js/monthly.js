@@ -232,7 +232,12 @@ const Monthly = {
             let reportData = evaluation ? evaluation.breakdown_json : null;
             let score = evaluation ? evaluation.score : 0;
             let passed = evaluation ? evaluation.passed : false;
-            let improvement = evaluation ? (evaluation.improvement || evaluation.feedback_json?.improvement) : null;
+            // feedback_jsonがJSON文字列の場合もパースして対応
+            let feedbackJson = evaluation ? evaluation.feedback_json : null;
+            if (feedbackJson && typeof feedbackJson === 'string') {
+                try { feedbackJson = JSON.parse(feedbackJson); } catch(e) { feedbackJson = null; }
+            }
+            let improvement = evaluation ? (evaluation.improvement || feedbackJson?.improvement) : null;
 
             this.renderStepSwitcher(currentTarget);
             this.renderEvaluation(reportData, score, passed, currentTarget, improvement);
@@ -427,6 +432,10 @@ const Monthly = {
                     </li>
                 `).join('');
             }
+            // 改善アクション・feedbackセクションを確実に表示する
+            const feedbackSection = document.getElementById('monthly-feedback');
+            if (feedbackSection) feedbackSection.style.display = '';
+            actionsEl.style.display = '';
         }
 
 
@@ -721,7 +730,8 @@ const Monthly = {
 
     // レガシーUIの表示切り替え
     toggleLegacyUI(show) {
-        const elements = ['.score-ring-container', '#monthly-level', '.monthly-stats', '#monthly-actions'];
+        // #monthly-actions は新UIで使用するため除外
+        const elements = ['.score-ring-container', '#monthly-level', '.monthly-stats'];
         elements.forEach(selector => {
             const el = selector.startsWith('#') ? document.getElementById(selector.slice(1)) : document.querySelector(selector);
             if (el) el.style.display = show ? 'flex' : 'none';
