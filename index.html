@@ -359,7 +359,7 @@
 
       <!-- カリキュラム表示エリア -->
       <div id="step3-curriculum"></div>
-      <form id="step3-form" onsubmit="submitStep3(event)">
+      <form id="step3-form" onsubmit="submitStep3(event)" novalidate>
         <div class="form-group">
           <label for="step3-date">日付</label>
           <input type="date" id="step3-date" required>
@@ -406,7 +406,7 @@
           <label for="step3-decision-reason">⑥ 上記を選択した理由</label>
           <textarea id="step3-decision-reason" rows="3" required></textarea>
         </div>
-        <button type="submit" class="btn btn-primary btn-full">送信してフィードバックを受ける</button>
+        <button type="submit" class="btn btn-primary btn-full" id="step3-submit-btn">送信してフィードバックを受ける</button>
       </form>
     </div>
   </section>
@@ -527,7 +527,7 @@
       </div>
 
       <!-- 症例報告書フォーム -->
-      <form id="step4-form" onsubmit="submitStep4(event)">
+      <form id="step4-form" onsubmit="submitStep4(event)" novalidate>
 
         <!-- Ⅰ．基本情報 -->
         <div class="card" style="margin-bottom: var(--space-md);">
@@ -621,7 +621,7 @@
         </div>
 
 
-        <button type="submit" class="btn btn-primary btn-full">📋 症例報告書を保存する</button>
+        <button type="submit" class="btn btn-primary btn-full" id="step4-submit-btn">📋 症例報告書を保存する</button>
       </form>
 
       <!-- 結果表示エリア -->

@@ -121,14 +121,26 @@ async function submitStep3(event) {
         return;
     }
 
+    const notice = document.getElementById('step3-notice').value.trim();
+    const support = document.getElementById('step3-support').value.trim();
+    const reason = document.getElementById('step3-reason').value.trim();
+    const prediction = document.getElementById('step3-prediction').value.trim();
+    const reaction = document.getElementById('step3-reaction').value.trim();
+    const decision = document.getElementById('step3-decision').value;
+    const decisionReason = document.getElementById('step3-decision-reason').value.trim();
+
+    // 必須チェック
+    if (!date) { showToast('日付を入力してください'); return; }
+    if (!notice) { showToast('①気付きを入力してください'); document.getElementById('step3-notice').focus(); return; }
+    if (!support) { showToast('②支援内容を入力してください'); document.getElementById('step3-support').focus(); return; }
+    if (!reason) { showToast('③理由を入力してください'); document.getElementById('step3-reason').focus(); return; }
+    if (!prediction) { showToast('④予測を入力してください'); document.getElementById('step3-prediction').focus(); return; }
+    if (!reaction) { showToast('⑤反応を入力してください'); document.getElementById('step3-reaction').focus(); return; }
+    if (!decision) { showToast('⑥判断を選択してください'); document.getElementById('step3-decision').focus(); return; }
+    if (!decisionReason) { showToast('⑥判断の理由を入力してください'); document.getElementById('step3-decision-reason').focus(); return; }
+
     const reflectionData = {
-        notice: document.getElementById('step3-notice').value,
-        support: document.getElementById('step3-support').value,
-        reason: document.getElementById('step3-reason').value,
-        prediction: document.getElementById('step3-prediction').value,
-        reaction: document.getElementById('step3-reaction').value,
-        decision: document.getElementById('step3-decision').value,
-        decisionReason: document.getElementById('step3-decision-reason').value
+        notice, support, reason, prediction, reaction, decision, decisionReason
     };
 
     const judgeData = {
@@ -165,8 +177,6 @@ async function submitStep3(event) {
         isSuccess = !!updated;
         window.editingRecord = null;
     } else {
-        isSuccess = await API.saveStep1(payload); // 内部的にAPI.saveStep3を使うべき箇所を修正（saveStep1になっていた）
-        // あ、待て。API経由の保存は、s3ならAPI.saveStep3を呼ぶ必要があるはず
         isSuccess = await API.saveStep3(payload);
     }
 

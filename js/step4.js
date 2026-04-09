@@ -98,16 +98,28 @@ async function submitStep4(event) {
         reflection: getValue('step4-reflection')
     };
 
-    // 必須チェック（最低限）
-    if (!caseData.noticed_change || !caseData.result || !caseData.reflection) {
-        showToast('Ⅲ気付いた変化・Ⅴ結果・Ⅵ考察は必須です📝');
+    // 編集中のレコードID取得
+    const editingId = (window.editingRecord && window.editingRecord.step === 4) ? window.editingRecord.id : null;
+
+    const btn = document.getElementById('step4-submit-btn');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = editingId ? '更新中...' : '保存中...';
+    }
+
+    const target = getStepSelectedTarget('step4');
+    if (!target) {
+        showToast('対象者を選択してください');
+        if (btn) { btn.disabled = false; btn.textContent = editingId ? '修正して再投稿する' : '📋 症例報告書を保存する'; }
         return;
     }
 
-    const presentationNumber = Step4.getPresentationCount(user.staff_id) + 1;
+    // 必須チェック（最低限）
+    if (!caseData.noticed_change) { showToast('Ⅲ．気付いた変化を入力してください'); document.getElementById('step4-noticed-change').focus(); if (btn) { btn.disabled = false; btn.textContent = editingId ? '修正して再投稿する' : '📋 症例報告書を保存する'; } return; }
+    if (!caseData.result) { showToast('Ⅴ．結果・変化を入力してください'); document.getElementById('step4-result').focus(); if (btn) { btn.disabled = false; btn.textContent = editingId ? '修正して再投稿する' : '📋 症例報告書を保存する'; } return; }
+    if (!caseData.reflection) { showToast('Ⅵ．考察を入力してください'); document.getElementById('step4-reflection').focus(); if (btn) { btn.disabled = false; btn.textContent = editingId ? '修正して再投稿する' : '📋 症例報告書を保存する'; } return; }
 
-    // 編集中のレコードID取得
-    const editingId = (window.editingRecord && window.editingRecord.step === 4) ? window.editingRecord.id : null;
+    const presentationNumber = Step4.getPresentationCount(user.staff_id) + 1;
 
     try {
         if (editingId) {
@@ -137,8 +149,11 @@ async function submitStep4(event) {
     } catch (e) {
         console.error('Save STEP4 failed:', e);
         showToast('保存に失敗しました');
+        if (btn) { btn.disabled = false; btn.textContent = editingId ? '修正して再投稿する' : '📋 症例報告書を保存する'; }
         return;
     }
+
+    if (btn) { btn.disabled = false; btn.textContent = '📋 症例報告書を保存する'; }
 
     // 保存成功メッセージ
     const resultArea = document.getElementById('step4-result-area');
