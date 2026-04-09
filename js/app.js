@@ -1,3 +1,6 @@
+/* Build: 2026-04-09 15:00 */
+console.log('FC_APP: Version 202604091500 Loaded');
+console.log('System initialized at 2026-04-09 15:00');
 /* ============================================
    app.js — メインアプリケーション制御
    SPA画面遷移・初期化・ホーム画面ロジック
@@ -598,7 +601,8 @@ async function loadHistory() {
         if (filter === 'all' || filter === 'step2') {
             const step2 = (await API.getStep2Records(user.staff_id, null)) || [];
             records = records.concat(step2.map(r => {
-                let detailText = `変化: ${r.change_noticed || 'ー'}\n`;
+                let detailText = `【状況】: ${r.change_noticed || 'ー'}\n`;
+                detailText += `※(詳細データ ${r.hypotheses_json ? '有' : '無'})\n`;
                 try {
                     const hypoData = typeof r.hypotheses_json === 'string' ? JSON.parse(r.hypotheses_json) : (r.hypotheses_json || {});
                     const cards = Array.isArray(hypoData) ? hypoData : (hypoData.cards || []);
