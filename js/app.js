@@ -1588,9 +1588,8 @@ const Dictionary = {
                 suggestEl.style.display = 'block';
             } else {
                 suggestEl.innerHTML = `
-                    <div class="suggestion-ai-trigger" style="border-top:none; color: #666; font-size: 0.85rem; line-height: 1.5;">
-                        🔍 辞典にない言葉です。<br>
-                        そのまま<strong style="color:var(--primary);">「Enter」</strong>を押すとAIが詳しく解説します。
+                    <div class="suggestion-ai-trigger" style="border-top:none; color: #999; font-size: 0.85rem; line-height: 1.5; text-align: center; padding: 15px;">
+                        一致する用語はありません
                     </div>
                 `;
                 suggestEl.style.display = 'block';
@@ -1627,8 +1626,8 @@ const Dictionary = {
                 // 一致があればそこへスクロール
                 this.selectSuggestion(match.term);
             } else {
-                // なければAIに聞く
-                this.askAI(query);
+                // 辞典にない場合は何もしない
+                console.log('辞典にない用語のため検索をスキップ:', query);
             }
         }
     },
