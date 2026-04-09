@@ -248,7 +248,8 @@ const Monthly = {
 
     // 6項目の評価描画
     renderEvaluation(breakdown, totalScore, passed, yearMonth) {
-        const isEditable = DB.isCycleActive(yearMonth);
+        // テスト段階のため、期間内でも評価を表示するように一時的にバイパス
+        const isEditable = false; // DB.isCycleActive(yearMonth);
         const bRoot = document.getElementById('score-breakdown');
 
         if (isEditable) {
@@ -469,7 +470,8 @@ const Monthly = {
                 recordsList.innerHTML = allRecords.map((r, idx) => {
                     const isPass = r.ai_judgement === '○';
                     const bc = isPass ? 'var(--success)' : 'var(--danger)';
-                    const showEvaluation = !isCycleActive;
+                    // テスト段階のため、期間内でも日々の評価を表示するように強制
+                    const showEvaluation = true; // !isCycleActive;
                     
                     // 提出期限内かチェック（翌月10日まで）
                     const recordCycle = DB.getCurrentCycle(new Date(), r.date);
