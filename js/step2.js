@@ -231,6 +231,12 @@ async function submitStep2(event) {
     const priorityReason = document.getElementById('step2-priority-reason').value;
     const expectedChange = document.getElementById('step2-expected-change').value;
 
+    // 必須フィールドの検証
+    if (!date) { showToast('日付を入力してください'); return; }
+    if (!change.trim()) { showToast('気付いた変化を入力してください'); document.getElementById('step2-change').focus(); return; }
+    if (!priorityReason.trim()) { showToast('優先順位の理由を入力してください'); document.getElementById('step2-priority-reason').focus(); return; }
+    if (!expectedChange.trim()) { showToast('変化すると考えられることを入力してください'); document.getElementById('step2-expected-change').focus(); return; }
+
     const target = getStepSelectedTarget('step2');
     if (!target) {
         showToast('対象者を選択してください');
