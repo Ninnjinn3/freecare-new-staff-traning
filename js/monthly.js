@@ -184,35 +184,8 @@ const Monthly = {
         const report = document.getElementById('monthly-report');
         if (!report) return;
 
-        // 既存のスイッチがあれば削除
-        const oldSwitcher = document.getElementById('monthly-step-switcher');
-        if (oldSwitcher) oldSwitcher.remove();
+        // フェーズ選択ピルは非表示のため省略
 
-        const switcher = document.createElement('div');
-        switcher.id = 'monthly-step-switcher';
-        switcher.className = 'phase-switcher';
-        switcher.style = 'margin-bottom: 25px; display: flex; background: #f8fafc; padding: 4px; border-radius: 10px; border: 1px solid #e2e8f0; max-width: 500px; margin-left: auto; margin-right: auto;';
-        
-        const phases = [
-            { id: 1, label: '気付き', desc: '第1段階' },
-            { id: 2, label: '仮説思考', desc: '第2段階' },
-            { id: 3, label: '振り返り', desc: '第3段階' }
-        ];
-
-        switcher.innerHTML = phases.map(p => {
-            const isActive = this.currentStep === p.id;
-            return `
-                <div class="phase-pill ${isActive ? 'active' : ''}" 
-                     onclick="Monthly.switchStep(${p.id}, '${currentTarget}')"
-                     style="flex: 1; text-align: center; padding: 8px 4px; cursor: pointer; border-radius: 8px; transition: all 0.2s;
-                            ${isActive ? 'background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); color: var(--primary); font-weight: bold;' : 'color: #64748b;'}">
-                    <div style="font-size: 0.85rem;">${p.label}</div>
-                    <div style="font-size: 0.6rem; opacity: 0.7; font-weight: normal;">${p.desc}</div>
-                </div>
-            `;
-        }).join('');
-
-        report.prepend(switcher);
     },
 
     // 評価フェーズ切り替え
