@@ -4,12 +4,15 @@
    ============================================ */
 
 const Monthly = {
+    currentStep: 1, // 現在表示中のSTEP (1, 2, 3)
+
     // 月次スコア算出（API経由で実データから算出）
-    async calculate(targetMonthStr = null, force = false) {
+    async calculate(targetMonthStr = null, force = false, targetStep = null) {
         const user = Auth.getUser();
         if (!user) return null;
 
         const cycle = targetMonthStr ? { yearMonth: targetMonthStr } : DB.getCurrentCycle();
+        const stepToEval = targetStep || this.currentStep || 1;
 
         try {
             const resp = await fetch('/api/monthly', {
@@ -19,6 +22,7 @@ const Monthly = {
                     staff_id: user.staff_id,
                     year_month: cycle.yearMonth,
                     current_step: user.current_step || 1,
+                    target_step: stepToEval,
                     force: force
                 })
             });
@@ -175,6 +179,51 @@ const Monthly = {
         return false;
     },
 
+    // ステップ切り替えUIを描画
+    renderStepSwitcher(currentTarget) {
+        const report = document.getElementById('monthly-report');
+        if (!report) return;
+
+        // 既存のスイッチがあれば削除（重複防止）
+        const oldSwitcher = document.getElementById('monthly-step-switcher');
+        if (oldSwitcher) oldSwitcher.remove();
+
+        const switcher = document.createElement('div');
+        switcher.id = 'monthly-step-switcher';
+        switcher.className = 'step-switcher';
+        switcher.style = 'margin-bottom: 25px; display: flex; background: #f1f3f5; padding: 6px; border-radius: 12px; border: 1px solid #e9ecef;';
+        
+        const steps = [
+            { id: 1, label: 'STEP1 報告', desc: '気付き・多職種連携' },
+            { id: 2, label: 'STEP2 分析', desc: '要因・仮説思考' },
+            { id: 3, label: 'STEP3 評価', desc: '実践・振り返り' }
+        ];
+
+        switcher.innerHTML = steps.map(s => {
+            const isActive = this.currentStep === s.id;
+            return `
+                <div class="step-tab ${isActive ? 'active' : ''}" 
+                     onclick="Monthly.switchStep(${s.id}, '${currentTarget}')"
+                     style="flex: 1; text-align: center; padding: 12px 8px; cursor: pointer; border-radius: 8px; transition: all 0.2s;
+                            ${isActive ? 'background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); color: var(--primary); font-weight: bold;' : 'color: #868e96;'}">
+                    <div style="font-size: 0.85rem; margin-bottom: 2px;">${s.label}</div>
+                    <div style="font-size: 0.65rem; opacity: 0.7;">${s.desc}</div>
+                </div>
+            `;
+        }).join('');
+
+        // 表示エリア（evaluation-sheet）の前に挿入
+        report.prepend(switcher);
+    },
+
+    // ステップ切り替え処理
+    async switchStep(step, yearMonth) {
+        if (this.currentStep === step) return;
+        this.currentStep = step;
+        showToast(`STEP ${step} の評価画面を表示します`);
+        await this.render(yearMonth);
+    },
+
     // 月次評価画面描画
     async render(targetMonthStr = null) {
         // 月選択ドロップダウンの初期化
@@ -205,14 +254,15 @@ const Monthly = {
             const force = (window.forceReevaluating === true) || autoForce;
             if (window.forceReevaluating === true) window.forceReevaluating = false;
 
-            const data = await API.getMonthlyEvaluation(user.staff_id, currentTarget);
+            const evaluation = await API.getMonthlyEvaluation(user.staff_id, currentTarget, this.currentStep);
             
-            let reportData = data ? data.breakdown_json : null;
-            let score = data ? data.score : 0;
-            let passed = data ? data.passed : false;
+            let reportData = evaluation ? evaluation.breakdown_json : null;
+            let score = evaluation ? evaluation.score : 0;
+            let passed = evaluation ? evaluation.passed : false;
 
+            this.renderStepSwitcher(currentTarget);
             this.renderEvaluation(reportData, score, passed, currentTarget);
-            await this.renderDailyRecords(currentTarget);
+            await this.renderDailyRecords(currentTarget, this.currentStep); 
 
             const needsReeval = !reportData || (Array.isArray(reportData) && reportData.some(b => 
                 !b.comment || 
@@ -223,15 +273,15 @@ const Monthly = {
             if (needsReeval || force) {
                 const statusEl = document.getElementById('monthly-pass-status');
                 if (statusEl && !reportData) {
-                    statusEl.innerHTML += ' <span style="font-size:0.8rem; font-weight:normal; color:var(--text-muted)">(AI評価を準備中...)</span>';
+                    statusEl.innerHTML += ' <span style="font-size:0.8rem; font-weight:normal; color:var(--text-muted)">(評価を計算中...)</span>';
                 }
                 
                 if (autoForce) localStorage.removeItem(`needs_reeval_${currentTarget}`);
 
-                const newData = await Monthly.calculate(currentTarget, force);
+                const newData = await Monthly.calculate(currentTarget, force, this.currentStep);
                 if (newData && !newData.cached) {
                     this.renderEvaluation(newData.breakdown, newData.score, newData.passed, currentTarget);
-                    showToast('最新の記録に基づき、AI評価を更新しました ✨');
+                    showToast(`STEP ${this.currentStep} の最新評価を算出しました ✨`);
                 } else if (newData && !reportData) {
                     this.renderEvaluation(newData.breakdown, newData.score, newData.passed, currentTarget);
                 }

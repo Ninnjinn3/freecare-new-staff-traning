@@ -11,7 +11,7 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
-    const { staff_id, year_month, current_step, force } = req.body;
+    const { staff_id, year_month, current_step, target_step, force } = req.body;
     if (!staff_id || !year_month) {
         return res.status(400).json({ error: 'staff_id and year_month required' });
     }
@@ -69,11 +69,14 @@ export default async function handler(req, res) {
         let breakdown = [];
         let isAIEvaluated = false;
 
+        // 評価対象のSTEP（指定があればそれ、なければ現在のステップ）
+        const evaluationStep = parseInt(target_step || current_step || 1);
+
         let aiError = null;
         if (GEMINI_API_KEY) {
             try {
-                breakdown = await evaluateMonthlyWithAI(step1Records, step2Records, step3Records, GEMINI_API_KEY);
-                if (breakdown && (breakdown.length === 6 || breakdown.length >= 6)) {
+                breakdown = await evaluateMonthlyWithAI(step1Records, step2Records, step3Records, evaluationStep, GEMINI_API_KEY);
+                if (breakdown && breakdown.length > 0) {
                     isAIEvaluated = true;
                 }
             } catch (e) {
@@ -82,8 +85,8 @@ export default async function handler(req, res) {
             }
         }
 
-        if (!isAIEvaluated || !breakdown || breakdown.length < 6) {
-            breakdown = calculateBreakdown(step1Records, step2Records, step3Records, aiError || (GEMINI_API_KEY ? "AI回答が不完全です" : false));
+        if (!isAIEvaluated || !breakdown || breakdown.length === 0) {
+            breakdown = calculateBreakdown(step1Records, step2Records, step3Records, evaluationStep, aiError || (GEMINI_API_KEY ? "AI回答が不完全です" : false));
         }
 
         const score = breakdown.reduce((sum, b) => sum + (b.score || 0), 0);
@@ -101,7 +104,7 @@ export default async function handler(req, res) {
         const level = getLevel(score);
 
         // 6) 過去の評価取得 & 合格判定
-        const step = current_step || 1;
+        const step = evaluationStep;
         const previousEvals = await supabaseSelect(
             SUPABASE_URL, SUPABASE_KEY, 'monthly_evaluations',
             `staff_id=eq.${staff_id}&year_month=lt.${year_month}&order=year_month.desc&limit=12`
@@ -126,7 +129,7 @@ export default async function handler(req, res) {
             total_records: totalRecords,
             passed,
             hr_points: hrPoints
-        });
+        }, 'staff_id,year_month,step'); // ユニーク制約をSTEP付きで指定（要DB更新）
 
         return res.status(200).json({
             score, breakdown, totalRecords, passCount, failCount,
@@ -148,73 +151,106 @@ async function supabaseSelect(url, key, table, query) {
     return await resp.json();
 }
 
-async function supabaseUpsert(url, key, table, record) {
+async function supabaseUpsert(url, key, table, record, conflict = 'id') {
     await fetch(`${url}/rest/v1/${table}`, {
         method: 'POST',
         headers: {
             'apikey': key,
             'Authorization': `Bearer ${key}`,
             'Content-Type': 'application/json',
-            'Prefer': 'resolution=merge-duplicates'
+            'Prefer': `resolution=merge-duplicates, on_conflict=${conflict}`
         },
         body: JSON.stringify(record)
     });
 }
 
-// ===== 6観点スコア算出 =====
-function calculateBreakdown(step1, step2, step3, isError = false) {
-    const allRecords = [...step1, ...step2, ...step3];
-    const passRate = allRecords.filter(r => r.ai_judgement === '○').length / Math.max(allRecords.length, 1);
-    const step1Rate = step1.length > 0 ? step1.filter(r => r.ai_judgement === '○').length / step1.length : 0;
-    const step2Rate = step2.length > 0 ? step2.filter(r => r.ai_judgement === '○').length / step2.length : 0;
-    const step3Rate = step3.length > 0 ? step3.filter(r => r.ai_judgement === '○').length / step3.length : 0;
+// ===== スコア算出（フォールバック用） =====
+function calculateBreakdown(step1, step2, step3, targetStep, isError = false) {
+    const s1Rate = step1.length > 0 ? step1.filter(r => r.ai_judgement === '○').length / step1.length : 0;
+    const s2Rate = step2.length > 0 ? step2.filter(r => r.ai_judgement === '○').length / step2.length : 0;
+    const s3Rate = step3.length > 0 ? step3.filter(r => r.ai_judgement === '○').length / step3.length : 0;
 
     const errorNote = isError ? "【注意】AI項目の生成に失敗しました。基本的なスコアのみ表示しています。" : "（AI評価が有効になっていません）";
 
-    return [
-        { name: '気づいた変化の明確さ', key: 'change_clarity', score: calcScore(15, step1Rate || passRate), max: 15, userContent: errorNote, comment: errorNote },
-        { name: '要因の多層的分析', key: 'multi_factor', score: calcScore(20, step2Rate || passRate), max: 20, userContent: errorNote, comment: errorNote },
-        { name: '要因の関連性と優先順位', key: 'priority', score: calcScore(15, step2Rate || passRate), max: 15, userContent: errorNote, comment: errorNote },
-        { name: '検証計画の論理性', key: 'verification', score: calcScore(15, avg(step2Rate, step3Rate) || passRate), max: 15, userContent: errorNote, comment: errorNote },
-        { name: '支援計画の実効性', key: 'support_plan', score: calcScore(20, step3Rate || passRate), max: 20, userContent: errorNote, comment: errorNote },
-        { name: '振り返り・修正力', key: 'reflection', score: calcScore(15, step3Rate || passRate), max: 15, userContent: errorNote, comment: errorNote }
-    ];
+    if (targetStep === 1) {
+        return [
+            { name: "変化への気づき（具体性）", key: "c1", score: calcScore(30, s1Rate), max: 30, comment: errorNote },
+            { name: "対象者理解の深さ", key: "c2", score: calcScore(30, s1Rate), max: 30, comment: errorNote },
+            { name: "専門的・客観的視点", key: "c3", score: calcScore(20, s1Rate), max: 20, comment: errorNote },
+            { name: "報告のタイミング・頻度", key: "c4", score: calcScore(20, s1Rate), max: 20, comment: errorNote }
+        ];
+    } else if (targetStep === 2) {
+        return [
+            { name: "要因分析の論理性（深さ）", key: "c1", score: calcScore(30, s2Rate), max: 30, comment: errorNote },
+            { name: "仮説の妥当性", key: "c2", score: calcScore(30, s2Rate), max: 30, comment: errorNote },
+            { name: "優先順位の設定", key: "c3", score: calcScore(20, s2Rate), max: 20, comment: errorNote },
+            { name: "多角的な視点", key: "c4", score: calcScore(20, s2Rate), max: 20, comment: errorNote }
+        ];
+    } else {
+        return [
+            { name: "支援計画の実効性", key: "c1", score: calcScore(30, s3Rate), max: 30, comment: errorNote },
+            { name: "反応・効果の捉え方", key: "c2", score: calcScore(30, s3Rate), max: 30, comment: errorNote },
+            { name: "振り返りと自己修正", key: "c3", score: calcScore(20, s3Rate), max: 20, comment: errorNote },
+            { name: "根拠に基づく支援の展開", key: "c4", score: calcScore(20, s3Rate), max: 20, comment: errorNote }
+        ];
+    }
 }
 
 // ===== AI 月次評価算出 =====
-async function evaluateMonthlyWithAI(step1, step2, step3, apiKey) {
-    // 記録の質をAIに伝えるため、詳細にマッピング
-    const s1Items = step1.slice(0, 20).map((r, i) => 
-        `[気付き] 日付:${r.date} 内容:${r.notice_text}`
-    );
-    const s2Items = step2.slice(0, 15).map((r, i) => {
+async function evaluateMonthlyWithAI(step1, step2, step3, targetStep, apiKey) {
+    // 記録の要約を作成
+    const s1Text = step1.length > 0 ? step1.slice(0, 30).map(r => `[${r.date}] ${r.notice_text}`).join('\n') : "STEP1の記録なし";
+    const s2Text = step2.length > 0 ? step2.slice(0, 20).map(r => {
         const hypos = (r.hypotheses_json || []).map(h => `${h.hypo}(なぜ:${h.why1}->${h.why2}->${h.why3})`).join(' / ');
-        return `[仮説思考] 日付:${r.date} 変化:${r.change_noticed} 仮説群:${hypos}`;
-    });
-    const s3Items = step3.slice(0, 10).map((r, i) => 
-        `[振り返り] 日付:${r.date} 支援:${r.support} 反応:${r.reaction} 判断:${r.decision}`
-    );
+        return `[${r.date}] 変化:${r.change_noticed} 仮説:${hypos}`;
+    }).join('\n') : "STEP2の記録なし";
+    const s3Text = step3.length > 0 ? step3.slice(0, 20).map(r => `[${r.date}] 支援:${r.support} 反応:${r.reaction} 判断:${r.decision}`).join('\n') : "STEP3の記録なし";
 
-    const s1Text = s1Items.join('\n') || '記録なし';
-    const s2Text = s2Items.join('\n') || '記録なし';
-    const s3Text = s3Items.join('\n') || '記録なし';
+    // STEPごとの観点定義
+    const stepCriteria = {
+        1: [
+            { name: "変化への気づき（具体性）", max: 30, desc: "変化を具体的に、かつ事実に基づいて記録できているか" },
+            { name: "対象者理解の深さ", max: 30, desc: "利用者の特性や普段の様子を踏まえた視点が入っているか" },
+            { name: "専門的・客観的視点", max: 20, desc: "介護職としての客観的な観察や専門的な捉え方ができているか" },
+            { name: "報告のタイミング・頻度", max: 20, desc: "タイムリーな記録が行われ、1ヶ月通して継続できているか" }
+        ],
+        2: [
+            { name: "要因分析の論理性（深さ）", max: 30, desc: "なぜなぜ分析を用いて、根本的な要因まで掘り下げられているか" },
+            { name: "仮説の妥当性", max: 30, desc: "アセスメント結果に基づき、納得感のある仮説を立てられているか" },
+            { name: "優先順位の設定", max: 20, desc: "複数の要因から、今取り組むべき最も重要なものを選べているか" },
+            { name: "多角的な視点", max: 20, desc: "身体面、精神面、環境面など多角的に要因を考えられているか" }
+        ],
+        3: [
+            { name: "支援計画の実効性", max: 30, desc: "仮説に基づき、具体的で実行可能な支援案が作成されているか" },
+            { name: "反応・効果の捉え方", max: 30, desc: "実施後の利用者の反応を細かく、正確に拾い上げているか" },
+            { name: "振り返りと自己修正", max: 20, desc: "結果を受けて分析し、次のアクション（継続・変更・終了）を正しく判断しているか" },
+            { name: "根拠に基づく支援の展開", max: 20, desc: "一連のサイクルを通して、根拠を持ってケアを行えているか" }
+        ]
+    };
+
+    const criteria = stepCriteria[targetStep] || stepCriteria[1];
+    const criteriaDesc = criteria.map(c => `- ${c.name} (最大 ${c.max}点): ${c.desc}`).join('\n');
 
     const prompt = `
-あなたはベテランの介護指導員として、スタッフの1ヶ月の記録を統合的に評価してください。
+あなたはベテランの介護指導員として、スタッフの「STEP ${targetStep}」の記録に特化して月次評価（100点満点）を行ってください。
+
+■今回の評価対象: STEP ${targetStep}
+■評価用データ:
+【STEP 1 記録】
+${s1Text}
+
+【STEP 2 記録】
+${s2Text}
+
+【STEP 3 記録】
+${s3Text}
 
 ■評価のルール:
-1. 以下の6つの観点に対し、各最大点数（max）の範囲内で1点単位で厳格に採点（score）してください。
+1. 以下の観点に基づき、STEP ${targetStep}の内容のみを厳格に採点してください。
+${criteriaDesc}
 2. 各観点ごとに、複数の具体的な採点項目（criteriaRef）を生成してください。
-3. **improvement（改善例）**には、このスタッフが次に100点を取るための、具体的かつ実戦的なアドバイスを300文字程度で記載してください。
-4. **comment（総評）**には、この1ヶ月の成長や気づきの鋭さを褒めつつ、更なる高みへの期待を込めてください。
-
-■観点詳細:
-1.気づいた変化の明確さ(max 15): STEP1の具体性
-2.要因の多層的分析(max 20): STEP2の「なぜなぜ分析」の深さ
-3.要因の関連性と優先順位(max 15): 最も重要な原因を選べているか
-4.検証計画の論理性(max 15): 支援案が仮説に基づいているか
-5.支援計画の実効性(max 20): STEP3での実施と反応の捉え方
-6.振り返り・修正力(max 15): 結果を受けて次の行動を判断できているか
+3. **improvement（改善例）**には、STEP ${targetStep}において次に100点を取るための、具体的かつ実戦的なアドバイスを300文字程度で記載してください。
+4. **comment（総評）**には、この1ヶ月のSTEP ${targetStep}における成長を評価し、期待を伝えてください。
 
 ■出力形式 (JSON形式厳守):
 {
@@ -223,15 +259,15 @@ async function evaluateMonthlyWithAI(step1, step2, step3, apiKey) {
       "name": "観点名",
       "max": 数値,
       "score": 数値,
-      "comment": "この観点に対する個別フィードバック",
-      "userContent": "判断材料となった記録の引用（箇条書き）",
+      "comment": "個別フィードバック",
+      "userContent": "判断材料となった具体的な記録の引用など",
       "criteriaRef": [
-        {"pts": 点数, "desc": "具体的な評価基準内容", "selected": true/false}
+        {"pts": 点数, "desc": "具体的な評価内容", "selected": true/false}
       ]
     }
   ],
-  "applied_knowledge": "適用された専門知識や施設ルール",
-  "improvement": "具体的でパーソナライズされた100点満点への改善アドバイス"
+  "applied_knowledge": "適用した専門知識など",
+  "improvement": "100点に向けた改善アドバイス"
 }`;
 
 

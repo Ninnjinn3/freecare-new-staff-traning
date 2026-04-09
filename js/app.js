@@ -1273,6 +1273,35 @@ const Settings = {
         const isNotifEnabled = localStorage.getItem('fc_notifications_enabled') === 'true';
         const notifToggle = document.getElementById('notification-toggle');
         if (notifToggle) notifToggle.checked = isNotifEnabled;
+
+        // 文字サイズの反映
+        this.loadFontSize();
+    },
+
+    loadFontSize: function() {
+        const saved = localStorage.getItem('fc_font_size') || 'medium';
+        this.applyFontSize(saved);
+    },
+
+    applyFontSize: function(size) {
+        document.documentElement.setAttribute('data-font-size', size);
+        localStorage.setItem('fc_font_size', size);
+        
+        // ラベルの更新
+        const labelEl = document.getElementById('settings-font-size-label');
+        if (labelEl) {
+            const labels = { small: '小', medium: '中', large: '大', xlarge: '特大' };
+            labelEl.textContent = labels[size] || '中';
+        }
+    },
+
+    cycleFontSize: function() {
+        const current = localStorage.getItem('fc_font_size') || 'medium';
+        const sizes = ['small', 'medium', 'large', 'xlarge'];
+        let nextIdx = (sizes.indexOf(current) + 1) % sizes.length;
+        this.applyFontSize(sizes[nextIdx]);
+        
+        showToast(`文字サイズを「${document.getElementById('settings-font-size-label').textContent}」に変更しました`);
     },
 
     toggleNotifications: async function (enabled) {
@@ -1702,5 +1731,7 @@ const Reminder = {
         }
     }
 };
-
-
+// アプリ起動時の初期化
+document.addEventListener('DOMContentLoaded', () => {
+    Settings.loadFontSize();
+});

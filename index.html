@@ -900,37 +900,6 @@
         </div>
       </div>
 
-      <!-- カテゴリ：アカウント -->
-      <div class="settings-group">
-        <div class="settings-group-title">👤 アカウント設定</div>
-        <div class="settings-card">
-          <div class="settings-item settings-item-clickable" onclick="showToast('プロフィール編集は現在準備中です ⏳')">
-            <div class="settings-item-icon" style="color: #4c5bb7; background: #e8eaf6;">👤</div>
-            <div class="settings-item-label">
-              <span class="settings-item-title">公開プロフィールの確認</span>
-              <span class="settings-item-desc">登録されている情報の確認・編集</span>
-            </div>
-            <div class="settings-item-action"><span class="settings-item-chevron">▶</span></div>
-          </div>
-          <div class="settings-item settings-item-clickable" onclick="Settings.openPasswordModal()">
-            <div class="settings-item-icon" style="color: #6c5ce7; background: #f0effc;">🔐</div>
-            <div class="settings-item-label">
-              <span class="settings-item-title">パスワード変更</span>
-              <span class="settings-item-desc">セキュリティ向上のため定期的な変更を推奨</span>
-            </div>
-            <div class="settings-item-action"><span class="settings-item-chevron">▶</span></div>
-          </div>
-          <div class="settings-item settings-item-clickable" onclick="showDeleteConfirm()">
-            <div class="settings-item-icon" style="color: #e74c3c; background: #fff1f0;">⚠️</div>
-            <div class="settings-item-label">
-              <span class="settings-item-title" style="color: #e74c3c;">アカウントの削除</span>
-              <span class="settings-item-desc">すべての学習データが消去されます</span>
-            </div>
-            <div class="settings-item-action"><span class="settings-item-chevron">▶</span></div>
-          </div>
-        </div>
-      </div>
-
       <!-- カテゴリ：表示と操作 -->
       <div class="settings-group">
         <div class="settings-group-title">🎨 表示と操作</div>
@@ -961,28 +930,13 @@
               </label>
             </div>
           </div>
-          <div class="settings-item settings-item-clickable" onclick="showToast('フォントサイズ設定は現在準備中です ⏳')">
+          <div class="settings-item settings-item-clickable" onclick="Settings.cycleFontSize()">
             <div class="settings-item-icon" style="color: #2980b9; background: #ebf5fb;">Aa</div>
             <div class="settings-item-label">
               <span class="settings-item-title">文字サイズ</span>
               <span class="settings-item-desc">読みやすいサイズに調整できます</span>
             </div>
-            <div class="settings-item-action">中 <span class="settings-item-chevron">▶</span></div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 管理者のみ表示 -->
-      <div id="settings-admin-only" class="settings-group" style="display: none;">
-        <div class="settings-group-title">🛠️ 管理者メニュー</div>
-        <div class="settings-card">
-          <div class="settings-item settings-item-clickable" onclick="showToast('データ出力機能は現在準備中です ⏳')">
-            <div class="settings-item-icon" style="color: #16a085; background: #e8f8f5;">📊</div>
-            <div class="settings-item-label">
-              <span class="settings-item-title">研修データ出力 (CSV)</span>
-              <span class="settings-item-desc">全スタッフの進捗状況を書き出します</span>
-            </div>
-            <div class="settings-item-action"><span class="settings-item-chevron">▶</span></div>
+            <div class="settings-item-action"><span id="settings-font-size-label">中</span> <span class="settings-item-chevron">▶</span></div>
           </div>
         </div>
       </div>
@@ -1014,6 +968,44 @@
               <span class="settings-item-desc">バージョン 2.5.0 (2024.04 Release)</span>
             </div>
             <div class="settings-item-action"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- カテゴリ：アカウント (最下部へ移動) -->
+      <div class="settings-group" style="margin-top: 40px;">
+        <div class="settings-group-title">👤 アカウント設定</div>
+        <div class="settings-card">
+          <div class="settings-item settings-item-clickable" onclick="Settings.openPasswordModal()">
+            <div class="settings-item-icon" style="color: #6c5ce7; background: #f0effc;">🔐</div>
+            <div class="settings-item-label">
+              <span class="settings-item-title">パスワード変更</span>
+              <span class="settings-item-desc">セキュリティ向上のため定期的な変更を推奨</span>
+            </div>
+            <div class="settings-item-action"><span class="settings-item-chevron">▶</span></div>
+          </div>
+          <div class="settings-item settings-item-clickable" onclick="showDeleteConfirm()">
+            <div class="settings-item-icon" style="color: #e74c3c; background: #fff1f0;">⚠️</div>
+            <div class="settings-item-label">
+              <span class="settings-item-title" style="color: #e74c3c;">アカウントの削除</span>
+              <span class="settings-item-desc">すべての学習データが消去されます</span>
+            </div>
+            <div class="settings-item-action"><span class="settings-item-chevron">▶</span></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 管理者のみ表示 -->
+      <div id="settings-admin-only" class="settings-group" style="display: none;">
+        <div class="settings-group-title">🛠️ 管理者メニュー</div>
+        <div class="settings-card">
+          <div class="settings-item settings-item-clickable" onclick="showToast('データ出力機能は現在準備中です ⏳')">
+            <div class="settings-item-icon" style="color: #16a085; background: #e8f8f5;">📊</div>
+            <div class="settings-item-label">
+              <span class="settings-item-title">研修データ出力 (CSV)</span>
+              <span class="settings-item-desc">全スタッフの進捗状況を書き出します</span>
+            </div>
+            <div class="settings-item-action"><span class="settings-item-chevron">▶</span></div>
           </div>
         </div>
       </div>

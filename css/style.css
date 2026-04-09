@@ -3423,3 +3423,9 @@ input:checked+.slider:before {
 .dark-theme .glossary-pair {
   border-bottom-color: rgba(255,255,255,0.1);
 }
+
+/* Font Scaling */
+html[data-font-size='small'] { font-size: 14.4px; }
+html[data-font-size='medium'] { font-size: 16px; }
+html[data-font-size='large'] { font-size: 18.4px; }
+html[data-font-size='xlarge'] { font-size: 20.8px; }

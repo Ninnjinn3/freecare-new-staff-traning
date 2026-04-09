@@ -253,14 +253,15 @@ const API = {
 
     // ===== 月次評価 =====
 
-    async getMonthlyEvaluation(staffId, yearMonth, force = false) {
+    async getMonthlyEvaluation(staffId, yearMonth, step = 1, force = false) {
         if (!force) {
             const { data, error } = await this.getSupabase()
                 .from('monthly_evaluations')
                 .select('*')
                 .eq('staff_id', staffId)
                 .eq('year_month', yearMonth)
-                .single();
+                .eq('step', step)
+                .maybeSingle();
             if (!error && data) return data;
         }
         return null;
