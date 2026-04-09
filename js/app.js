@@ -634,9 +634,12 @@ async function loadHistory() {
 
         listEl.innerHTML = records.map(r => `
             <div class="history-item" style="margin-bottom: 12px; background: white; border-radius: 8px; border-left: 4px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: hidden;">
-              <div class="history-item-header" onclick="var d=this.nextElementSibling; d.style.display = d.style.display === 'none' ? 'block' : 'none'; this.querySelector('.accordion-toggle').textContent = d.style.display === 'none' ? '▼' : '▲';" style="display:flex; justify-content:space-between; align-items: center; padding: 12px; cursor: pointer;">
-                <strong style="font-size:0.95rem; color:var(--text);">${r.displayDate} <span style="font-size:0.8rem; font-weight:normal; color:#666;">[${r.stepLabel}] - ${r.target_name || ''}さん</span></strong>
-                <span class="accordion-toggle" style="font-size: 0.75rem; color: #999;">▼</span>
+              <div class="history-item-header" onclick="var d=this.nextElementSibling; d.style.display = d.style.display === 'none' ? 'block' : 'none'; this.querySelector('.accordion-toggle').textContent = d.style.display === 'none' ? '▼' : '▲'; this.querySelector('.history-preview').style.display = d.style.display === 'none' ? 'block' : 'none';" style="display:block; padding: 12px; cursor: pointer;">
+                <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom: 4px;">
+                  <strong style="font-size:0.95rem; color:var(--text);">${r.displayDate} <span style="font-size:0.8rem; font-weight:normal; color:#666;">[${r.stepLabel}] - ${r.target_name || ''}さん</span></strong>
+                  <span class="accordion-toggle" style="font-size: 0.75rem; color: #999;">▼</span>
+                </div>
+                <div class="history-preview" style="font-size: 0.8rem; color: #868e96; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 90%;">${(r.text || '').replace(/\n/g, ' ')}</div>
               </div>
               <div class="history-body" style="display: none; padding: 0 12px 12px 12px; border-top: 1px solid #f5f5f5; margin-top: -4px; padding-top: 8px;">
                 <div class="history-text" style="font-size:0.9rem; line-height:1.6; color:#333; white-space: pre-wrap;">${r.text || ''}</div>
