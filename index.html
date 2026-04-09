@@ -1031,9 +1031,10 @@
             </div>
             <p style="font-size: 0.85rem; font-weight: bold; margin-bottom: 5px;">【修正の手順】</p>
             <ol style="font-size: 0.85rem; padding-left: 20px; color: var(--text-secondary);">
-                <li>ホーム画面左下の<strong>「提出履歴」</strong>をタップ</li>
-                <li>修正したい日付の記録をタップ</li>
-                <li>詳細画面の下にある<strong>「修正して再提出」</strong>ボタンをタップ</li>
+                <li>ホーム画面中央の<strong>「送信済み課題修正」</strong>をタップ</li>
+                <li>「気付き」や「仮説思考」など、修正したいカテゴリーを選択</li>
+                <li>一覧から修正したい日付の記録をタップ</li>
+                <li>詳細画面の下にある<strong>「編集する」</strong>ボタンをタップ</li>
             </ol>
           </div>
         </div>
@@ -1157,12 +1158,11 @@
           </div>
           <div class="help-item-body" hidden>
             <p style="font-size: 0.9rem; line-height: 1.6;">
-                AIが提示する「改善例」は、プロの記録のお手本です。以下の3ステップで自分のスキルに変換しましょう：
+                AIが提示する「改善例」は、プロの記録のお手本です。以下の2ステップで自分のスキルに変換しましょう：
             </p>
             <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #10b981; margin-top: 10px;">
                 <ol style="font-size: 0.85rem; padding-left: 20px; line-height: 1.8; margin: 0;">
                     <li><strong>「差分チェック」:</strong> 自分の書いた文と、AIの文で「何が一番違うか（数値か、表情か、比較か）」を確認します。</li>
-                    <li><strong>「シャドーイング」:</strong> 改善例を一度声に出して読み、プロの語彙（専門用語や客観表現）を意識します。</li>
                     <li><strong>「翌日の実践」:</strong> 翌日の記録で、AIが使った表現を一つだけ真似して書いてみます。これを繰り返すだけで記録力は飛躍的に向上します。</li>
                 </ol>
             </div>
@@ -1201,7 +1201,7 @@
             <span class="help-toggle">▼</span>
           </div>
           <div class="help-item-body" hidden>
-            <p style="font-size: 0.85rem;">セキュリティおよび記録保持の観点から、ご自身でアカウントを削除することはできません。退職等の際は、施設の管理者へお申し出ください。</p>
+            <p style="font-size: 0.85rem;">アカウントを削除すると、退職扱いとなり、今後ログインできなくなります。これまでの研修記録は管理者側で引き続き確認できます。</p>
           </div>
         </div>
 
@@ -1298,19 +1298,114 @@
             プロの語彙力：言い換え辞典
         </h3>
 
+        <!-- 1. 排泄・ケア -->
         <div class="help-item">
           <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>介護記録でよく使う言葉の言い換え</span>
+            <span>1. 排泄・ケアに関する表現</span>
             <span class="help-toggle">▼</span>
           </div>
           <div class="help-item-body" hidden>
             <div class="glossary-grid">
-                <div class="glossary-item"><span>ぼーっとしている</span><br><strong>→ 覚醒レベルが低い</strong></div>
-                <div class="glossary-item"><span>ふらふらしている</span><br><strong>→ 歩行が不安定、失調気味</strong></div>
-                <div class="glossary-item"><span>怒鳴っている</span><br><strong>→ 感情の失制、不穏状態</strong></div>
-                <div class="glossary-item"><span>急に泣き出した</span><br><strong>→ 感情失禁、抑うつ的</strong></div>
-                <div class="glossary-item"><span>寝てばかりいる</span><br><strong>→ 傾眠傾向（けいみん）</strong></div>
-                <div class="glossary-item"><span>勝手に歩き出す</span><br><strong>→ 独歩・不慮の離設リスク</strong></div>
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> 失禁した、漏らした、便秘<br><strong>○ 尿が漏れてしまった、排便が普段より少ない</strong></div>
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> オムツ替え、汚い<br><strong>○ 排泄介助、衣服の交換</strong></div>
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> 体交、Ns（略語・業界用語）<br><strong>○ 寝返り介助、看護師</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. 行動・状態 -->
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>2. 行動・状態に関する表現</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <div class="glossary-grid">
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> 徘徊（はいかい）<br><strong>○ フロアを歩き回る、目的なく移動される</strong></div>
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> 暴れる、拒否される<br><strong>○ 「帰る」と大きな声で話される、手を振り払う動作が見られた</strong></div>
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> 暴言を吐く、うるさい<br><strong>○ 「〜」と大きな声で訴えがあった</strong></div>
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> 不穏、機嫌が悪い<br><strong>○ うとうとされている、落ち着かない様子</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. 敬称・対人関係 -->
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>3. 敬称・対人関係に関する表現</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <div class="glossary-grid">
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> ちゃん/くん付け、呼び捨て<br><strong>○ 〜様、〜さん</strong></div>
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> 〜させる（管理的表現）<br><strong>○ 〜していただく、〜をお勧めする</strong></div>
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> 勝手に、しつこく<br><strong>○ 自発的に、何度も</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. 食事・経口摂取 -->
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>4. 食事・経口摂取に関する表現</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">自律を尊重する表現を選びます。</p>
+            <div class="glossary-grid">
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> 餌（えさ）、エサ<br><strong>○ お食事</strong></div>
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> 完食させた、食べさせた<br><strong>○ 全量摂取された、召し上がった</strong></div>
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> 食べ残し、残飯<br><strong>○ 副食を○割残される</strong></div>
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> むせた<br><strong>○ 咳き込みが見られた</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. 身体の状態・病状 -->
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>5. 身体の状態・病状に関する表現</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">差別的な響きや、介護者の決定的な主観を避けます。</p>
+            <div class="glossary-grid">
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> ボケている、痴呆（ちほう）<br><strong>○ 認知症状がある、見当識に混乱が見られる</strong></div>
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> 寝たきり<br><strong>○ 常時臥床されている、全介助の状態</strong></div>
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> 汚染、不潔<br><strong>○ 便の付着がある、更衣が必要な状態</strong></div>
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> 異常なし<br><strong>○ お変わりなく過ごされている、変化なし</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. 日常動作・リハビリ -->
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>6. 日常動作・リハビリに関する表現</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <div class="glossary-grid">
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> 移乗（専門用語）<br><strong>○ 乗り換え、ベッドから車椅子への移動</strong></div>
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> 独歩、離設（略語）<br><strong>○ お一人で歩行される、外出される</strong></div>
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> 側臥位（そくがい）<br><strong>○ 横向きに寝た状態</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 7. 介護者の主観・感情 -->
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>7. 介護者の主観・感情に関する表現</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">「何が起きたか」という事実にフォーカスします。</p>
+            <div class="glossary-grid">
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> 困った、大変だった<br><strong>○ 対応に時間を要した、継続的に対応した</strong></div>
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> わがまま、困らせる<br><strong>○ 強い要望がある、〜と訴えられている</strong></div>
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> 指示する、注意する<br><strong>○ お声掛けする、ご説明・提案する</strong></div>
+                <div class="glossary-item"><span class="help-guide-badge bad">×</span> 監視する、見張る<br><strong>○ 見守りを行う、訪室して確認する</strong></div>
             </div>
           </div>
         </div>
