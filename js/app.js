@@ -600,26 +600,30 @@ async function loadHistory() {
 
         if (filter === 'all' || filter === 'step2') {
             const step2 = (await API.getStep2Records(user.staff_id, null)) || [];
+            console.log('FC_DEBUG STEP2 raw records:', step2.length, step2.map(r => ({ id: r.id, has_hypo: !!r.hypotheses_json, hypo_type: typeof r.hypotheses_json, hypo_val: r.hypotheses_json })));
             records = records.concat(step2.map(r => {
-                let detailText = `【解析ログ】: ${r.hypotheses_json ? '詳細データあり' : '詳細データなし'}\n`;
-                detailText += `【状況】: ${r.change_noticed || 'ー'}\n`;
-                
+                let rawHypo = r.hypotheses_json;
+                let hypoData = {};
                 try {
-                    const hypoData = typeof r.hypotheses_json === 'string' ? JSON.parse(r.hypotheses_json) : (r.hypotheses_json || {});
-                    const cards = Array.isArray(hypoData) ? hypoData : (hypoData.cards || []);
-                    
-                    if (cards.length > 0) {
-                        detailText += `\n--- 仮説一覧 (${cards.length}件) ---\n`;
-                        cards.forEach((h, i) => {
-                            detailText += `【仮説${i + 1}】\n`;
-                            detailText += `${h.why1 || 'ー'} -> ${h.why2 || 'ー'} -> ${h.why3 || 'ー'}\n`;
-                            detailText += `└ 支援: ${h.support || 'なし'}\n\n`;
-                        });
-                    } else {
-                        detailText += `\n(表示可能な仮説データがありません)\n`;
-                    }
-                } catch (e) {
-                    detailText += `\n(仮説データの解析エラー: ${e.message})\n`;
+                    hypoData = typeof rawHypo === 'string' ? JSON.parse(rawHypo) : (rawHypo || {});
+                } catch(e) { hypoData = {}; }
+                
+                // Support both old format (array) and new format ({cards: [...]})
+                const cards = Array.isArray(hypoData) ? hypoData : (Array.isArray(hypoData.cards) ? hypoData.cards : []);
+                console.log('FC_DEBUG record:', r.id, 'cards count:', cards.length, 'first card:', cards[0]);
+                
+                let detailText = `変化: ${r.change_noticed || 'ー'}\n`;
+                
+                if (cards.length > 0) {
+                    cards.forEach((h, i) => {
+                        detailText += `\n【仮説${i + 1}】\n`;
+                        // Support both 'hypo' field and direct why fields
+                        if (h.hypo) detailText += `仮説: ${h.hypo}\n`;
+                        detailText += `${h.why1 || 'ー'} -> ${h.why2 || 'ー'} -> ${h.why3 || 'ー'}\n`;
+                        detailText += `└ 支援: ${h.support || 'なし'}\n`;
+                    });
+                } else {
+                    detailText += `\n(仮説データなし)\n`;
                 }
 
                 return {
