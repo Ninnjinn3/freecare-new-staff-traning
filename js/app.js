@@ -674,8 +674,10 @@ async function loadHistory() {
                   <strong style="font-size:0.95rem; color:var(--text);">${r.displayDate} <span style="font-size:0.8rem; font-weight:normal; color:#666;">[${r.stepLabel}] - ${r.target_name || ''}さん</span></strong>
                   <span class="accordion-toggle" style="font-size: 0.75rem; color: #999;">▼</span>
                 </div>
+                <!-- プレビュー文 -->
                 <div class="history-preview" style="font-size: 0.8rem; color: #868e96; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 90%;">${(r.text || '').replace(/\n/g, ' ')}</div>
               </div>
+              <!-- 詳細文（最初は非表示） -->
               <div class="history-body" style="display: none; padding: 0 12px 12px 12px; border-top: 1px solid #f5f5f5; margin-top: -4px; padding-top: 8px;">
                 <div class="history-text" style="font-size:0.9rem; line-height:1.6; color:#333; white-space: pre-wrap;">${r.text || ''}</div>
               </div>
@@ -690,9 +692,15 @@ async function loadHistory() {
 // 履歴展開トグルのヘルパー
 function toggleHistoryItem(header) {
     const item = header.closest('.history-item');
-    if (item) {
-        item.classList.toggle('is-expanded');
-    }
+    if (!item) return;
+
+    const preview = item.querySelector('.history-preview');
+    const body = item.querySelector('.history-body');
+    const isExpanded = item.classList.toggle('is-expanded');
+
+    // 直接スタイルも操作して確実性を高める
+    if (preview) preview.style.display = isExpanded ? 'none' : 'block';
+    if (body) body.style.display = isExpanded ? 'block' : 'none';
 }
 
 // 管理者画面の初期化プロパティなどは admin.js に集約
