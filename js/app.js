@@ -1531,7 +1531,13 @@ const Dictionary = {
                 suggestEl.innerHTML = suggestHtml;
                 suggestEl.style.display = 'block';
             } else {
-                suggestEl.style.display = 'none';
+                suggestEl.innerHTML = `
+                    <div class="suggestion-ai-trigger" style="border-top:none; color: #666; font-size: 0.85rem; line-height: 1.5;">
+                        🔍 辞典にない言葉です。<br>
+                        そのまま<strong style="color:var(--primary);">「エンター」</strong>を押すとAIが詳しく解説します。
+                    </div>
+                `;
+                suggestEl.style.display = 'block';
             }
         }
 
