@@ -1,5 +1,10 @@
 {
   "rewrites": [
     { "source": "/api/:path*", "destination": "/api/:path*" }
-  ]
+  ],
+  "functions": {
+    "api/judge.js": { "maxDuration": 60 },
+    "api/monthly.js": { "maxDuration": 60 },
+    "api/help-chat.js": { "maxDuration": 60 }
+  }
 }

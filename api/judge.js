@@ -47,14 +47,19 @@ async function callGemini(apiKey, prompt, customRules = '') {
 
     const fullPrompt = `以下の指示に従い介護記録を採点してください。\n\n【施設ルール】:\n${customRules || '特になし'}\n\n${prompt}`;
 
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 50000); // 50s timeout
+
     const response = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
             contents: [{ parts: [{ text: fullPrompt }] }],
-            generationConfig: { temperature: 0.3, responseMimeType: "application/json" }
+            generationConfig: { temperature: 0.3 }
         })
     });
+    clearTimeout(timeoutId);
 
     if (!response.ok) {
         const errText = await response.text();
