@@ -467,7 +467,7 @@ const Monthly = {
             if (allRecords.length > 0) {
                 const isCycleActive = DB.isCycleActive(currentTarget);
                 
-                allRecords.map((r, idx) => {
+                recordsList.innerHTML = allRecords.map((r, idx) => {
                     const isPass = r.ai_judgement === '○';
                     // 枠線の色分けを廃止し、ニュートラルな色にする
                     const bc = 'var(--border)';
