@@ -50,7 +50,7 @@ function renderCurriculum(step) {
     var html = '<div style="margin-bottom:15px; padding:12px; background:#f0effc; border:1px solid #6c5ce7; border-radius:12px; display:flex; align-items:center; gap:12px; cursor:pointer;" onclick="switchCurriculumStep(' + step + '); navigateTo(\'screen-video\');">';
     html += '<div style="font-size:1.5rem;">🎬</div>';
     html += '<div style="flex:1;">';
-    html += '<div style="font-size:0.85rem; font-weight:800; color:#4834d4; margin-bottom:4px;">STEP' + step + ' 学習カリキュラム進捗</div>';
+    html += '<div style="font-size:0.85rem; font-weight:800; color:#4834d4; margin-bottom:4px;">第' + step + '段階 カリキュラム進捗</div>';
     html += '<div style="background:#e0e0e0; height:6px; border-radius:10px; overflow:hidden;"><div style="background:#6c5ce7; height:100%; width:' + pct + '%;"></div></div>';
     html += '<div style="font-size:0.75rem; color:#666; margin-top:4px;">達成度: ' + done + ' / ' + total + ' (' + pct + '%) <span style="color:#6c5ce7; font-weight:bold;">→ 課題ページで確認</span></div>';
     html += '</div>';
@@ -86,7 +86,7 @@ function loadVideoTasks() {
     var html = '<div class="curriculum-tabs" style="display:flex; overflow-x:auto; gap:8px; margin-bottom:20px; padding-bottom:5px;">';
     [1, 2, 3, 4].forEach(function(s) {
         var isActive = curriculumActiveStep === s;
-        html += '<button onclick="switchCurriculumStep(' + s + ')" style="flex:1; min-width:80px; padding:10px; border-radius:10px; border:2px solid ' + (isActive ? '#6c5ce7' : '#ddd') + '; background:' + (isActive ? '#6c5ce7' : '#fff') + '; color:' + (isActive ? '#fff' : '#666') + '; font-weight:bold; cursor:pointer; font-size:0.9rem; transition:0.2s;">STEP ' + s + '</button>';
+        html += '<button onclick="switchCurriculumStep(' + s + ')" style="flex:1; min-width:80px; padding:10px; border-radius:10px; border:2px solid ' + (isActive ? '#6c5ce7' : '#ddd') + '; background:' + (isActive ? '#6c5ce7' : '#fff') + '; color:' + (isActive ? '#fff' : '#666') + '; font-weight:bold; cursor:pointer; font-size:0.9rem; transition:0.2s;">第' + s + '段階</button>';
     });
     html += '</div>';
 
@@ -98,7 +98,7 @@ function loadVideoTasks() {
     // 進捗バー
     html += '<div style="background:#eef0ff; padding:15px; border-radius:12px; margin-bottom:20px; border:1px solid #4c5bb7;">';
     html += '<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">';
-    html += '<span style="font-weight:800; color:#4c5bb7;">STEP ' + curriculumActiveStep + ' の課題一覧</span>';
+    html += '<span style="font-weight:800; color:#4c5bb7;">第' + curriculumActiveStep + '段階 の課題一覧</span>';
     html += '<span style="font-size:0.85rem; font-weight:bold; color:#4c5bb7;">' + done + ' / ' + total + ' (' + pct + '%)</span>';
     html += '</div>';
     html += '<div style="background:#c8cce8; height:8px; border-radius:10px; overflow:hidden;"><div style="background:#4c5bb7; height:100%; width:' + pct + '%; transition:width 0.5s;"></div></div>';
@@ -183,7 +183,7 @@ function openLessonModal(taskId, subType) {
     _currentTestAnswers = {};
 
     document.getElementById('lesson-modal-title').textContent = task.title;
-    document.getElementById('lesson-modal-step').textContent = 'STEP' + task.step + ' — ' + subType;
+    document.getElementById('lesson-modal-step').textContent = '第' + task.step + '段階 — ' + subType;
 
     // 動画URLをセット（Google Drive preview URL）
     var driveId = task.drive_id;

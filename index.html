@@ -485,11 +485,11 @@
       </div>
       <div class="history-filters">
         <select id="history-step-filter" onchange="loadHistory()">
-          <option value="all">全STEP</option>
-          <option value="step1">STEP1 気付き</option>
-          <option value="step2">STEP2 仮説思考</option>
-          <option value="step3">STEP3 振り返り</option>
-          <option value="step4">STEP4 症例報告</option>
+          <option value="all">全ての段階</option>
+          <option value="step1">第1段階：気付き</option>
+          <option value="step2">第2段階：仮説思考</option>
+          <option value="step3">第3段階：振り返り</option>
+          <option value="step4">第4段階：症例報告</option>
         </select>
       </div>
       <div class="history-list" id="history-list">
@@ -1662,7 +1662,7 @@
 
       <div class="chat-input-area"
         style="flex-shrink:0; padding: var(--space-md) var(--space-lg); border-top: 1px solid var(--border);">
-        <input type="text" id="help-chat-input" placeholder="例：STEP1の書き方を教えて"
+        <input type="text" id="help-chat-input" placeholder="例：第1段階の書き方を教えて"
           onkeydown="if(event.key==='Enter')sendHelpChat()">
         <button class="chat-send-btn" onclick="sendHelpChat()">送信</button>
       </div>
@@ -1688,7 +1688,7 @@
             <span>👥</span> <span>介護対象者管理</span>
           </div>
           <div class="admin-nav-item" id="nav-curriculum" onclick="Admin.switchPage('curriculum')">
-            <span>📚</span> <span>STEP管理（カリキュラム）</span>
+            <span style="font-size: 1.2rem; margin-right: 12px;">📚</span> <span>段階管理（カリキュラム）</span>
           </div>
           <div class="admin-nav-item" id="nav-system-content" onclick="Admin.switchPage('system-content')">
             <span>📄</span> <span>システム管理</span>
@@ -1833,8 +1833,8 @@
         <!-- ===== Screen: STEP管理（カリキュラム） ===== -->
         <div id="admin-page-curriculum" class="admin-page-content" style="display:none; padding: 25px;">
           <div class="admin-widget">
-            <div class="widget-title">📚 STEP（カリキュラム）管理</div>
-            <p style="font-size: 0.85rem; color: #666; margin-bottom: 20px;">研修で実施する各STEPの名称や内容を編集できます。</p>
+            <div class="widget-title">📚 段階（カリキュラム）管理</div>
+            <p style="font-size: 0.85rem; color: #666; margin-bottom: 20px;">研修で実施する各段階の名称や内容を編集できます。</p>
             <div id="admin-curriculum-list" style="display: grid; gap: 15px;">
               <!-- JSで描画 (STEP1〜4) -->
             </div>
@@ -1987,7 +1987,7 @@
       </div>
 
       <!-- STEP分布 -->
-      <div class="admin-section-title">📊 STEP分布</div>
+      <div class="admin-section-title">📊 進捗分布</div>
       <div class="step-distribution" id="exec-step-dist"></div>
 
       <!-- 拠点別比較 -->

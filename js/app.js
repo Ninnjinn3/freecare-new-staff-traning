@@ -220,7 +220,7 @@ function initHome() {
 
     // 現在STEP
     const currentStep = user.current_step || 1;
-    document.getElementById('home-step-badge').textContent = `STEP${currentStep}`;
+    document.getElementById('home-step-badge').textContent = `第${currentStep}段階`;
 
     // 対象者ドロップダウン初期化
     initTargetDropdown();

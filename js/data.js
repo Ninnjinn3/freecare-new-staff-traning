@@ -14,10 +14,10 @@ const MONTHLY_CYCLE = {
 
 // STEP定義
 const STEPS = {
-  1: { name: '気付き', fullName: 'STEP1 アセスメント・気付き', careLevel: '区分6 / 介護5' },
-  2: { name: '仮説思考', fullName: 'STEP2 仮説思考', careLevel: '区分5 / 介護4' },
-  3: { name: '振り返り', fullName: 'STEP3 振り返り', careLevel: '区分4 / 介護3' },
-  4: { name: '症例報告', fullName: 'STEP4 症例報告', careLevel: '他事業利用者' }
+  1: { name: '気付き', fullName: '第1段階：気付き', careLevel: '区分6 / 介護5' },
+  2: { name: '仮説思考', fullName: '第2段階：仮説思考', careLevel: '区分5 / 介護4' },
+  3: { name: '振り返り', fullName: '第3段階：振り返り', careLevel: '区分4 / 介護3' },
+  4: { name: '症例報告', fullName: '第4段階：症例報告', careLevel: '他事業利用者' }
 };
 
 // 勤務形態別 最低記載日数

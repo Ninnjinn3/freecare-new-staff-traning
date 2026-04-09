@@ -179,48 +179,48 @@ const Monthly = {
         return false;
     },
 
-    // ステップ切り替えUIを描画
+    // フェーズ切替UIを描画
     renderStepSwitcher(currentTarget) {
         const report = document.getElementById('monthly-report');
         if (!report) return;
 
-        // 既存のスイッチがあれば削除（重複防止）
+        // 既存のスイッチがあれば削除
         const oldSwitcher = document.getElementById('monthly-step-switcher');
         if (oldSwitcher) oldSwitcher.remove();
 
         const switcher = document.createElement('div');
         switcher.id = 'monthly-step-switcher';
-        switcher.className = 'step-switcher';
-        switcher.style = 'margin-bottom: 25px; display: flex; background: #f1f3f5; padding: 6px; border-radius: 12px; border: 1px solid #e9ecef;';
+        switcher.className = 'phase-switcher';
+        switcher.style = 'margin-bottom: 25px; display: flex; background: #f8fafc; padding: 4px; border-radius: 10px; border: 1px solid #e2e8f0; max-width: 500px; margin-left: auto; margin-right: auto;';
         
-        const steps = [
-            { id: 1, label: 'STEP1 報告', desc: '気付き・多職種連携' },
-            { id: 2, label: 'STEP2 分析', desc: '要因・仮説思考' },
-            { id: 3, label: 'STEP3 評価', desc: '実践・振り返り' }
+        const phases = [
+            { id: 1, label: '気付き', desc: '第1段階' },
+            { id: 2, label: '仮説思考', desc: '第2段階' },
+            { id: 3, label: '振り返り', desc: '第3段階' }
         ];
 
-        switcher.innerHTML = steps.map(s => {
-            const isActive = this.currentStep === s.id;
+        switcher.innerHTML = phases.map(p => {
+            const isActive = this.currentStep === p.id;
             return `
-                <div class="step-tab ${isActive ? 'active' : ''}" 
-                     onclick="Monthly.switchStep(${s.id}, '${currentTarget}')"
-                     style="flex: 1; text-align: center; padding: 12px 8px; cursor: pointer; border-radius: 8px; transition: all 0.2s;
-                            ${isActive ? 'background: white; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); color: var(--primary); font-weight: bold;' : 'color: #868e96;'}">
-                    <div style="font-size: 0.85rem; margin-bottom: 2px;">${s.label}</div>
-                    <div style="font-size: 0.65rem; opacity: 0.7;">${s.desc}</div>
+                <div class="phase-pill ${isActive ? 'active' : ''}" 
+                     onclick="Monthly.switchStep(${p.id}, '${currentTarget}')"
+                     style="flex: 1; text-align: center; padding: 8px 4px; cursor: pointer; border-radius: 8px; transition: all 0.2s;
+                            ${isActive ? 'background: white; box-shadow: 0 2px 4px rgba(0,0,0,0.05); color: var(--primary); font-weight: bold;' : 'color: #64748b;'}">
+                    <div style="font-size: 0.85rem;">${p.label}</div>
+                    <div style="font-size: 0.6rem; opacity: 0.7; font-weight: normal;">${p.desc}</div>
                 </div>
             `;
         }).join('');
 
-        // 表示エリア（evaluation-sheet）の前に挿入
         report.prepend(switcher);
     },
 
-    // ステップ切り替え処理
+    // 評価フェーズ切り替え
     async switchStep(step, yearMonth) {
         if (this.currentStep === step) return;
         this.currentStep = step;
-        showToast(`STEP ${step} の評価画面を表示します`);
+        const phaseNames = { 1: '気付き', 2: '仮説思考', 3: '振り返り' };
+        showToast(`${phaseNames[step]} の評価を表示します`);
         await this.render(yearMonth);
     },
 
@@ -388,12 +388,12 @@ const Monthly = {
 
             <!-- 月次評価内 STEPフィルター -->
             <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px; background: #f8fafc; padding: 12px 18px; border-radius: 10px; border: 1px solid #e2e8f0;">
-                <label for="monthly-step-filter" style="font-size: 0.85rem; font-weight: bold; color: #64748b;">表示項目絞り込み:</label>
+                <label for="monthly-step-filter" style="font-size: 0.85rem; font-weight: bold; color: #64748b;">表示フェーズ絞り込み:</label>
                 <select id="monthly-step-filter" onchange="Monthly.renderDailyRecords('${yearMonth}', this.value)" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem; color: #334155; background: white; cursor: pointer; outline: none;">
-                    <option value="all">全STEPを表示</option>
-                    <option value="1">STEP1 (気づき・報告)</option>
-                    <option value="2">STEP2 (分析・アセスメント)</option>
-                    <option value="3">STEP3 (実践・振り返り)</option>
+                    <option value="all">全ての記録を表示</option>
+                    <option value="1">気付きの記録</option>
+                    <option value="2">仮説思考の記録</option>
+                    <option value="3">振り返りの記録</option>
                 </select>
                 <div style="font-size: 0.75rem; color: #94a3b8; margin-left: auto;">※下の「1日毎の評価」リストに反映されます</div>
             </div>
@@ -659,7 +659,7 @@ const Monthly = {
                         <div style="display:flex;justify-content:space-between;align-items:center;padding:var(--space-sm);cursor:pointer;" onclick="var d=this.nextElementSibling;d.hidden=!d.hidden;this.querySelector('.rtg').textContent=d.hidden?'▼':'▲';">
                             <div style="flex:1;">
                                 <strong style="font-size:1rem">${r.date}</strong>
-                                <span style="font-weight:normal;font-size:0.9rem;color:var(--text-muted)"> - STEP${r.step} (${r.target_name || '対象者なし'})</span>
+                                <span style="font-weight:normal;font-size:0.9rem;color:var(--text-muted)"> - 第${r.step}段階 (${r.target_name || '対象者なし'})</span>
                                 <div style="font-size: 0.8rem; color: #868e96; margin-top: 2px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 250px;">
                                     ${(() => {
                                         if (r.step === 1) return r.notice_text || '';
