@@ -879,41 +879,64 @@
 
 
 
-  <section id="screen-settings" class="screen">
+    <section id="screen-settings" class="screen">
     <div class="screen-content">
       <div class="step-header">
         <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
         <h2 class="step-title">⚙️ 設定</h2>
       </div>
 
-      <!-- アカウント設定 -->
+      <!-- ユーザープロファイルヘッダー -->
+      <div class="settings-profile-header">
+        <div class="settings-avatar" id="settings-avatar-text">--</div>
+        <div class="settings-profile-info">
+          <div class="settings-profile-name" id="settings-user-name">--</div>
+          <div class="settings-profile-meta">
+            <span id="settings-user-facility">--</span>
+            <span style="opacity: 0.3;">|</span>
+            <span id="settings-user-role">--</span>
+          </div>
+          <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">ID: <span id="settings-user-id">--</span></div>
+        </div>
+      </div>
+
+      <!-- カテゴリ：アカウント -->
       <div class="settings-group">
-        <div class="settings-group-title">アカウント管理</div>
+        <div class="settings-group-title">👤 アカウント設定</div>
         <div class="settings-card">
-          <div class="settings-item">
+          <div class="settings-item settings-item-clickable" onclick="showToast('プロフィール編集は現在準備中です ⏳')">
+            <div class="settings-item-icon" style="color: #4c5bb7; background: #e8eaf6;">👤</div>
             <div class="settings-item-label">
-              <span class="settings-item-title" id="settings-user-name">--</span>
-              <span class="settings-item-desc" id="settings-user-role">--</span>
+              <span class="settings-item-title">公開プロフィールの確認</span>
+              <span class="settings-item-desc">登録されている情報の確認・編集</span>
             </div>
-            <div class="settings-item-action">
-              <span style="font-size:0.8rem; color:var(--text-muted);" id="settings-user-id">--</span>
-            </div>
+            <div class="settings-item-action"><span class="settings-item-chevron">▶</span></div>
           </div>
           <div class="settings-item settings-item-clickable" onclick="Settings.openPasswordModal()">
+            <div class="settings-item-icon" style="color: #6c5ce7; background: #f0effc;">🔐</div>
             <div class="settings-item-label">
               <span class="settings-item-title">パスワード変更</span>
-              <span class="settings-item-desc">セキュリティ向上のため定期的な変更を推奨します</span>
+              <span class="settings-item-desc">セキュリティ向上のため定期的な変更を推奨</span>
             </div>
-            <div class="settings-item-action">鍵 🔐</div>
+            <div class="settings-item-action"><span class="settings-item-chevron">▶</span></div>
+          </div>
+          <div class="settings-item settings-item-clickable" onclick="showDeleteConfirm()">
+            <div class="settings-item-icon" style="color: #e74c3c; background: #fff1f0;">⚠️</div>
+            <div class="settings-item-label">
+              <span class="settings-item-title" style="color: #e74c3c;">アカウントの削除</span>
+              <span class="settings-item-desc">すべての学習データが消去されます</span>
+            </div>
+            <div class="settings-item-action"><span class="settings-item-chevron">▶</span></div>
           </div>
         </div>
       </div>
 
-      <!-- アプリ設定 -->
+      <!-- カテゴリ：表示と操作 -->
       <div class="settings-group">
-        <div class="settings-group-title">アプリ設定</div>
+        <div class="settings-group-title">🎨 表示と操作</div>
         <div class="settings-card">
           <div class="settings-item">
+            <div class="settings-item-icon" style="color: #f39c12; background: #fef5e7;">🌗</div>
             <div class="settings-item-label">
               <span class="settings-item-title">ダークモード</span>
               <span class="settings-item-desc">目に優しい暗い背景に切り替えます</span>
@@ -926,9 +949,10 @@
             </div>
           </div>
           <div class="settings-item">
+            <div class="settings-item-icon" style="color: #27ae60; background: #e9f7ef;">🔔</div>
             <div class="settings-item-label">
               <span class="settings-item-title">通知リマインダー</span>
-              <span class="settings-item-desc">AIサポーターが提出忘れを優しくリマインドします</span>
+              <span class="settings-item-desc">AIサポーターが提出忘れを優しく通知</span>
             </div>
             <div class="settings-item-action">
               <label class="switch">
@@ -937,61 +961,71 @@
               </label>
             </div>
           </div>
+          <div class="settings-item settings-item-clickable" onclick="showToast('フォントサイズ設定は現在準備中です ⏳')">
+            <div class="settings-item-icon" style="color: #2980b9; background: #ebf5fb;">Aa</div>
+            <div class="settings-item-label">
+              <span class="settings-item-title">文字サイズ</span>
+              <span class="settings-item-desc">読みやすいサイズに調整できます</span>
+            </div>
+            <div class="settings-item-action">中 <span class="settings-item-chevron">▶</span></div>
+          </div>
         </div>
       </div>
 
       <!-- 管理者のみ表示 -->
       <div id="settings-admin-only" class="settings-group" style="display: none;">
-        <div class="settings-group-title">管理者設定</div>
+        <div class="settings-group-title">🛠️ 管理者メニュー</div>
         <div class="settings-card">
           <div class="settings-item settings-item-clickable" onclick="showToast('データ出力機能は現在準備中です ⏳')">
+            <div class="settings-item-icon" style="color: #16a085; background: #e8f8f5;">📊</div>
             <div class="settings-item-label">
               <span class="settings-item-title">研修データ出力 (CSV)</span>
               <span class="settings-item-desc">全スタッフの進捗状況を書き出します</span>
             </div>
-            <div class="settings-item-action">📥</div>
+            <div class="settings-item-action"><span class="settings-item-chevron">▶</span></div>
           </div>
         </div>
       </div>
 
-      <!-- その他 -->
+      <!-- カテゴリ：サポートと情報 -->
       <div class="settings-group">
-        <div class="settings-group-title">その他</div>
+        <div class="settings-group-title">❓ サポートと情報</div>
         <div class="settings-card">
           <div class="settings-item settings-item-clickable" onclick="navigateTo('screen-help')">
+            <div class="settings-item-icon" style="color: #9b59b6; background: #f4ecf7;">📖</div>
             <div class="settings-item-label">
-              <span class="settings-item-title">ヘルプ・FAQ</span>
-              <span class="settings-item-desc">困ったときはこちらを確認してください</span>
+              <span class="settings-item-title">ヘルプ・使い方</span>
+              <span class="settings-item-desc">アプリの操作方法やFAQを確認</span>
             </div>
-            <div class="settings-item-action">？</div>
+            <div class="settings-item-action"><span class="settings-item-chevron">▶</span></div>
+          </div>
+          <div class="settings-item settings-item-clickable" onclick="navigateTo('screen-dictionary')">
+            <div class="settings-item-icon" style="color: #d35400; background: #fbeee6;">📚</div>
+            <div class="settings-item-label">
+              <span class="settings-item-title">介護用語辞典</span>
+              <span class="settings-item-desc">わからない言葉をすぐに検索</span>
+            </div>
+            <div class="settings-item-action"><span class="settings-item-chevron">▶</span></div>
           </div>
           <div class="settings-item">
+            <div class="settings-item-icon" style="color: #7f8c8d; background: #f2f4f4;">ℹ️</div>
             <div class="settings-item-label">
-              <span class="settings-item-title">バージョン</span>
-              <span class="settings-item-desc">1.4.2 (Stable)</span>
+              <span class="settings-item-title">アプリ情報</span>
+              <span class="settings-item-desc">バージョン 2.5.0 (2024.04 Release)</span>
             </div>
+            <div class="settings-item-action"></div>
           </div>
         </div>
       </div>
 
-      <!-- 危険ゾーン -->
-      <div class="settings-group" style="margin-top: 40px;">
-        <div class="settings-group-title" style="color: var(--danger);">DANGER ZONE</div>
-        <div class="settings-card settings-danger-card">
-          <div class="settings-item">
-            <div class="settings-item-label">
-              <span class="settings-item-title" style="color:var(--danger)">アカウントを削除する</span>
-              <span class="settings-item-desc">退職時以外は実行しないでください</span>
-            </div>
-            <div class="settings-item-action">
-              <button class="btn-danger-link" onclick="showDeleteConfirm()">削除</button>
-            </div>
-          </div>
-        </div>
+      <div class="settings-actions" style="margin-top: var(--space-xl); padding-bottom: 40px;">
+        <button class="btn btn-outline btn-full" onclick="handleLogout()" style="color: #e74c3c; border-color: #e74c3c;">ログアウト</button>
       </div>
 
-      <button class="btn btn-secondary btn-full" style="margin-top: 20px" onclick="handleLogout()">🚪 ログアウト</button>
     </div>
+  </section>
+
+
 
     <!-- パスワード変更モーダル -->
     <div class="modal-overlay" id="password-modal">

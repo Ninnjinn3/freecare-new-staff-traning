@@ -334,6 +334,19 @@ const Monthly = {
         // サマリーテーブルを追加（以前の形式を継承）
         html += `
             <div class="eval-title">サービスの質向上委員会<br>スコアリング評価シート</div>
+
+            <!-- 月次評価内 STEPフィルター -->
+            <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 10px; background: #f8fafc; padding: 12px 18px; border-radius: 10px; border: 1px solid #e2e8f0;">
+                <label for="monthly-step-filter" style="font-size: 0.85rem; font-weight: bold; color: #64748b;">表示項目絞り込み:</label>
+                <select id="monthly-step-filter" onchange="Monthly.renderDailyRecords('${yearMonth}', this.value)" style="padding: 6px 12px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem; color: #334155; background: white; cursor: pointer; outline: none;">
+                    <option value="all">全STEPを表示</option>
+                    <option value="1">STEP1 (気づき・報告)</option>
+                    <option value="2">STEP2 (分析・アセスメント)</option>
+                    <option value="3">STEP3 (実践・振り返り)</option>
+                </select>
+                <div style="font-size: 0.75rem; color: #94a3b8; margin-left: auto;">※下の「1日毎の評価」リストに反映されます</div>
+            </div>
+
             <table class="eval-table">
                 <thead>
                     <tr><th>項目</th><th>配点</th><th>得点</th><th>判定</th></tr>
@@ -359,6 +372,28 @@ const Monthly = {
                 </tr>
             </tbody></table>
         `;
+
+        // 改善アクションの表示
+        const actionsEl = document.getElementById('monthly-actions');
+        if (actionsEl) {
+            const actions = [];
+            breakdown.forEach(item => {
+                const rate = item.score / item.max;
+                if (rate < 0.6) {
+                    actions.push(`「${item.name}」の得点が低めです。具体的な事例を振り返り、改善に取り組みましょう。`);
+                }
+            });
+            if (actions.length === 0) {
+                actions.push('現在のパフォーマンスは非常に安定しています。この調子で継続しましょう！');
+            }
+
+            actionsEl.innerHTML = actions.map(act => `
+                <li style="margin-bottom: 10px; display: flex; gap: 10px; align-items: flex-start; line-height: 1.5;">
+                    <span style="color: var(--primary); font-weight: bold;">●</span>
+                    <span>${act}</span>
+                </li>
+            `).join('');
+        }
 
         // 各項目の詳細カード
         breakdown.forEach((item, index) => {
@@ -445,7 +480,7 @@ const Monthly = {
     },
 
     // 毎日の記録一覧を描画
-    async renderDailyRecords(currentTarget) {
+    async renderDailyRecords(currentTarget, filterStep = 'all') {
         const recordsList = document.getElementById('monthly-records-list');
         if (!recordsList) return;
 
@@ -458,11 +493,18 @@ const Monthly = {
                 API.getStep3Records(user.staff_id, currentTarget)
             ]);
 
-            const allRecords = [
+            let allRecords = [
                 ...s1.map(r => ({ ...r, step: 1 })),
                 ...s2.map(r => ({ ...r, step: 2 })),
                 ...s3.map(r => ({ ...r, step: 3 }))
-            ].sort((a, b) => new Date(b.date) - new Date(a.date));
+            ];
+            
+            // フィルター適用
+            if (filterStep !== 'all') {
+                allRecords = allRecords.filter(r => r.step == filterStep);
+            }
+
+            allRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
 
             if (allRecords.length > 0) {
                 const isCycleActive = DB.isCycleActive(currentTarget);
