@@ -298,23 +298,35 @@ async function submitStep2(event) {
         year_month: cycle.yearMonth,
         date: date,
         change_noticed: change,
-        hypotheses_json: hypotheses,
+        // スキーマの制限により、AIの詳細結果は hypotheses_json 内に含める
+        hypotheses_json: {
+            cards: hypotheses,
+            ai_details: {
+                good_points: aiResult.good_points,
+                missing: aiResult.missing_points,
+                improve: aiResult.improvement_example
+            }
+        },
         priority_reason: priorityReason,
         expected_change: expectedChange,
         ai_judgement: aiResult.judgement,
-        ai_comment: aiResult.short_comment,
-        ai_good_points: aiResult.good_points,
-        ai_missing: aiResult.missing_points,
-        ai_improve: aiResult.improvement_example
+        ai_comment: aiResult.short_comment
     };
 
     let isSuccess = false;
-    if (editingId) {
-        const updated = await API.updateStep2(editingId, payload);
-        isSuccess = !!updated;
-        window.editingRecord = null;
-    } else {
-        isSuccess = await API.saveStep2(payload);
+    try {
+        if (editingId) {
+            const updated = await API.updateStep2(editingId, payload);
+            isSuccess = !!updated;
+            window.editingRecord = null;
+        } else {
+            isSuccess = await API.saveStep2(payload);
+        }
+    } catch (e) {
+        console.error('Save STEP2 failed:', e);
+        showToast('保存に失敗しました: ' + e.message);
+        if (btn) { btn.disabled = false; btn.textContent = editingId ? '修正して再提出する' : '送信して判定を受ける'; }
+        return;
     }
 
     if (btn) { btn.disabled = false; btn.textContent = '送信して判定を受ける'; }

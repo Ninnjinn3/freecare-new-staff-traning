@@ -162,22 +162,34 @@ async function submitStep3(event) {
         target_name: target.name,
         year_month: cycle.yearMonth,
         date: date,
-        reflection_json: reflectionData,
+        // スキーマの制限により、AIの詳細結果は reflection_json 内に含める
+        reflection_json: {
+            ...reflectionData,
+            ai_details: {
+                good_points: aiResult.good_points,
+                missing: aiResult.missing_points,
+                improve: aiResult.improvement_example
+            }
+        },
         decision: reflectionData.decision,
         ai_judgement: aiResult.judgement,
-        ai_comment: aiResult.short_comment,
-        ai_good_points: aiResult.good_points,
-        ai_missing: aiResult.missing_points,
-        ai_improve: aiResult.improvement_example
+        ai_comment: aiResult.short_comment
     };
 
     let isSuccess = false;
-    if (editingId) {
-        const updated = await API.updateStep3(editingId, payload);
-        isSuccess = !!updated;
-        window.editingRecord = null;
-    } else {
-        isSuccess = await API.saveStep3(payload);
+    try {
+        if (editingId) {
+            const updated = await API.updateStep3(editingId, payload);
+            isSuccess = !!updated;
+            window.editingRecord = null;
+        } else {
+            isSuccess = await API.saveStep3(payload);
+        }
+    } catch (e) {
+        console.error('Save STEP3 failed:', e);
+        showToast('保存に失敗しました: ' + e.message);
+        if (btn) { btn.disabled = false; btn.textContent = editingId ? '修正して再提出する' : '送信して判定を受ける'; }
+        return;
     }
 
     if (btn) { btn.disabled = false; btn.textContent = '送信して判定を受ける'; }
