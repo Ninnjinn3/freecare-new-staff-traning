@@ -259,9 +259,10 @@ const Monthly = {
             let reportData = evaluation ? evaluation.breakdown_json : null;
             let score = evaluation ? evaluation.score : 0;
             let passed = evaluation ? evaluation.passed : false;
+            let improvement = evaluation ? (evaluation.improvement || evaluation.feedback_json?.improvement) : null;
 
             this.renderStepSwitcher(currentTarget);
-            this.renderEvaluation(reportData, score, passed, currentTarget);
+            this.renderEvaluation(reportData, score, passed, currentTarget, improvement);
             await this.renderDailyRecords(currentTarget, this.currentStep); 
 
             const needsReeval = !reportData || (Array.isArray(reportData) && reportData.some(b => 
@@ -280,10 +281,10 @@ const Monthly = {
 
                 const newData = await Monthly.calculate(currentTarget, force, this.currentStep);
                 if (newData && !newData.cached) {
-                    this.renderEvaluation(newData.breakdown, newData.score, newData.passed, currentTarget);
+                    this.renderEvaluation(newData.breakdown, newData.score, newData.passed, currentTarget, newData.improvement);
                     showToast(`STEP ${this.currentStep} の最新評価を算出しました ✨`);
                 } else if (newData && !reportData) {
-                    this.renderEvaluation(newData.breakdown, newData.score, newData.passed, currentTarget);
+                    this.renderEvaluation(newData.breakdown, newData.score, newData.passed, currentTarget, newData.improvement);
                 }
             }
 
@@ -297,7 +298,7 @@ const Monthly = {
     },
 
     // 6項目の評価描画
-    renderEvaluation(breakdown, totalScore, passed, yearMonth) {
+    renderEvaluation(breakdown, totalScore, passed, yearMonth, improvement = null) {
         // テスト段階のため、期間内でも評価を表示するように一時的にバイパス
         const isEditable = false; // DB.isCycleActive(yearMonth);
         const bRoot = document.getElementById('score-breakdown');
@@ -426,23 +427,33 @@ const Monthly = {
         // 改善アクションの表示
         const actionsEl = document.getElementById('monthly-actions');
         if (actionsEl) {
-            const actions = [];
-            breakdown.forEach(item => {
-                const rate = item.score / item.max;
-                if (rate < 0.6) {
-                    actions.push(`「${item.name}」の得点が低めです。具体的な事例を振り返り、改善に取り組みましょう。`);
+            if (improvement) {
+                // AIからのパーソナライズされた改善アドバイスを表示
+                actionsEl.innerHTML = `
+                    <div style="background: #fff; padding: 15px; border-radius: 12px; border-left: 5px solid var(--primary); font-size: 0.95rem; line-height: 1.7; color: #334155; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);">
+                        ${improvement.replace(/\n/g, '<br>')}
+                    </div>
+                `;
+            } else {
+                // フォールバック: スコアに基づく汎用アドバイス
+                const actions = [];
+                breakdown.forEach(item => {
+                    const rate = item.score / item.max;
+                    if (rate < 0.6) {
+                        actions.push(`「${item.name}」の得点が低めです。具体的な事例を振り返り、改善に取り組みましょう。`);
+                    }
+                });
+                if (actions.length === 0) {
+                    actions.push('現在のパフォーマンスは非常に安定しています。この調子で継続しましょう！');
                 }
-            });
-            if (actions.length === 0) {
-                actions.push('現在のパフォーマンスは非常に安定しています。この調子で継続しましょう！');
-            }
 
-            actionsEl.innerHTML = actions.map(act => `
-                <li style="margin-bottom: 10px; display: flex; gap: 10px; align-items: flex-start; line-height: 1.5;">
-                    <span style="color: var(--primary); font-weight: bold;">●</span>
-                    <span>${act}</span>
-                </li>
-            `).join('');
+                actionsEl.innerHTML = actions.map(act => `
+                    <li style="margin-bottom: 10px; display: flex; gap: 10px; align-items: flex-start; line-height: 1.5;">
+                        <span style="color: var(--primary); font-weight: bold;">●</span>
+                        <span>${act}</span>
+                    </li>
+                `).join('');
+            }
         }
 
         // 各項目の詳細カード

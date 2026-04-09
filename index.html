@@ -930,13 +930,17 @@
               </label>
             </div>
           </div>
-          <div class="settings-item settings-item-clickable" onclick="Settings.cycleFontSize()">
+          <div class="settings-item settings-item-clickable" onclick="Settings.cycleFontSize(1)">
             <div class="settings-item-icon" style="color: #2980b9; background: #ebf5fb;">Aa</div>
             <div class="settings-item-label">
               <span class="settings-item-title">文字サイズ</span>
               <span class="settings-item-desc">読みやすいサイズに調整できます</span>
             </div>
-            <div class="settings-item-action"><span id="settings-font-size-label">中</span> <span class="settings-item-chevron">▶</span></div>
+            <div class="settings-item-action">
+              <span class="settings-item-chevron" onclick="event.stopPropagation(); Settings.cycleFontSize(-1)">◀</span>
+              <span id="settings-font-size-label" style="margin: 0 8px; font-weight: bold; min-width: 20px; display: inline-block; text-align: center;">中</span>
+              <span class="settings-item-chevron">▶</span>
+            </div>
           </div>
         </div>
       </div>

@@ -68,6 +68,7 @@ export default async function handler(req, res) {
         const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
         let breakdown = [];
         let isAIEvaluated = false;
+        let aiImprovement = null;
 
         // 評価対象のSTEP（指定があればそれ、なければ現在のステップ）
         const evaluationStep = parseInt(target_step || current_step || 1);
@@ -75,8 +76,10 @@ export default async function handler(req, res) {
         let aiError = null;
         if (GEMINI_API_KEY) {
             try {
-                breakdown = await evaluateMonthlyWithAI(step1Records, step2Records, step3Records, evaluationStep, GEMINI_API_KEY);
-                if (breakdown && breakdown.length > 0) {
+                const aiResult = await evaluateMonthlyWithAI(step1Records, step2Records, step3Records, evaluationStep, GEMINI_API_KEY);
+                if (aiResult && aiResult.breakdown) {
+                    breakdown = aiResult.breakdown;
+                    aiImprovement = aiResult.improvement;
                     isAIEvaluated = true;
                 }
             } catch (e) {
@@ -124,6 +127,7 @@ export default async function handler(req, res) {
             step: step,
             score,
             breakdown_json: breakdown,
+            feedback_json: { improvement: aiImprovement },
             pass_count: passCount,
             fail_count: failCount,
             total_records: totalRecords,
@@ -133,7 +137,8 @@ export default async function handler(req, res) {
 
         return res.status(200).json({
             score, breakdown, totalRecords, passCount, failCount,
-            passed, level, hrPoints, actions
+            passed, level, hrPoints, actions, 
+            improvement: aiImprovement
         });
 
     } catch (error) {

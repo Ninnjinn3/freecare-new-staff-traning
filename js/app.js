@@ -1295,10 +1295,11 @@ const Settings = {
         }
     },
 
-    cycleFontSize: function() {
+    cycleFontSize: function(dir = 1) {
         const current = localStorage.getItem('fc_font_size') || 'medium';
         const sizes = ['small', 'medium', 'large', 'xlarge'];
-        let nextIdx = (sizes.indexOf(current) + 1) % sizes.length;
+        let idx = sizes.indexOf(current);
+        let nextIdx = (idx + dir + sizes.length) % sizes.length;
         this.applyFontSize(sizes[nextIdx]);
         
         showToast(`文字サイズを「${document.getElementById('settings-font-size-label').textContent}」に変更しました`);
