@@ -175,7 +175,7 @@ function addHypothesisCard() {
     <div class="why-chain">
       <div class="why-step">
         <span class="why-label" style="background:#6c5ce7; color:white;">仮説</span>
-        <input type="text" name="h${num}_hypo" placeholder="仮説を記載" required>
+        <input type="text" name="h${num}_hypo" placeholder="仮説を記載" ${num === 1 ? 'required' : ''}>
       </div>
       <div class="why-step">
         <span class="why-label">なぜ？①</span>
