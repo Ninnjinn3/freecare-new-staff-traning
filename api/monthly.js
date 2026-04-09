@@ -177,28 +177,16 @@ function calculateBreakdown(step1, step2, step3, targetStep, isError = false) {
 
     const errorNote = isError ? "【注意】AI項目の生成に失敗しました。基本的なスコアのみ表示しています。" : "（AI評価が有効になっていません）";
 
-    if (targetStep === 1) {
-        return [
-            { name: "変化への気づき（具体性）", key: "c1", score: calcScore(30, s1Rate), max: 30, comment: errorNote },
-            { name: "対象者理解の深さ", key: "c2", score: calcScore(30, s1Rate), max: 30, comment: errorNote },
-            { name: "専門的・客観的視点", key: "c3", score: calcScore(20, s1Rate), max: 20, comment: errorNote },
-            { name: "報告のタイミング・頻度", key: "c4", score: calcScore(20, s1Rate), max: 20, comment: errorNote }
-        ];
-    } else if (targetStep === 2) {
-        return [
-            { name: "要因分析の論理性（深さ）", key: "c1", score: calcScore(30, s2Rate), max: 30, comment: errorNote },
-            { name: "仮説の妥当性", key: "c2", score: calcScore(30, s2Rate), max: 30, comment: errorNote },
-            { name: "優先順位の設定", key: "c3", score: calcScore(20, s2Rate), max: 20, comment: errorNote },
-            { name: "多角的な視点", key: "c4", score: calcScore(20, s2Rate), max: 20, comment: errorNote }
-        ];
-    } else {
-        return [
-            { name: "支援計画の実効性", key: "c1", score: calcScore(30, s3Rate), max: 30, comment: errorNote },
-            { name: "反応・効果の捉え方", key: "c2", score: calcScore(30, s3Rate), max: 30, comment: errorNote },
-            { name: "振り返りと自己修正", key: "c3", score: calcScore(20, s3Rate), max: 20, comment: errorNote },
-            { name: "根拠に基づく支援の展開", key: "c4", score: calcScore(20, s3Rate), max: 20, comment: errorNote }
-        ];
-    }
+    const allRate = (s1Rate + s2Rate + s3Rate) / 3;
+
+    return [
+        { name: "気づいた変化の明確さ", score: calcScore(15, s1Rate || allRate), max: 15, comment: errorNote },
+        { name: "要因の多層的分析", score: calcScore(20, s2Rate || allRate), max: 20, comment: errorNote },
+        { name: "要因の関連性と優先順位", score: calcScore(15, s2Rate || allRate), max: 15, comment: errorNote },
+        { name: "検証計画の論理性", score: calcScore(15, (s2Rate + s3Rate) / 2 || allRate), max: 15, comment: errorNote },
+        { name: "支援計画の実効性", score: calcScore(20, s3Rate || allRate), max: 20, comment: errorNote },
+        { name: "振り返り・修正力", score: calcScore(15, s3Rate || allRate), max: 15, comment: errorNote }
+    ];
 }
 
 // ===== AI 月次評価算出 =====
@@ -211,29 +199,16 @@ async function evaluateMonthlyWithAI(step1, step2, step3, targetStep, apiKey) {
     }).join('\n') : "STEP2の記録なし";
     const s3Text = step3.length > 0 ? step3.slice(0, 20).map(r => `[${r.date}] 支援:${r.support} 反応:${r.reaction} 判断:${r.decision}`).join('\n') : "STEP3の記録なし";
 
-    // STEPごとの観点定義
-    const stepCriteria = {
-        1: [
-            { name: "変化への気づき（具体性）", max: 30, desc: "変化を具体的に、かつ事実に基づいて記録できているか" },
-            { name: "対象者理解の深さ", max: 30, desc: "利用者の特性や普段の様子を踏まえた視点が入っているか" },
-            { name: "専門的・客観的視点", max: 20, desc: "介護職としての客観的な観察や専門的な捉え方ができているか" },
-            { name: "報告のタイミング・頻度", max: 20, desc: "タイムリーな記録が行われ、1ヶ月通して継続できているか" }
-        ],
-        2: [
-            { name: "要因分析の論理性（深さ）", max: 30, desc: "なぜなぜ分析を用いて、根本的な要因まで掘り下げられているか" },
-            { name: "仮説の妥当性", max: 30, desc: "アセスメント結果に基づき、納得感のある仮説を立てられているか" },
-            { name: "優先順位の設定", max: 20, desc: "複数の要因から、今取り組むべき最も重要なものを選べているか" },
-            { name: "多角的な視点", max: 20, desc: "身体面、精神面、環境面など多角的に要因を考えられているか" }
-        ],
-        3: [
-            { name: "支援計画の実効性", max: 30, desc: "仮説に基づき、具体的で実行可能な支援案が作成されているか" },
-            { name: "反応・効果の捉え方", max: 30, desc: "実施後の利用者の反応を細かく、正確に拾い上げているか" },
-            { name: "振り返りと自己修正", max: 20, desc: "結果を受けて分析し、次のアクション（継続・変更・終了）を正しく判断しているか" },
-            { name: "根拠に基づく支援の展開", max: 20, desc: "一連のサイクルを通して、根拠を持ってケアを行えているか" }
-        ]
-    };
+    // 全STEP共通の6観点定義
+    const criteria = [
+        { name: "気づいた変化の明確さ", max: 15, desc: "変化を具体的に、かつ事実に基づいて記録できているか（主にSTEP1の質）" },
+        { name: "要因の多層的分析", max: 20, desc: "なぜなぜ分析を用いて、根本的な要因まで掘り下げられているか（主にSTEP2の質）" },
+        { name: "要因の関連性と優先順位", max: 15, desc: "複数の要因から、今取り組むべき最も重要なものを選べているか（主にSTEP2の質）" },
+        { name: "検証計画の論理性", max: 15, desc: "支援案が仮説に基づき、論理的に組み立てられているか" },
+        { name: "支援計画の実効性", max: 20, desc: "具体的で実行可能な支援案が作成され、反応を捉えられているか（主にSTEP3の質）" },
+        { name: "振り返り・修正力", max: 15, desc: "結果を受けて分析し、次のアクションを正しく判断しているか（主にSTEP3の質）" }
+    ];
 
-    const criteria = stepCriteria[targetStep] || stepCriteria[1];
     const criteriaDesc = criteria.map(c => `- ${c.name} (最大 ${c.max}点): ${c.desc}`).join('\n');
 
     const prompt = `
