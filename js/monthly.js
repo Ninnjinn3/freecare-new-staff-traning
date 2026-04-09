@@ -558,7 +558,15 @@ const Monthly = {
                                 <strong style="font-size:1rem">${r.date}</strong>
                                 <span style="font-weight:normal;font-size:0.9rem;color:var(--text-muted)"> - STEP${r.step} (${r.target_name || '対象者なし'})</span>
                                 <div style="font-size: 0.8rem; color: #868e96; margin-top: 2px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 250px;">
-                                    ${(r.notice_text || r.change_noticed || '詳細を見る').substring(0, 30)}...
+                                    ${(() => {
+                                        if (r.step === 1) return r.notice_text || '';
+                                        if (r.step === 2) return r.change_noticed || '';
+                                        if (r.step === 3) {
+                                            const ref = typeof r.reflection_json === 'string' ? JSON.parse(r.reflection_json) : (r.reflection_json || {});
+                                            return ref.notice || r.support_done || '振り返り内容';
+                                        }
+                                        return '詳細を見る';
+                                    })().substring(0, 30)}...
                                 </div>
                             </div>
                             <div style="display:flex;align-items:center;gap:12px;">

@@ -586,7 +586,7 @@ async function loadHistory() {
 
     try {
         if (filter === 'all' || filter === 'step1') {
-            const step1 = await API.getStep1Records(user.staff_id, null);
+            const step1 = (await API.getStep1Records(user.staff_id, null)) || [];
             records = records.concat(step1.map(r => ({
                 ...r,
                 stepLabel: 'STEP1',
@@ -596,7 +596,7 @@ async function loadHistory() {
         }
 
         if (filter === 'all' || filter === 'step2') {
-            const step2 = await API.getStep2Records(user.staff_id, null);
+            const step2 = (await API.getStep2Records(user.staff_id, null)) || [];
             records = records.concat(step2.map(r => ({
                 ...r,
                 stepLabel: 'STEP2',
@@ -606,7 +606,7 @@ async function loadHistory() {
         }
 
         if (filter === 'all' || filter === 'step3') {
-            const step3 = await API.getStep3Records(user.staff_id, null);
+            const step3 = (await API.getStep3Records(user.staff_id, null)) || [];
             records = records.concat(step3.map(r => {
                 let notice = '';
                 try {
@@ -617,20 +617,12 @@ async function loadHistory() {
                     ...r,
                     stepLabel: 'STEP3',
                     displayDate: formatDateTime(r.created_at, r.date),
-                    text: notice || r.support_done
+                    text: notice || r.support_done || '振り返り'
                 };
             }));
         }
 
-        if (filter === 'all' || filter === 'step4') {
-            const step4 = await API.getStep4Records(user.staff_id);
-            records = records.concat(step4.map(r => ({
-                ...r,
-                stepLabel: 'STEP4',
-                displayDate: formatDateTime(r.created_at, r.date),
-                text: r.noticed_change || '症例報告書'
-            })));
-        }
+        // STEP4はユーザー要望により履歴から除外
 
         // 日時降順（作成日時を優先）
         records.sort((a, b) => (b.created_at || '').localeCompare(a.created_at || ''));
