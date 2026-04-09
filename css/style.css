@@ -3400,6 +3400,21 @@ input:checked+.slider:before {
   border-top: 2px solid #eef0f2;
 }
 
+/* History Accordion Toggle Classes */
+.history-item.is-expanded .history-preview {
+  display: none !important;
+}
+.history-item.is-expanded .history-body {
+  display: block !important;
+}
+.accordion-toggle {
+  display: inline-block;
+  transition: transform 0.2s ease;
+}
+.history-item.is-expanded .accordion-toggle {
+  transform: rotate(180deg);
+}
+
 .empty-state {
   text-align: center;
   padding: 40px 20px;

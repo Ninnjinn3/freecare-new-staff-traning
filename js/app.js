@@ -689,11 +689,10 @@ async function loadHistory() {
 
 // 履歴展開トグルのヘルパー
 function toggleHistoryItem(header) {
-    const body = header.nextElementSibling;
-    const isHidden = body.style.display === 'none';
-    body.style.display = isHidden ? 'block' : 'none';
-    header.querySelector('.accordion-toggle').textContent = isHidden ? '▲' : '▼';
-    header.querySelector('.history-preview').style.display = isHidden ? 'none' : 'block';
+    const item = header.closest('.history-item');
+    if (item) {
+        item.classList.toggle('is-expanded');
+    }
 }
 
 // 管理者画面の初期化プロパティなどは admin.js に集約
