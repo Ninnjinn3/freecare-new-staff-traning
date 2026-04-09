@@ -96,6 +96,9 @@ async function navigateTo(screenId) {
             Step4.init();
             await initStepAutocomplete('step4');
             break;
+        case 'screen-dictionary':
+            Dictionary.init();
+            break;
     }
 }
 
@@ -231,26 +234,9 @@ function initHome() {
     // STEPボタンの状態更新
     updateStepButtons(currentStep);
 
-    // 提出忘れリマインダー (通知ONの場合のみ)
+    // 提出忘れ・期限リマインダー (通知ONの場合のみ)
     if (localStorage.getItem('fc_notifications_enabled') === 'true') {
-        // セッション内で1回だけ判定し、かつホーム画面表示から少し遅らせて実行
-        if (!sessionStorage.getItem('fc_notified_today')) {
-            setTimeout(async () => {
-                try {
-                    const today = new Date().toISOString().split('T')[0];
-                    // 直近20件を取得して今日の日付があるか確認
-                    const records = await API.getStep1Records(user.staff_id);
-                    const hasRecordToday = records.some(r => r.date === today);
-
-                    if (!hasRecordToday) {
-                        NotificationHelper.send("🤖 AIサポーター（師匠）", "おい！今日の記録がまだやぞ！忘れる前にパパッと書いてまおな。応援しとるで！💪");
-                    }
-                    sessionStorage.setItem('fc_notified_today', 'true');
-                } catch (e) {
-                    console.warn("Reminder check failed:", e);
-                }
-            }, 3000); // 3秒後に判定
-        }
+        Reminder.check(user);
     }
 }
 
@@ -1399,5 +1385,251 @@ async function executeDeleteAccount() {
         document.body.classList.add('dark-theme');
     }
 })();
+
+// ===== 介護用語辞典ロジック =====
+const Dictionary = {
+    currentIndex: 'あ',
+    
+    init: function() {
+        this.renderIndex();
+        this.renderList();
+    },
+
+    renderIndex: function() {
+        const indexEl = document.getElementById('dict-index');
+        if (!indexEl) return;
+
+        const chars = ['あ', 'か', 'さ', 'た', 'な', 'は', 'ま', 'や', 'ら', 'わ', 'ABC'];
+        indexEl.innerHTML = chars.map(c => `
+            <button class="index-btn ${this.currentIndex === c ? 'active' : ''}" 
+                    onclick="Dictionary.scrollToCategory('${c}')">${c}</button>
+        `).join('');
+    },
+
+    renderList: function() {
+        const listEl = document.getElementById('dict-list');
+        if (!listEl) return;
+
+        const data = DICTIONARY_DATA;
+        if (!data || data.length === 0) {
+            listEl.innerHTML = '<div class="empty-state">データが見つかりません</div>';
+            return;
+        }
+
+        // カテゴリ分け
+        const groups = this.groupData(data);
+        
+        let html = '';
+        const chars = ['あ', 'か', 'さ', 'た', 'な', 'は', 'ま', 'や', 'ら', 'わ', 'ABC'];
+        
+        chars.forEach(char => {
+            if (groups[char] && groups[char].length > 0) {
+                html += `<div class="dict-group-title" id="dict-group-${char}">${char}行</div>`;
+                groups[char].forEach(item => {
+                    html += this.createCardHTML(item);
+                });
+            }
+        });
+
+        listEl.innerHTML = html;
+    },
+
+    groupData: function(data) {
+        const groups = {};
+        data.forEach(item => {
+            let char = this.getCategory(item.reading || item.term);
+            if (!groups[char]) groups[char] = [];
+            groups[char].push(item);
+        });
+        return groups;
+    },
+
+    getCategory: function(text) {
+        if (!text) return 'ABC';
+        const first = text.charAt(0);
+        if (/[a-zA-Z]/.test(first)) return 'ABC';
+        
+        const rows = {
+            'あ': 'あいうえお',
+            'か': 'かきくけこがぎぐげご',
+            'さ': 'さしすせそざじずぜぞ',
+            'た': 'たちつてとだぢづでど',
+            'な': 'なにぬねの',
+            'は': 'はひふへほばびぶべぼぱぴぷぺぽ',
+            'ま': 'まみむめも',
+            'や': 'やゆよ',
+            'ら': 'らりるれろ',
+            'わ': 'わをん'
+        };
+
+        for (const [row, chars] of Object.entries(rows)) {
+            if (chars.includes(first)) return row;
+        }
+        return 'ABC';
+    },
+
+    createCardHTML: function(item) {
+        return `
+            <div class="dict-card" data-term="${item.term}" data-reading="${item.reading || ''}">
+                <div class="dict-term">
+                    ${item.term}
+                    ${item.reading ? `<span class="dict-reading">${item.reading}</span>` : ''}
+                </div>
+                <div class="dict-def">${item.definition}</div>
+                <div class="dict-actions">
+                    <button class="btn-ask-ai" onclick="Dictionary.askAI('${item.term}')">🤖 AIに詳しく聞く</button>
+                </div>
+            </div>
+        `;
+    },
+
+    filter: function() {
+        const queryEl = document.getElementById('dict-search');
+        if (!queryEl) return;
+        const query = queryEl.value.toLowerCase();
+        const cards = document.querySelectorAll('.dict-card');
+        const titles = document.querySelectorAll('.dict-group-title');
+        const indexContainer = document.querySelector('.dict-index-container');
+
+        if (!query) {
+            cards.forEach(c => c.style.display = 'block');
+            titles.forEach(t => t.style.display = 'block');
+            if (indexContainer) indexContainer.style.display = 'block';
+            return;
+        }
+
+        if (indexContainer) indexContainer.style.display = 'none';
+
+        cards.forEach(card => {
+            const term = (card.dataset.term || '').toLowerCase();
+            const reading = (card.dataset.reading || '').toLowerCase();
+            if (term.includes(query) || reading.includes(query)) {
+                card.style.display = 'block';
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // カテゴリタイトル表示制御
+        titles.forEach(title => {
+            let hasVisible = false;
+            let current = title.nextElementSibling;
+            while (current && !current.classList.contains('dict-group-title')) {
+                if (current.classList.contains('dict-card') && current.style.display !== 'none') {
+                    hasVisible = true;
+                    break;
+                }
+                current = current.nextElementSibling;
+            }
+            title.style.display = hasVisible ? 'block' : 'none';
+        });
+    },
+
+    scrollToCategory: function(char) {
+        const target = document.getElementById(`dict-group-${char}`);
+        if (target) {
+            const offset = 180;
+            const elementPosition = target.getBoundingClientRect().top + window.pageYOffset;
+            const offsetPosition = elementPosition - offset;
+
+            window.scrollTo({
+                top: offsetPosition,
+                behavior: 'smooth'
+            });
+
+            this.currentIndex = char;
+            this.renderIndex();
+        }
+    },
+
+    askAI: function(term) {
+        navigateTo('screen-ai-helper');
+        setTimeout(() => {
+            const input = document.getElementById('ai-chat-input');
+            if (input) {
+                input.value = `「${term}」について、新人スタッフにもわかりやすく具体例を交えて教えて。`;
+                const btn = document.querySelector('.ai-chat-send');
+                if (btn) btn.click();
+            }
+        }, 300);
+    }
+};
+
+// ===== リマインダーロジック =====
+const Reminder = {
+    check: async function(user) {
+        // セッション内で1回だけ判定し、かつホーム画面表示から少し遅らせて実行
+        if (sessionStorage.getItem('fc_reminder_checked_ready')) return;
+        
+        setTimeout(async () => {
+            try {
+                const cycle = DB.getCurrentCycle();
+                if (cycle.isPastDeadline) return;
+
+                // 1. 今日の入力忘れチェック
+                await this.checkDailyInput(user);
+
+                // 2. 期限リマインダー（多段階）
+                this.checkDeadlineThresholds(cycle);
+
+                sessionStorage.setItem('fc_reminder_checked_ready', 'true');
+            } catch (e) {
+                console.warn("Reminder check error:", e);
+            }
+        }, 3000);
+    },
+
+    checkDailyInput: async function(user) {
+        if (sessionStorage.getItem('fc_notified_today')) return;
+        
+        const today = new Date().toISOString().split('T')[0];
+        try {
+            const records = await API.getStep1Records(user.staff_id);
+            const hasRecordToday = records.some(r => r.date === today);
+
+            if (!hasRecordToday) {
+                NotificationHelper.send("🤖 AIサポーター", "おい！今日の記録がまだやぞ！忘れる前にパパッと書いてまおな。応援しとるで！💪");
+                sessionStorage.setItem('fc_notified_today', 'true');
+            }
+        } catch(e) {
+            console.warn("Daily input check failed", e);
+        }
+    },
+
+    checkDeadlineThresholds: function(cycle) {
+        const now = new Date();
+        const diffMs = cycle.deadlineDate - now;
+        const diffHours = diffMs / (1000 * 60 * 60);
+
+        // 多段階の判定
+        const stages = [
+            { id: '12h', threshold: 12, label: 'あと12時間' },
+            { id: '1d', threshold: 24, label: 'あと1日' },
+            { id: '2d', threshold: 48, label: 'あと2日' },
+            { id: '3d', threshold: 72, label: 'あと3日' },
+            { id: '4d', threshold: 96, label: 'あと4日' },
+            { id: '5d', threshold: 120, label: 'あと5日' }
+        ];
+
+        for (const stage of stages) {
+            if (diffHours <= stage.threshold) {
+                const key = `fc_reminder_${cycle.yearMonth}_${stage.id}`;
+                if (!localStorage.getItem(key)) {
+                    let msg = "";
+                    if (stage.id === '12h') {
+                        msg = "【最終警告】今月分の提出・修正期限まで残り12時間を切ったで！出し残しはないか？今すぐ確認や！🔥";
+                    } else {
+                        msg = `期限まで【${stage.label}】やで！記録の修正や提出は早めに済ませておこうな。頑張れ！✨`;
+                    }
+                    
+                    NotificationHelper.send("⏰ 提出期限リマインダー", msg);
+                    localStorage.setItem(key, 'true');
+                    break; // 直近の1つだけを通知
+                }
+                break;
+            }
+        }
+    }
+};
 
 

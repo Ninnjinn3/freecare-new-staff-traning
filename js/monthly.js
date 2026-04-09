@@ -467,9 +467,10 @@ const Monthly = {
             if (allRecords.length > 0) {
                 const isCycleActive = DB.isCycleActive(currentTarget);
                 
-                recordsList.innerHTML = allRecords.map((r, idx) => {
+                allRecords.map((r, idx) => {
                     const isPass = r.ai_judgement === '○';
-                    const bc = isPass ? 'var(--success)' : 'var(--danger)';
+                    // 枠線の色分けを廃止し、ニュートラルな色にする
+                    const bc = 'var(--border)';
                     // テスト段階のため、期間内でも日々の評価を表示するように強制
                     const showEvaluation = true; // !isCycleActive;
                     
@@ -502,9 +503,9 @@ const Monthly = {
                     if (showEvaluation) {
                         if (isPass) {
                             feedbackHtml = `
-                                <div style="margin-top: 15px; padding: 15px; background: #f0fdf4; border-radius: 12px; border: 1px solid #dcfce7;">
-                                    <div style="display: flex; align-items: center; gap: 8px; color: #166534; font-weight: bold; margin-bottom: 6px;">
-                                        <span style="font-size: 1.2rem;">✅</span> AI評価: 合格
+                                <div style="margin-top: 15px; padding: 15px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+                                    <div style="display: flex; align-items: center; gap: 8px; color: var(--primary); font-weight: bold; margin-bottom: 6px;">
+                                        <span style="font-size: 1.2rem;">✨</span> AIアドバイス
                                     </div>
                                     <div style="font-size: 0.9rem; color: #166534; line-height: 1.6;">
                                         ${(r.ai_comment || '素晴らしい気づきと記録です。この調子で継続しましょう！').replace(/\n/g, '<br>')}
@@ -517,9 +518,9 @@ const Monthly = {
                             const commentText = (r.ai_comment || r.ai_advice || '短すぎたり具体性がないとAIが判断できない場合があります。もう少し状況を書き足してみましょう！').replace(/\n/g, '<br>');
                             
                             feedbackHtml = `
-                                <div style="margin-top: 15px; padding: 18px; background: #fffafb; border-radius: 12px; border: 1px solid #fee2e2;">
-                                    <div style="display: flex; align-items: center; gap: 8px; color: #991b1b; font-weight: bold; margin-bottom: 12px; font-size: 1rem;">
-                                        <span style="background: #fee2e2; padding: 2px 6px; border-radius: 4px;">🔍</span> 修正点とアドバイス
+                                <div style="margin-top: 15px; padding: 18px; background: #f8fafc; border-radius: 12px; border: 1px solid var(--border);">
+                                    <div style="display: flex; align-items: center; gap: 8px; color: var(--text); font-weight: bold; margin-bottom: 12px; font-size: 1rem;">
+                                        <span style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px;">🔍</span> 改善のアドバイス
                                     </div>
                                     
                                     <div style="margin-bottom: 15px;">
@@ -562,7 +563,7 @@ const Monthly = {
                             </div>
                             <div style="display:flex;align-items:center;gap:12px;">
                                 ${editBtn}
-                                ${showEvaluation ? `<span style="font-weight:bold;color:${bc};font-size:1.1rem">${r.ai_judgement||'－'}</span>` : '<span style="color:var(--text-muted);font-size:0.85rem;">判定待ち</span>'}
+                                ${showEvaluation ? `<span style="font-weight:bold;color:var(--text-secondary);font-size:0.85rem">詳細あり</span>` : '<span style="color:var(--text-muted);font-size:0.85rem;">判定待ち</span>'}
                                 <span class="rtg" style="font-size:0.8rem;color:var(--text-muted)">▼</span>
                             </div>
                         </div>

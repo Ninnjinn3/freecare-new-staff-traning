@@ -115,6 +115,45 @@ const Step2 = {
         if (submitBtn) submitBtn.textContent = '修正して再提出する';
         
         showToast('編集モード：内容を修正してください');
+    },
+
+    // 優先順位の重複制御（最新を優先して既存を繰り下げる）
+    handlePriorityChange(id, newValue) {
+        if (!newValue) return;
+        const newPriority = parseInt(newValue);
+        const cards = document.querySelectorAll('.hypothesis-card');
+        
+        cards.forEach(card => {
+            const otherId = card.id.split('-')[1];
+            if (otherId == id) return;
+            
+            const otherSelect = card.querySelector(`[name="h${otherId}_priority"]`);
+            if (parseInt(otherSelect.value) === newPriority) {
+                this.shiftPriorityDown(otherId, newPriority + 1);
+            }
+        });
+    },
+
+    shiftPriorityDown(id, nextValue) {
+        const select = document.querySelector(`[name="h${id}_priority"]`);
+        if (!select) return;
+
+        // 連鎖的に被りがないかチェック
+        const cards = document.querySelectorAll('.hypothesis-card');
+        cards.forEach(card => {
+            const otherId = card.id.split('-')[1];
+            if (otherId == id) return;
+            const otherSelect = card.querySelector(`[name="h${otherId}_priority"]`);
+            if (parseInt(otherSelect.value) === nextValue) {
+                this.shiftPriorityDown(otherId, nextValue + 1);
+            }
+        });
+
+        if (nextValue > 5) {
+            select.value = "";
+        } else {
+            select.value = nextValue.toString();
+        }
     }
 };
 
@@ -157,7 +196,7 @@ function addHypothesisCard() {
     </div>
     <div class="hypothesis-priority">
       <label>優先順位</label>
-      <select name="h${num}_priority">
+      <select name="h${num}_priority" onchange="Step2.handlePriorityChange(${num}, this.value)">
         <option value="">選択</option>
         ${[1, 2, 3, 4, 5].map(i => `<option value="${i}">${i}番</option>`).join('')}
       </select>
