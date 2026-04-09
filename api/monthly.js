@@ -259,7 +259,7 @@ ${criteriaDesc}
     const customRules = (knowledge || []).map(k => `【${k.title}】: ${k.content}`).join('\n');
 
     // 月次要約は以前はproを使用していましたが、アクセス制限とコストを考慮し高速な gemini-1.5-flash を使用します
-    const modelName = 'gemini-1.5-flash';
+    const modelName = 'gemini-2.5-flash-lite';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`;
 
 
