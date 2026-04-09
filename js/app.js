@@ -597,27 +597,48 @@ async function loadHistory() {
 
         if (filter === 'all' || filter === 'step2') {
             const step2 = (await API.getStep2Records(user.staff_id, null)) || [];
-            records = records.concat(step2.map(r => ({
-                ...r,
-                stepLabel: 'STEP2',
-                displayDate: formatDateTime(r.created_at, r.date),
-                text: r.change_noticed
-            })));
+            records = records.concat(step2.map(r => {
+                let detailText = `変化: ${r.change_noticed || 'ー'}\n`;
+                try {
+                    const hypoData = typeof r.hypotheses_json === 'string' ? JSON.parse(r.hypotheses_json) : (r.hypotheses_json || {});
+                    const cards = Array.isArray(hypoData) ? hypoData : (hypoData.cards || []);
+                    
+                    cards.forEach((h, i) => {
+                        detailText += `\n【仮説${i + 1}】\n`;
+                        detailText += `${h.why1 || 'ー'} -> ${h.why2 || 'ー'} -> ${h.why3 || 'ー'}\n`;
+                        detailText += `└ 支援: ${h.support || 'なし'}\n`;
+                    });
+                } catch (e) {
+                    detailText += '\n(仮説データの解析に失敗しました)';
+                }
+
+                return {
+                    ...r,
+                    stepLabel: 'STEP2',
+                    displayDate: formatDateTime(r.created_at, r.date),
+                    text: detailText.trim()
+                };
+            }));
         }
 
         if (filter === 'all' || filter === 'step3') {
             const step3 = (await API.getStep3Records(user.staff_id, null)) || [];
             records = records.concat(step3.map(r => {
-                let notice = '';
+                let detailText = '';
                 try {
-                    const data = typeof r.reflection_json === 'string' ? JSON.parse(r.reflection_json) : r.reflection_json;
-                    notice = data?.notice || '';
-                } catch (e) { }
+                    const data = typeof r.reflection_json === 'string' ? JSON.parse(r.reflection_json) : (r.reflection_json || {});
+                    detailText = `気づき: ${data.notice || 'ー'}\n`;
+                    detailText += `支援内容: ${data.support || 'ー'}\n`;
+                    detailText += `対象者の反応: ${data.reaction || 'ー'}\n`;
+                    detailText += `今後の判断: ${data.decision || r.decision || 'ー'}`;
+                } catch (e) {
+                    detailText = r.support_done || '振り返り';
+                }
                 return {
                     ...r,
                     stepLabel: 'STEP3',
                     displayDate: formatDateTime(r.created_at, r.date),
-                    text: notice || r.support_done || '振り返り'
+                    text: detailText.trim()
                 };
             }));
         }
