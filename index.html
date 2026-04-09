@@ -1011,66 +1011,82 @@
       </div>
 
       <div class="help-guide">
-        <h3 style="margin-top: 0; font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 8px;">
-            <span style="background: var(--primary); color: white; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;">1</span>
+        <!-- Section 1: 基本ルール（復元 + 強化） -->
+        <h3 style="margin-top: 0; font-size: 1.15rem; color: var(--primary); display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 8px;">
+            <span style="background: var(--primary); color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.9rem;">1</span>
             プログラムの基本ルール
         </h3>
 
         <div class="help-item">
           <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. 提出の期限（評価サイクル）を詳しく教えてください</span>
+            <span>Q. 投稿した内容を修正・編集（再提出）できますか？</span>
             <span class="help-toggle">▼</span>
           </div>
           <div class="help-item-body" hidden>
-            <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border-left: 4px solid var(--primary); margin-bottom: 10px;">
-                <p style="font-weight: bold; margin-bottom: 5px;">毎月11日 〜 翌月10日 が1サイクル</p>
-                <div style="font-size: 0.9rem; line-height: 1.6;">
-                    ・<strong>集計期間:</strong> 前月11日から当月10日まで<br>
-                    ・<strong>提出期限:</strong> 毎月10日の23:59まで<br>
-                    ・<strong>評価公開:</strong> 毎月11日の0:00に自動更新
-                </div>
+            <div style="background: #fff9db; padding: 15px; border-radius: 8px; border-left: 4px solid #fcc419; margin-bottom: 10px;">
+                <p style="font-weight: bold; margin-bottom: 5px; color: #856404;">はい、何度でも可能です！</p>
+                <p style="font-size: 0.9rem; line-height: 1.6; color: #856404;">
+                    提出期限（毎月10日）内であれば、AI判定の結果を受けて何度でも修正し、再提出してスコアを伸ばすことができます。
+                </p>
             </div>
-            <p style="font-size: 0.9rem;">※10日を過ぎると、その月の記録は「修正・新規提出」ができなくなり、月次点数が確定しますのでご注意ください。</p>
+            <p style="font-size: 0.85rem; font-weight: bold; margin-bottom: 5px;">【修正の手順】</p>
+            <ol style="font-size: 0.85rem; padding-left: 20px; color: var(--text-secondary);">
+                <li>ホーム画面左下の<strong>「提出履歴」</strong>をタップ</li>
+                <li>修正したい日付の記録をタップ</li>
+                <li>詳細画面の下にある<strong>「修正して再提出」</strong>ボタンをタップ</li>
+            </ol>
           </div>
         </div>
 
         <div class="help-item">
           <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. AI判定の基準（合格のコツ）は何ですか？</span>
+            <span>Q. 提出の期限（評価サイクル）はいつですか？</span>
             <span class="help-toggle">▼</span>
           </div>
           <div class="help-item-body" hidden>
-            <p>
-              <strong>文量の多さよりも「具体性」を重視します。</strong><br>
-              AIは以下の要素が含まれているかをチェックしています：
+            <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                <div style="font-size: 0.9rem; line-height: 1.8;">
+                    ・<strong>集計サイクル:</strong> 毎月11日 〜 翌月10日<br>
+                    ・<strong>最終締切:</strong> 毎月10日の 23:59 まで<br>
+                    ・<strong>結果の確定:</strong> 毎月11日の 0:00 に自動更新
+                </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>Q. AIの判定に時間がかかります</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <p style="font-size: 0.9rem; line-height: 1.6;">
+                複雑な分析を行っているため、判定完了まで<strong>10秒〜30秒</strong>ほどかかる場合があります。画面を閉じたり戻ったりせず、そのままお待ちください。<br>
+                <small style="color: #adb5bd;">※通信環境が良い場所での操作を推奨します。</small>
             </p>
-            <ul style="font-size: 0.9rem; padding-left: 20px;">
-                <li><strong>客観的事実:</strong> 「体調が悪そう」ではなく「食事が3割しか進まなかった」</li>
-                <li><strong>比較:</strong> 「普段は〇〇だが、今日は××だった」という変化</li>
-                <li><strong>専門的視点:</strong> 身体症状だけでなく、心理面や環境面の考察</li>
-            </ul>
           </div>
         </div>
 
-        <h3 style="margin-top: var(--space-lg); font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 8px;">
-            <span style="background: var(--primary); color: white; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;">2</span>
-            書き方の具体例（Before / After）
+        <!-- Section 2: 具体的な100点の取り方（拡充） -->
+        <h3 style="margin-top: var(--space-lg); font-size: 1.15rem; color: var(--primary); display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 8px;">
+            <span style="background: var(--primary); color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.9rem;">2</span>
+            100点を取るための「書き方」のコツ
         </h3>
 
         <div class="help-item">
           <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>【STEP1】気づきの書き方例</span>
+            <span>【STEP1 気付き】事実と変化を捉える</span>
             <span class="help-toggle">▼</span>
           </div>
           <div class="help-item-body" hidden>
-            <div style="display: grid; gap: 10px;">
-                <div style="padding: 10px; background: #fff5f5; border-radius: 6px; border: 1px solid #ffc9c9;">
-                    <span style="color: #e03131; font-weight: bold;">× 惜しい例（抽象的）</span><br>
-                    「Aさんが少し元気がないように見えた。様子を見ていく。」
+            <div style="display: grid; gap: 12px;">
+                <div style="padding: 12px; background: #fff5f5; border-radius: 8px; border: 1px solid #ffc9c9;">
+                    <span style="color: #e03131; font-weight: bold; font-size: 0.85rem;">× 惜しい例（抽象的）</span><br>
+                    <p style="margin: 5px 0 0 0; font-size: 0.9rem;">「Aさんが少し元気がないように見えた。様子を見ていく。」</p>
                 </div>
-                <div style="padding: 10px; background: #f0fdf4; border-radius: 6px; border: 1px solid #dcfce7;">
-                    <span style="color: #166534; font-weight: bold;">✅ 100点例（具体的）</span><br>
-                    「10時の回診時、普段はスタッフに挨拶をされるAさんが、今日はうつむいたままで声かけにも反応が薄かった。バイタルに異常はないが、食欲も普段の半分程度であった。」
+                <div style="padding: 12px; background: #f0fdf4; border-radius: 8px; border: 1px solid #dcfce7;">
+                    <span style="color: #166534; font-weight: bold; font-size: 0.85rem;">✅ 100点例（具体的）</span><br>
+                    <p style="margin: 5px 0 0 0; font-size: 0.9rem;">「15時のオムツ交換時、いつもは自らお尻を浮かせてくださるBさんが、今日は呼びかけに無反応で視線も合わなかった。体温は36.8度で平熱だが、表情に険しさがあり、左手をしきりに腹部に当てている様子が見られた。」</p>
                 </div>
             </div>
           </div>
@@ -1078,36 +1094,94 @@
 
         <div class="help-item">
           <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>【STEP2】仮説思考の書き方例</span>
+            <span>【STEP2 仮説思考】「なぜ？」を3回繰り返す</span>
             <span class="help-toggle">▼</span>
           </div>
           <div class="help-item-body" hidden>
-            <p style="font-size: 0.9rem; margin-bottom: 10px;">原因を一つに絞らず、複数の視点（身体・心理・環境）で考えます。</p>
-            <div style="padding: 12px; background: #f1f8f7; border-radius: 8px; border: 1px solid #b2dfdb;">
-                <strong>仮説1（身体）:</strong> 夜間の睡眠不足により、日中の覚醒レベルが低下しているのではないか？<br>
-                <strong>仮説2（心理）:</strong> 面会の予定がキャンセルになり、一時的な落胆があるのではないか？<br>
-                <strong>仮説3（環境）:</strong> 室温が普段より高く、軽い脱水症状を起こしているのではないか？
+            <p style="font-size: 0.85rem; margin-bottom: 10px; color: #495057;">表面的な原因（「疲れているから」等）で終わらせず、深掘りします。</p>
+            <div style="background: #fff; border: 1px solid #dee2e6; border-radius: 8px; padding: 15px;">
+                <div style="font-weight: bold; font-size: 0.9rem; color: var(--primary); margin-bottom: 10px;">💡 深掘りのテンプレート例</div>
+                <div style="font-size: 0.9rem; line-height: 1.8;">
+                    <strong>①なぜ？(身体的面):</strong> 昨夜の排便がなく、腹部膨満感から不快感があるのではないか？<br>
+                    <strong>②なぜ？(心理的面):</strong> 便秘によるイライラが、周囲への拒否感として現れているのではないか？<br>
+                    <strong>③なぜ？(環境・習慣):</strong> 最近の水分摂取量が普段より200mlほど少なく、腸の動きが低下しているのではないか？<br>
+                    → <strong>結果としての支援案:</strong> 腹部マッサージの実施と、日中の水分摂取計画の見直し。
+                </div>
             </div>
+            <p style="font-size: 0.8rem; margin-top: 10px; color: #868e96;">※原因を多角的に考えることで、より効果的な支援案（オリジナリティ）が生まれます。</p>
           </div>
         </div>
 
-        <h3 style="margin-top: var(--space-lg); font-size: 1.1rem; color: var(--primary); display: flex; align-items: center; gap: 8px;">
-            <span style="background: var(--primary); color: white; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font-size: 0.8rem;">3</span>
-            トラブル解決・活用テクニック
+        <!-- Section 3: 人事評価と連動（新規追加） -->
+        <h3 style="margin-top: var(--space-lg); font-size: 1.15rem; color: var(--primary); display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 8px;">
+            <span style="background: var(--primary); color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.9rem;">3</span>
+            人事評価・昇級の仕組み
         </h3>
 
         <div class="help-item">
           <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. AIサポーター（フリーケアくん）への上手な質問方法は？</span>
+            <span>Q. AIの点数は人事評価にどう影響しますか？</span>
             <span class="help-toggle">▼</span>
           </div>
           <div class="help-item-body" hidden>
-            <p style="font-size: 0.9rem;">以下のような具体的な質問をすると、より質の高い回答が得られます：</p>
-            <div style="background: white; border: 1px solid var(--border); padding: 10px; border-radius: 6px; margin-top: 8px;">
-                ・「この記録を100点にするには何を書き足せばいい？」<br>
-                ・「〇〇さんの〇〇という症状に対して、どんな仮説が考えられる？」<br>
-                ・「月次評価のこのアドバイスの意味を分かりやすく教えて」
+            <p style="font-size: 0.9rem; margin-bottom: 10px;">月次評価スコアは、以下の人事評価ポイント（職能給に関連）に直接変換されます：</p>
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem; text-align: center;">
+                <thead>
+                    <tr style="background: #f1f3f5;">
+                        <th style="padding: 8px; border: 1px solid #dee2e6;">AIスコア</th>
+                        <th style="padding: 8px; border: 1px solid #dee2e6;">評価ポイント</th>
+                        <th style="padding: 8px; border: 1px solid #dee2e6;">判定</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr><td style="padding: 8px; border: 1px solid #dee2e6;">90 〜 100</td><td style="padding: 8px; border: 1px solid #dee2e6; font-weight:bold; color:#10b981;">10点</td><td style="padding: 8px; border: 1px solid #dee2e6;">特優</td></tr>
+                    <tr><td style="padding: 8px; border: 1px solid #dee2e6;">80 〜 89</td><td style="padding: 8px; border: 1px solid #dee2e6; font-weight:bold; color:#27ae60;">8点</td><td style="padding: 8px; border: 1px solid #dee2e6;">優秀</td></tr>
+                    <tr><td style="padding: 8px; border: 1px solid #dee2e6;">60 〜 79</td><td style="padding: 8px; border: 1px solid #dee2e6; font-weight:bold; color:#f39c12;">6点</td><td style="padding: 8px; border: 1px solid #dee2e6;">良好(合格)</td></tr>
+                    <tr><td style="padding: 8px; border: 1px solid #dee2e6;">40 〜 59</td><td style="padding: 8px; border: 1px solid #dee2e6; font-weight:bold; color:#e67e22;">4点</td><td style="padding: 8px; border: 1px solid #dee2e6;">要改善</td></tr>
+                    <tr><td style="padding: 8px; border: 1px solid #dee2e6;">0 〜 39</td><td style="padding: 8px; border: 1px solid #dee2e6; font-weight:bold; color:#e74c3c;">2点</td><td style="padding: 8px; border: 1px solid #dee2e6;">未達</td></tr>
+                </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Section 4: AI活用術（新規追加） -->
+        <h3 style="margin-top: var(--space-lg); font-size: 1.15rem; color: var(--primary); display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 8px;">
+            <span style="background: var(--primary); color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.9rem;">4</span>
+            AIサポーター（師匠）の活用術
+        </h3>
+
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>Q. AIが出した「100点書き換え例」をどう活用すべき？</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <p style="font-size: 0.9rem; line-height: 1.6;">
+                AIが提示する「改善例」は、プロの記録のお手本です。以下の3ステップで自分のスキルに変換しましょう：
+            </p>
+            <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border-left: 4px solid #10b981; margin-top: 10px;">
+                <ol style="font-size: 0.85rem; padding-left: 20px; line-height: 1.8; margin: 0;">
+                    <li><strong>「差分チェック」:</strong> 自分の書いた文と、AIの文で「何が一番違うか（数値か、表情か、比較か）」を確認します。</li>
+                    <li><strong>「シャドーイング」:</strong> 改善例を一度声に出して読み、プロの語彙（専門用語や客観表現）を意識します。</li>
+                    <li><strong>「翌日の実践」:</strong> 翌日の記録で、AIが使った表現を一つだけ真似して書いてみます。これを繰り返すだけで記録力は飛躍的に向上します。</li>
+                </ol>
             </div>
+          </div>
+        </div>
+
+        <!-- Section 5: その他（復元） -->
+        <h3 style="margin-top: var(--space-lg); font-size: 1.15rem; color: var(--primary); display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 8px;">
+            <span style="background: var(--primary); color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.9rem;">5</span>
+            アカウント・設定・トラブル
+        </h3>
+
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>Q. パスワードの変更やログアウトをしたい</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <p style="font-size: 0.85rem;">ホーム画面右下の⚙️（歯車アイコン）をタップすると「設定」画面が開きます。そこからパスワード変更、表示名変更、ログアウトが可能です。</p>
           </div>
         </div>
 
@@ -1117,21 +1191,186 @@
             <span class="help-toggle">▼</span>
           </div>
           <div class="help-item-body" hidden>
-            <p style="font-size: 0.9rem;">
-              月次評価画面の右上にある<strong>「再評価」</strong>ボタンを押してください。最新の記録を読み込んでAIが再計算を行います。
-            </p>
+            <p style="font-size: 0.85rem;">月次評価画面の右上にある<strong>「再評価」</strong>ボタンを押してください。最新の記録をすべて読み込んでAIが再計算を行います。</p>
           </div>
         </div>
 
         <div class="help-item">
           <div class="help-item-header" onclick="toggleHelp(this)">
-            <span>Q. アカウント情報を変更したい / 退職する場合</span>
+            <span>Q. 退職などによるアカウント削除について</span>
             <span class="help-toggle">▼</span>
           </div>
           <div class="help-item-body" hidden>
-            <p style="font-size: 0.9rem;">
-              設定画面（ホーム右下の⚙️アイコン）から、パスワードの変更やログアウトが可能です。退職の際のアカウント削除については、施設管理者へお申し出ください。
+            <p style="font-size: 0.85rem;">セキュリティおよび記録保持の観点から、ご自身でアカウントを削除することはできません。退職等の際は、施設の管理者へお申し出ください。</p>
+          </div>
+        </div>
+
+        <!-- Section 6: AIに「×」をつけられやすい残念パターン -->
+        <h3 style="margin-top: var(--space-lg); font-size: 1.15rem; color: var(--primary); display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 8px;">
+            <span style="background: var(--primary); color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.9rem;">6</span>
+            AIに「×」をつけられやすいNG例
+        </h3>
+
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>なぜ私の記録は合格にならないの？</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <div class="help-box bad">
+                <span class="help-guide-badge bad">NGパターン①：主観のみ</span><br>
+                <p style="font-size: 0.9rem;">「機嫌が悪そうだった」「元気がないと感じた」<br>
+                <span style="color: #991b1b; font-size: 0.8rem;">→ 理由：AIは「なぜそう思ったのか」の根拠（事実）を探しています。</span></p>
+            </div>
+            <div class="help-box bad">
+                <span class="help-guide-badge bad">NGパターン②：言葉の省略</span><br>
+                <p style="font-size: 0.9rem;">「いつも通り」「特に変わりなし」<br>
+                <span style="color: #991b1b; font-size: 0.8rem;">→ 理由：研修の目的は「小さな変化を見つける力」を養うことなので、AIは厳しく判定します。</span></p>
+            </div>
+            <div class="help-box info pro">
+                <p style="font-size: 0.85rem; font-weight: bold;">💡 AIを納得させるコツ</p>
+                <p style="font-size: 0.85rem;">「朝食の時（いつ）」「デイルームで（どこで）」「Aさんが（誰が）」「お箸を置いたままぼーっとしていた（事実）」のように、5W1Hを意識しましょう。</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 7: プロの観察の眼 -->
+        <h3 style="margin-top: var(--space-lg); font-size: 1.15rem; color: var(--primary); display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 8px;">
+            <span style="background: var(--primary); color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.9rem;">7</span>
+            プロの「観察の眼」チェックリスト
+        </h3>
+
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>何に注目して記録を書けばいい？</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <p style="font-size: 0.9rem; margin-bottom: 15px;">以下のような「昨日との違い」が見つかれば、それは立派な気づきです。</p>
+            <div class="glossary-grid">
+                <div class="glossary-item"><strong>👄 口元・食事</strong>食事のペース、飲み込みの回数、食事中の姿勢、残したおかずの種類</div>
+                <div class="glossary-item"><strong>🚶 歩き方・姿勢</strong>足の上げ方、ふらつきの有無、壁に手をつく回数、座り直し</div>
+                <div class="glossary-item"><strong>🗣️ 声・言葉</strong>声の大きさ、滑舌、話す内容の脈絡、返答までの秒数</div>
+                <div class="glossary-item"><strong>🎨 顔色・皮膚</strong>血色、むくみ、乾燥、かゆがっている仕草、目の開き具合</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 8: 事例集 -->
+        <h3 style="margin-top: var(--space-lg); font-size: 1.15rem; color: var(--primary); display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 8px;">
+            <span style="background: var(--primary); color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.9rem;">8</span>
+            100点に近づく！ケーススタディ
+        </h3>
+
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>【事例A】食欲不振の気づき</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <div class="help-box good">
+                <span class="help-guide-badge good">合格例</span><br>
+                <p style="font-size: 0.85rem; line-height: 1.6;">
+                    「昼食時、普段は30分で完食されるCさんが、今日は15分経過しても主食に手を付けず、副菜だけを一口ずつ、計5分おきにゆっくり食べていた。問いかけに対して『なんだか口がねちゃねちゃする』と答えた。口腔内を確認すると、舌が白く乾燥しており、水分摂取量が午前中から少なかったことが原因と推測される。」
+                </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>【事例B】転倒リスクの予兆</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <div class="help-box good">
+                <span class="help-guide-badge good">合格例</span><br>
+                <p style="font-size: 0.85rem; line-height: 1.6;">
+                    「午後のレクリエーション中、いつもより立ち上がり動作が速く、前のめりになる傾向があった。右足がわずかに引きずっており、スリッパの底が床をこする音が2〜3回聞こえた。昨日新調したばかりの靴下が少し滑りやすい素材であることが影響している可能性がある。すぐに滑り止め付きの靴下に履き替えていただき、歩行を確認した。」
+                </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 9: 専門用語の使い分け -->
+        <h3 style="margin-top: var(--space-lg); font-size: 1.15rem; color: var(--primary); display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 8px;">
+            <span style="background: var(--primary); color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.9rem;">9</span>
+            プロの語彙力：言い換え辞典
+        </h3>
+
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>介護記録でよく使う言葉の言い換え</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <div class="glossary-grid">
+                <div class="glossary-item"><span>ぼーっとしている</span><br><strong>→ 覚醒レベルが低い</strong></div>
+                <div class="glossary-item"><span>ふらふらしている</span><br><strong>→ 歩行が不安定、失調気味</strong></div>
+                <div class="glossary-item"><span>怒鳴っている</span><br><strong>→ 感情の失制、不穏状態</strong></div>
+                <div class="glossary-item"><span>急に泣き出した</span><br><strong>→ 感情失禁、抑うつ的</strong></div>
+                <div class="glossary-item"><span>寝てばかりいる</span><br><strong>→ 傾眠傾向（けいみん）</strong></div>
+                <div class="glossary-item"><span>勝手に歩き出す</span><br><strong>→ 独歩・不慮の離設リスク</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 10: メンタル・ resilient -->
+        <h3 style="margin-top: var(--space-lg); font-size: 1.15rem; color: var(--primary); display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 8px;">
+            <span style="background: var(--primary); color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.9rem;">10</span>
+            心のケアとモチベーション
+        </h3>
+
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>AIに何度も不合格と言われて辛いです</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <p style="font-size: 0.9rem; line-height: 1.6;">
+                不合格（×）は、あなたの介護スキルそのものを否定しているわけではありません。<br>
+                <strong>「あなたの素晴らしい気づきが、文章として十分に言語化できていないだけ」</strong>です。<br>
+                最初は誰でも×から始まります。AIの改善例をそのまま真似して書き直すことから始めてみましょう。それを繰り返すうちに、プロの視点が自然と身についてきます。
             </p>
+          </div>
+        </div>
+
+        <!-- Section 11: チーム連携 -->
+        <h3 style="margin-top: var(--space-lg); font-size: 1.15rem; color: var(--primary); display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 8px;">
+            <span style="background: var(--primary); color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.9rem;">11</span>
+            チームでの情報の活かし方
+        </h3>
+
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>ここでの記録は現場でどう使われる？</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <p style="font-size: 0.9rem; line-height: 1.6;">
+                この研修で書いた記録は、管理者がチェックしています。あなたが気づいた「ささいな変化」が、重大な事故や病気を防ぐきっかけになり、そのままケース会議の資料として使われることもあります。<br>
+                あなたの気づきは、チーム全体の介護の質を高める貴重な財産です。
+            </p>
+          </div>
+        </div>
+
+        <!-- Section 12: 技術的なトラブル -->
+        <h3 style="margin-top: var(--space-lg); font-size: 1.15rem; color: var(--primary); display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 8px;">
+            <span style="background: var(--primary); color: white; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 0.9rem;">12</span>
+            困ったときのトラブル解決
+        </h3>
+
+        <div class="help-item">
+          <div class="help-item-header" onclick="toggleHelp(this)">
+            <span>画面が真っ白になった、またはボタンが押せません</span>
+            <span class="help-toggle">▼</span>
+          </div>
+          <div class="help-item-body" hidden>
+            <ol style="font-size: 0.85rem; padding-left: 20px; line-height: 1.8;">
+                <li><strong>ブラウザの更新:</strong> 画面を下に引っ張るか、再読み込みボタンを押してください。</li>
+                <li><strong>キャッシュの削除:</strong> それでも直らない場合は、ブラウザの設定から履歴/キャッシュを削除して再ログインしてください。</li>
+                <li><strong>通信環境の確認:</strong> 電波が不安定だとAIがフリーズすることがあります。Wi-Fi環境を推奨します。</li>
+            </ol>
           </div>
         </div>
       </div>
