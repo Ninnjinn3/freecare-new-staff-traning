@@ -898,11 +898,11 @@
           <div class="settings-item">
             <div class="settings-item-label">
               <span class="settings-item-title">通知リマインダー</span>
-              <span class="settings-item-desc">提出期限が近づくと通知します（β版）</span>
+              <span class="settings-item-desc">AIサポーターが提出忘れを優しくリマインドします</span>
             </div>
             <div class="settings-item-action">
               <label class="switch">
-                <input type="checkbox" checked disabled>
+                <input type="checkbox" id="notification-toggle" onchange="Settings.toggleNotifications(this.checked)">
                 <span class="slider"></span>
               </label>
             </div>

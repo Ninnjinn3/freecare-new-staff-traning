@@ -3,6 +3,24 @@
    SPA画面遷移・初期化・ホーム画面ロジック
    ============================================ */
 
+// ===== 通知ヘルパー =====
+const NotificationHelper = {
+    send: function(title, body, icon = 'https://freecare.co.jp/wp-content/themes/freecare/images/logo.png') {
+        const isEnabled = localStorage.getItem('fc_notifications_enabled') === 'true';
+        if (!isEnabled || !("Notification" in window)) return;
+
+        if (Notification.permission === "granted") {
+            try {
+                new Notification(title, { body, icon });
+            } catch (e) {
+                // iOS PWA support or other issues
+                console.warn("Notification error:", e);
+                showToast(`🔔 ${body}`);
+            }
+        }
+    }
+};
+
 // ===== 画面遷移 =====
 async function navigateTo(screenId) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -212,6 +230,28 @@ function initHome() {
 
     // STEPボタンの状態更新
     updateStepButtons(currentStep);
+
+    // 提出忘れリマインダー (通知ONの場合のみ)
+    if (localStorage.getItem('fc_notifications_enabled') === 'true') {
+        // セッション内で1回だけ判定し、かつホーム画面表示から少し遅らせて実行
+        if (!sessionStorage.getItem('fc_notified_today')) {
+            setTimeout(async () => {
+                try {
+                    const today = new Date().toISOString().split('T')[0];
+                    // 直近20件を取得して今日の日付があるか確認
+                    const records = await API.getStep1Records(user.staff_id);
+                    const hasRecordToday = records.some(r => r.date === today);
+
+                    if (!hasRecordToday) {
+                        NotificationHelper.send("🤖 AIサポーター（師匠）", "おい！今日の記録がまだやぞ！忘れる前にパパッと書いてまおな。応援しとるで！💪");
+                    }
+                    sessionStorage.setItem('fc_notified_today', 'true');
+                } catch (e) {
+                    console.warn("Reminder check failed:", e);
+                }
+            }, 3000); // 3秒後に判定
+        }
+    }
 }
 
 // ===== 対象者ドロップダウン =====
@@ -1238,8 +1278,39 @@ const Settings = {
 
         // テーマトグルの状態反映
         const isDark = document.body.classList.contains('dark-theme');
-        const toggle = document.getElementById('theme-toggle');
-        if (toggle) toggle.checked = isDark;
+        const themeToggle = document.getElementById('theme-toggle');
+        if (themeToggle) themeToggle.checked = isDark;
+
+        // 通知トグルの状態反映
+        const isNotifEnabled = localStorage.getItem('fc_notifications_enabled') === 'true';
+        const notifToggle = document.getElementById('notification-toggle');
+        if (notifToggle) notifToggle.checked = isNotifEnabled;
+    },
+
+    toggleNotifications: async function (enabled) {
+        if (enabled) {
+            if (!("Notification" in window)) {
+                showToast("このブラウザは通知に対応していません 🚫");
+                document.getElementById('notification-toggle').checked = false;
+                return;
+            }
+
+            const permission = await Notification.requestPermission();
+            if (permission === "granted") {
+                localStorage.setItem('fc_notifications_enabled', 'true');
+                showToast("通知を有効にしました！🔔");
+                
+                // 初回ウェルカム通知
+                NotificationHelper.send("🤖 AIサポーター（師匠）", "通知をONにしたな！これから毎日ビシビシ指導したるから、覚悟しときや！💪");
+            } else {
+                localStorage.setItem('fc_notifications_enabled', 'false');
+                showToast("通知がブロックされています ⚠️");
+                document.getElementById('notification-toggle').checked = false;
+            }
+        } else {
+            localStorage.setItem('fc_notifications_enabled', 'false');
+            showToast("通知を無効にしました");
+        }
     },
 
     toggleTheme: function (isDark) {
