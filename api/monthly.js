@@ -194,7 +194,9 @@ async function evaluateMonthlyWithAI(step1, step2, step3, targetStep, apiKey) {
     // 記録の要約を作成
     const s1Text = step1.length > 0 ? step1.slice(0, 30).map(r => `[${r.date}] ${r.notice_text}`).join('\n') : "STEP1の記録なし";
     const s2Text = step2.length > 0 ? step2.slice(0, 20).map(r => {
-        const hypos = (r.hypotheses_json || []).map(h => `${h.hypo}(なぜ:${h.why1}->${h.why2}->${h.why3})`).join(' / ');
+        const hypoJson = r.hypotheses_json || {};
+        const cards = Array.isArray(hypoJson) ? hypoJson : (hypoJson.cards || []);
+        const hypos = cards.map(h => `${h.hypo || ''}(なぜ:${h.why1 || ''}->${h.why2 || ''}->${h.why3 || ''})`).join(' / ');
         return `[${r.date}] 変化:${r.change_noticed} 仮説:${hypos}`;
     }).join('\n') : "STEP2の記録なし";
     const s3Text = step3.length > 0 ? step3.slice(0, 20).map(r => `[${r.date}] 支援:${r.support} 反応:${r.reaction} 判断:${r.decision}`).join('\n') : "STEP3の記録なし";
