@@ -1528,21 +1528,10 @@ const Dictionary = {
                     </div>
                 `).join('');
                 
-                suggestHtml += `
-                    <div class="suggestion-ai-trigger" onclick="Dictionary.askAI('${query}')">
-                        ✨「${query}」をAIに詳しく聞く
-                    </div>
-                `;
-                
                 suggestEl.innerHTML = suggestHtml;
                 suggestEl.style.display = 'block';
             } else {
-                suggestEl.innerHTML = `
-                    <div class="suggestion-ai-trigger" style="border-top:none" onclick="Dictionary.askAI('${query}')">
-                        🔍 辞書に未登録です。AIに聞く
-                    </div>
-                `;
-                suggestEl.style.display = 'block';
+                suggestEl.style.display = 'none';
             }
         }
 
@@ -1620,11 +1609,10 @@ const Dictionary = {
     askAI: function(term) {
         navigateTo('screen-ai-helper');
         setTimeout(() => {
-            const input = document.getElementById('ai-chat-input');
+            const input = document.getElementById('help-chat-input');
             if (input) {
                 input.value = `「${term}」について、新人スタッフにもわかりやすく具体例を交えて教えて。`;
-                const btn = document.querySelector('.ai-chat-send');
-                if (btn) btn.click();
+                sendHelpChat();
             }
         }, 300);
     }
