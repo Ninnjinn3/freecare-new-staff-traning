@@ -1470,23 +1470,22 @@ const Dictionary = {
 
     createCardHTML: function(item) {
         return `
-            <div class="dict-card" data-term="${item.term}" data-reading="${item.reading || ''}">
+            <div class="dict-card" id="card-${item.term}" data-term="${item.term}" data-reading="${item.reading || ''}">
                 <div class="dict-term">
                     ${item.term}
                     ${item.reading ? `<span class="dict-reading">${item.reading}</span>` : ''}
                 </div>
                 <div class="dict-def">${item.definition}</div>
-                <div class="dict-actions">
-                    <button class="btn-ask-ai" onclick="Dictionary.askAI('${item.term}')">🤖 AIに詳しく聞く</button>
-                </div>
             </div>
         `;
     },
 
     filter: function() {
         const queryEl = document.getElementById('dict-search');
+        const suggestEl = document.getElementById('dict-suggestions');
         if (!queryEl) return;
-        const query = queryEl.value.toLowerCase();
+        
+        const query = queryEl.value.toLowerCase().trim();
         const cards = document.querySelectorAll('.dict-card');
         const titles = document.querySelectorAll('.dict-group-title');
         const indexContainer = document.querySelector('.dict-index-container');
@@ -1495,20 +1494,57 @@ const Dictionary = {
             cards.forEach(c => c.style.display = 'block');
             titles.forEach(t => t.style.display = 'block');
             if (indexContainer) indexContainer.style.display = 'block';
+            if (suggestEl) suggestEl.style.display = 'none';
             return;
         }
 
         if (indexContainer) indexContainer.style.display = 'none';
 
+        // 1. メインリストのフィルタリング
+        let matchCount = 0;
         cards.forEach(card => {
             const term = (card.dataset.term || '').toLowerCase();
             const reading = (card.dataset.reading || '').toLowerCase();
             if (term.includes(query) || reading.includes(query)) {
                 card.style.display = 'block';
+                matchCount++;
             } else {
                 card.style.display = 'none';
             }
         });
+
+        // 2. サジェストリストの構築
+        if (suggestEl) {
+            const matches = DICTIONARY_DATA.filter(item => 
+                item.term.toLowerCase().includes(query) || 
+                (item.reading && item.reading.includes(query))
+            ).slice(0, 5);
+
+            if (matches.length > 0) {
+                let suggestHtml = matches.map(m => `
+                    <div class="suggestion-item" onclick="Dictionary.selectSuggestion('${m.term}')">
+                        <span class="term">${m.term}</span>
+                        <span class="reading">${m.reading || ''}</span>
+                    </div>
+                `).join('');
+                
+                suggestHtml += `
+                    <div class="suggestion-ai-trigger" onclick="Dictionary.askAI('${query}')">
+                        ✨「${query}」をAIに詳しく聞く
+                    </div>
+                `;
+                
+                suggestEl.innerHTML = suggestHtml;
+                suggestEl.style.display = 'block';
+            } else {
+                suggestEl.innerHTML = `
+                    <div class="suggestion-ai-trigger" style="border-top:none" onclick="Dictionary.askAI('${query}')">
+                        🔍 辞書に未登録です。AIに聞く
+                    </div>
+                `;
+                suggestEl.style.display = 'block';
+            }
+        }
 
         // カテゴリタイトル表示制御
         titles.forEach(title => {
@@ -1523,6 +1559,45 @@ const Dictionary = {
             }
             title.style.display = hasVisible ? 'block' : 'none';
         });
+    },
+
+    handleSearchKey: function(e) {
+        if (e.key === 'Enter') {
+            const query = e.target.value.toLowerCase().trim();
+            if (!query) return;
+
+            // 完全一致があるか確認
+            const match = DICTIONARY_DATA.find(item => 
+                item.term.toLowerCase() === query || 
+                (item.reading && item.reading === query)
+            );
+
+            if (match) {
+                // 一致があればそこへスクロール
+                this.selectSuggestion(match.term);
+            } else {
+                // なければAIに聞く
+                this.askAI(query);
+            }
+        }
+    },
+
+    selectSuggestion: function(term) {
+        const queryEl = document.getElementById('dict-search');
+        const suggestEl = document.getElementById('dict-suggestions');
+        if (queryEl) queryEl.value = term;
+        if (suggestEl) suggestEl.style.display = 'none';
+        
+        this.filter();
+
+        // 対象のカードへスクロール
+        const card = document.getElementById(`card-${term}`);
+        if (card) {
+            const offset = 180;
+            const elementPosition = card.getBoundingClientRect().top + window.pageYOffset;
+            const offsetPosition = elementPosition - offset;
+            window.scrollTo({ top: offsetPosition, behavior: 'smooth' });
+        }
     },
 
     scrollToCategory: function(char) {

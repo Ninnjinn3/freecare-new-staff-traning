@@ -204,7 +204,8 @@
       <div class="dict-search-container">
         <div class="search-input-wrapper">
           <span class="search-icon">🔍</span>
-          <input type="text" id="dict-search" placeholder="用語を検索（例: アセスメント）" oninput="Dictionary.filter()">
+          <input type="text" id="dict-search" placeholder="用語を検索（例: アセスメント）" oninput="Dictionary.filter()" onkeydown="Dictionary.handleSearchKey(event)">
+          <div id="dict-suggestions" class="dict-suggestions"></div>
         </div>
       </div>
 
