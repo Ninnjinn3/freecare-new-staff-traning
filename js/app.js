@@ -689,19 +689,7 @@ async function loadHistory() {
     }
 }
 
-// 履歴展開トグルのヘルパー
-function toggleHistoryItem(header) {
-    const item = header.closest('.history-item');
-    if (!item) return;
-
-    const preview = item.querySelector('.history-preview');
-    const body = item.querySelector('.history-body');
-    const isExpanded = item.classList.toggle('is-expanded');
-
-    // 直接スタイルも操作して確実性を高める
-    if (preview) preview.style.display = isExpanded ? 'none' : 'block';
-    if (body) body.style.display = isExpanded ? 'block' : 'none';
-}
+// 管理者画面の初期化プロパティなどは admin.js に集約
 
 // 管理者画面の初期化プロパティなどは admin.js に集約
 
