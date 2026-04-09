@@ -429,6 +429,88 @@ const Monthly = {
             }
         }
 
+
+        // 各項目の詳細カード
+        breakdown.forEach((item, index) => {
+            const scorePercent = (item.score / item.max) * 100;
+            const barColor = scorePercent >= 80 ? 'var(--success)' : (scorePercent >= 50 ? 'var(--warning)' : 'var(--danger)');
+
+            html += `
+                <div class="eval-item-card card" style="margin-top: 25px; border-top: 4px solid ${barColor};">
+                    <div class="eval-item-header">
+                        <h4 class="eval-item-title">${item.name} (${item.max}点満点) → <span style="color:${barColor}; font-weight:bold;">${item.score}点</span></h4>
+                    </div>
+                    
+                    ${((item.criteriaRef || []).filter(c => c.desc).length > 0) ? `
+                    <div class="criteria-list" style="margin-top: 15px;">
+                        <p style="font-size: 0.9rem; font-weight: bold; color: var(--text-secondary); margin-bottom: 8px;">【採点基準との照合】</p>
+                        <table class="criteria-table" style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                            <thead>
+                                <tr style="background: var(--surface); text-align: left; border-bottom: 2px solid var(--border);">
+                                    <th style="padding: 8px; width: 60px; text-align: center;">点数</th>
+                                    <th style="padding: 8px;">基準</th>
+                                    <th style="padding: 8px; width: 50px; text-align: center;">判定</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${(item.criteriaRef).map(c => `
+                                    <tr style="border-bottom: 1px solid var(--border); ${(c.check || c.selected) ? 'background: rgba(88, 204, 2, 0.08);' : ''}">
+                                        <td style="padding: 10px; text-align: center; font-weight: bold; color: var(--text-secondary);">${c.pts || c.points || 0}</td>
+                                        <td style="padding: 10px; color: var(--text);">${c.desc || c.description || '基準データなし'}</td>
+                                        <td style="padding: 10px; text-align: center; font-size: 1.2rem;">${(c.check || c.selected) ? '✅' : '―'}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                    ` : ''}
+
+                    <div class="eval-content-section" style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border);">
+                        
+                        ${(item.goodPoints && item.goodPoints.length > 0) ? `
+                        <div style="margin-bottom: 20px;">
+                            <div style="font-weight: bold; color: #27ae60; margin-bottom: 10px; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="background: #e8f5e9; padding: 4px 8px; border-radius: 4px;">✅</span> 良い点
+                            </div>
+                            <ul style="list-style: none; padding: 0; margin: 0; color: #2d3436; font-size: 0.95rem; line-height: 1.7;">
+                                ${item.goodPoints.map(p => `<li style="display: flex; gap: 10px; margin-bottom: 8px; padding-left: 10px; border-left: 2px solid #27ae60;">${p}</li>`).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
+
+                        ${(item.badPoints && item.badPoints.length > 0) ? `
+                        <div style="margin-bottom: 20px;">
+                            <div style="font-weight: bold; color: #e74c3c; margin-bottom: 10px; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="background: #ffebee; padding: 4px 8px; border-radius: 4px;">❌</span> 不足している点
+                            </div>
+                            <ul style="list-style: none; padding: 0; margin: 0; color: #2d3436; font-size: 0.95rem; line-height: 1.7;">
+                                ${item.badPoints.map(p => `<li style="display: flex; gap: 10px; margin-bottom: 8px; padding-left: 10px; border-left: 2px solid #e74c3c;">${p}</li>`).join('')}
+                            </ul>
+                        </div>
+                        ` : ''}
+
+                        ${item.improvement ? `
+                        <div style="margin-bottom: 20px;">
+                            <div style="font-weight: bold; color: #00796b; margin-bottom: 10px; font-size: 1rem; display: flex; align-items: center; gap: 8px;">
+                                <span style="background: #e0f2f1; padding: 4px 8px; border-radius: 4px;">💡</span> ${item.max}点を取るための改善例
+                            </div>
+                            <div style="background: #f1f8f7; padding: 18px; border-radius: 12px; border: 1px solid #b2dfdb; font-size: 0.95rem; color: #004d40; line-height: 1.7; box-shadow: inset 0 1px 3px rgba(0,0,0,0.02);">
+                                ${String(item.improvement).replace(/\n/g, '<br>')}
+                            </div>
+                        </div>
+                        ` : ''}
+
+                        <div style="margin-top: 25px; padding: 15px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <div style="font-weight: bold; color: #64748b; margin-bottom: 8px; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em;">AI Overall Feedback / 総評</div>
+                            <div style="font-size: 0.95rem; color: #334155; line-height: 1.6; font-weight: 500;">
+                                ${item.comment ? String(item.comment).replace(/\n/g, '<br>') : (item.judgement || '―')}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+
         html += '</div>';
         bRoot.innerHTML = html;
     },
