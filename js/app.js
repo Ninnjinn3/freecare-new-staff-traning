@@ -612,25 +612,26 @@ async function loadHistory() {
                 const cards = Array.isArray(hypoData) ? hypoData : (Array.isArray(hypoData.cards) ? hypoData.cards : []);
                 console.log('FC_DEBUG record:', r.id, 'cards count:', cards.length, 'first card:', cards[0]);
                 
-                let detailText = `変化: ${r.change_noticed || 'ー'}\n`;
+                let detailText = `変化: ${r.change_noticed || 'ー'}`;
+                const previewText = detailText; // 閉じている時は「変化」のみ
                 
                 if (cards.length > 0) {
                     cards.forEach((h, i) => {
-                        detailText += `\n【仮説${i + 1}】\n`;
-                        // Support both 'hypo' field and direct why fields
+                        detailText += `\n\n【仮説${i + 1}】\n`;
                         if (h.hypo) detailText += `仮説: ${h.hypo}\n`;
                         detailText += `${h.why1 || 'ー'} -> ${h.why2 || 'ー'} -> ${h.why3 || 'ー'}\n`;
-                        detailText += `└ 支援: ${h.support || 'なし'}\n`;
+                        detailText += `└ 支援: ${h.support || 'なし'}`;
                     });
                 } else {
-                    detailText += `\n(仮説データなし)\n`;
+                    detailText += `\n\n(仮説データなし)`;
                 }
 
                 return {
                     ...r,
                     stepLabel: 'STEP2',
                     displayDate: formatDateTime(r.created_at, r.date),
-                    text: detailText.trim()
+                    previewText: previewText.trim(),
+                    detailText: detailText.trim()
                 };
             }));
         }
@@ -639,20 +640,23 @@ async function loadHistory() {
             const step3 = (await API.getStep3Records(user.staff_id, null)) || [];
             records = records.concat(step3.map(r => {
                 let detailText = '';
+                let previewText = '';
                 try {
                     const data = typeof r.reflection_json === 'string' ? JSON.parse(r.reflection_json) : (r.reflection_json || {});
-                    detailText = `気づき: ${data.notice || 'ー'}\n`;
-                    detailText += `支援内容: ${data.support || 'ー'}\n`;
+                    previewText = `気づき: ${data.notice || 'ー'}`;
+                    detailText = previewText + `\n支援内容: ${data.support || 'ー'}\n`;
                     detailText += `対象者の反応: ${data.reaction || 'ー'}\n`;
                     detailText += `今後の判断: ${data.decision || r.decision || 'ー'}`;
                 } catch (e) {
                     detailText = r.support_done || '振り返り';
+                    previewText = detailText;
                 }
                 return {
                     ...r,
                     stepLabel: 'STEP3',
                     displayDate: formatDateTime(r.created_at, r.date),
-                    text: detailText.trim()
+                    previewText: previewText.trim(),
+                    detailText: detailText.trim()
                 };
             }));
         }
@@ -675,11 +679,11 @@ async function loadHistory() {
                   <span class="accordion-toggle" style="font-size: 0.75rem; color: #999;">▼</span>
                 </div>
                 <!-- プレビュー文 -->
-                <div class="history-preview" style="font-size: 0.8rem; color: #868e96; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 90%;">${(r.text || '').replace(/\n/g, ' ')}</div>
+                <div class="history-preview" style="font-size: 0.8rem; color: #868e96; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 90%;">${(r.previewText || '').replace(/\n/g, ' ')}</div>
               </div>
               <!-- 詳細文（最初は非表示） -->
               <div class="history-body" style="display: none; padding: 0 12px 12px 12px; border-top: 1px solid #f5f5f5; margin-top: -4px; padding-top: 8px;">
-                <div class="history-text" style="font-size:0.9rem; line-height:1.6; color:#333; white-space: pre-wrap;">${r.text || ''}</div>
+                <div class="history-text" style="font-size:0.9rem; line-height:1.6; color:#333; white-space: pre-wrap;">${r.detailText || ''}</div>
               </div>
             </div>
         `).join('');

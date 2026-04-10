@@ -27,7 +27,12 @@
 
       // 強力な直接命令 (!important相当をプログラムで強制)
       if (preview) preview.style.setProperty('display', isExpanded ? 'none' : 'block', 'important');
-      if (body) body.style.setProperty('display', isExpanded ? 'block' : 'none', 'important');
+      if (body) {
+        body.style.setProperty('display', isExpanded ? 'block' : 'none', 'important');
+        // 子要素のテキスト領域もしっかり表示
+        const textEl = body.querySelector('.history-text');
+        if (textEl) textEl.style.setProperty('display', 'block', 'important');
+      }
       if (toggle) toggle.textContent = isExpanded ? '▲' : '▼';
     };
   </script>
@@ -494,7 +499,7 @@
   </section>
 
   <!-- ===== Screen 9: 記録履歴 ===== -->
-        <h2 class="step-title">記録履歴 <span style="font-size: 0.7rem; color: #ccc;">(v202604091745)</span></h2>
+        <h2 class="step-title">記録履歴 <span style="font-size: 0.7rem; color: #ccc;">(v202604101205)</span></h2>
       </div>
       <div class="history-filters">
         <select id="history-step-filter" onchange="loadHistory()">
