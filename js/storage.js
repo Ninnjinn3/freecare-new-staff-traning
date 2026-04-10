@@ -68,10 +68,10 @@ const DB = {
         let cycleYear = d.getFullYear();
         let cycleMonth = d.getMonth(); // 0-indexed
         
-        // 11日〜翌月10日を1つのサイクルとするルール
-        // 例: 3/11 〜 4/10 は「3月分」
-        if (d.getDate() <= 10) {
-            // 1日〜10日の場合は、前月のサイクルに属する
+        // 12日〜翌月11日を1つのサイクルとするルール
+        // 例: 3/12 〜 4/11 は「3月分」
+        if (d.getDate() <= 11) {
+            // 1日〜11日の場合は、前月のサイクルに属する
             const prev = new Date(d);
             prev.setMonth(d.getMonth() - 1);
             cycleYear = prev.getFullYear();
@@ -81,13 +81,13 @@ const DB = {
         const targetYearMonth = `${cycleYear}-${String(cycleMonth + 1).padStart(2, '0')}`;
         
         // --- 対象期間の算出 ---
-        // 開始日: 当月11日
-        const startDate = new Date(cycleYear, cycleMonth, 11);
-        // 終了日: 翌月10日
-        const endDate = new Date(cycleYear, cycleMonth + 1, 10);
+        // 開始日: 当月12日
+        const startDate = new Date(cycleYear, cycleMonth, 12);
+        // 終了日: 翌月11日
+        const endDate = new Date(cycleYear, cycleMonth + 1, 11);
         
-        // 提出期限は M+1月の10日 23:59:59
-        const deadlineDate = new Date(cycleYear, cycleMonth + 1, 10, 23, 59, 59);
+        // 提出期限は M+1月の11日 23:59:59
+        const deadlineDate = new Date(cycleYear, cycleMonth + 1, 11, 23, 59, 59);
         
         // 今日の日付（refDate）から見て、期限が過ぎているか判定
         const today = new Date(refDate);
@@ -119,10 +119,8 @@ const DB = {
         if (!yearMonthStr) return false;
         
         const [y, m] = yearMonthStr.split('-').map(Number);
-        // JSのDateはMonthが0-indexed。yearMonthStr="2026-03" -> y=2026, m=3
-        // 3月分の期限は、4月10日 23:59:59。
-        // new Date(2026, 3, 10, ...) は 2026年4月10日になるので正しい。
-        const deadline = new Date(y, m, 10, 23, 59, 59);
+        // 3月分の期限は、4月11日 23:59:59。
+        const deadline = new Date(y, m, 11, 23, 59, 59);
         return new Date() <= deadline;
     },
 

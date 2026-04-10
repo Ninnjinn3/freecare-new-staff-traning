@@ -89,7 +89,7 @@ function loadVideoTasks() {
     var html = '<div class="curriculum-tabs" style="display:flex; overflow-x:auto; gap:8px; margin-bottom:20px; padding-bottom:5px;">';
     [1, 2, 3, 4].forEach(function(s) {
         var isActive = curriculumActiveStep === s;
-        html += '<button onclick="switchCurriculumStep(' + s + ')" style="flex:1; min-width:80px; padding:10px; border-radius:10px; border:2px solid ' + (isActive ? '#6c5ce7' : '#ddd') + '; background:' + (isActive ? '#6c5ce7' : '#fff') + '; color:' + (isActive ? '#fff' : '#666') + '; font-weight:bold; cursor:pointer; font-size:0.9rem; transition:0.2s;">第' + s + '段階</button>';
+        html += '<button onclick="switchCurriculumStep(' + s + ')" style="flex:1; min-width:80px; padding:10px; border-radius:10px; border:2px solid ' + (isActive ? '#6c5ce7' : '#ddd') + '; background:' + (isActive ? '#6c5ce7' : '#fff') + '; color:' + (isActive ? '#fff' : '#666') + '; font-weight:bold; cursor:pointer; font-size:0.9rem; transition:0.2s;">STEP ' + s + '</button>';
     });
     html += '</div>';
 

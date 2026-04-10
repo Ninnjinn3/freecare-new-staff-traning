@@ -55,7 +55,7 @@ const Exec = {
         const total = Math.max(dist.step1 + dist.step2 + dist.step3 + dist.step4, 1);
 
         const colors = ['var(--primary)', '#f59e0b', '#8b5cf6', 'var(--success)'];
-        const labels = ['気付き（第1段階）', '仮説思考（第2段階）', '振り返り（第3段階）', '症例（第4段階）'];
+        const labels = ['気付き（STEP 1）', '仮説思考（STEP 2）', '振り返り（STEP 3）', '症例（STEP 4）'];
         const values = [dist.step1, dist.step2, dist.step3, dist.step4];
 
         container.innerHTML = `

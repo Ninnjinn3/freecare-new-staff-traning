@@ -367,11 +367,8 @@ ${prompt}
 }
 
 function calcScore(max, rate) {
-    // rate 0-1 を 低/中/高 のスコアにマッピング
-    if (rate >= 0.8) return max;                              // 高
-    if (rate >= 0.5) return Math.round(max * 0.67);           // 中
-    if (rate > 0) return Math.round(max * 0.33);              // 低
-    return 0;
+    // ユーザー要望：丸の数 ÷ 回答数が点数になるように修正（15点満点等に比例）
+    return Math.round(max * rate);
 }
 
 function avg(...values) {

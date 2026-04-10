@@ -80,6 +80,74 @@ const Step3 = {
         if (submitBtn) submitBtn.textContent = '修正して再提出する';
         
         showToast('編集モード：内容を修正してください');
+    },
+
+    // 以前の記録をロードして表示する
+    async loadPreviousReflection(targetId) {
+        const historyArea = document.getElementById('step3-prev-history');
+        const contentArea = document.getElementById('step3-prev-content');
+        if (!historyArea || !contentArea) return;
+
+        // 非表示にして初期化
+        historyArea.style.display = 'none';
+        contentArea.innerHTML = '読み込み中...';
+
+        try {
+            const user = Auth.getUser();
+            if (!user) return;
+
+            // 過去のSTEP3記録を取得
+            const records = await API.getStep3Records(user.staff_id);
+            // 同じ対象者の最新の記録を探す（現在の編集中のものは除く）
+            const prev = records
+                .filter(r => (r.target_id === targetId || r.target_name === targetId))
+                .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+            if (prev) {
+                const d = prev.reflection_json || {};
+                const dateStr = prev.date;
+                
+                contentArea.innerHTML = `
+                    <div style="margin-bottom: 8px; font-weight: bold; border-bottom: 1px dashed #ffe8cc; padding-bottom: 4px;">
+                        📅 前回提出日: ${dateStr}
+                    </div>
+                    <div style="display: grid; gap: 8px;">
+                        <div><strong>● 気付き:</strong><br>${d.notice || '-'}</div>
+                        <div><strong>● 支援内容:</strong><br>${d.support || '-'}</div>
+                        <div><strong>● 判断:</strong> ${prev.decision === 'continue' ? '継続' : prev.decision === 'change' ? '変更' : '終了'}</div>
+                    </div>
+                    <div style="margin-top: 12px; display: flex; gap: 10px;">
+                        <button type="button" class="btn-outline btn-sm" onclick="Step3.applyPrevious('${prev.id}')" style="font-size: 0.8rem; padding: 4px 10px;">
+                            前回の内容をコピーする
+                        </button>
+                    </div>
+                `;
+                historyArea.style.display = 'block';
+                // 前回のデータをキャッシュしておく
+                this._lastFetchedPrevRecord = prev;
+            }
+        } catch (e) {
+            console.error('Failed to load previous reflection:', e);
+            contentArea.innerHTML = '過去の記録の取得に失敗しました';
+        }
+    },
+
+    // 前回の内容をフォームに反映する
+    applyPrevious(recordId) {
+        const record = this._lastFetchedPrevRecord;
+        if (!record) return;
+
+        if (confirm('前回の「気付き」と「支援内容」をフォームにコピーしますか？\n（現在の入力内容は上書きされます）')) {
+            const d = record.reflection_json || {};
+            document.getElementById('step3-notice').value = d.notice || '';
+            document.getElementById('step3-support').value = d.support || '';
+            // 理由〜反応も必要ならコピー（今回は「内容継続」を想定し主要項目のみ）
+            document.getElementById('step3-reason').value = d.reason || '';
+            document.getElementById('step3-prediction').value = d.prediction || '';
+            document.getElementById('step3-reaction').value = d.reaction || '';
+            
+            showToast('前回の内容をコピーしました ✅');
+        }
     }
 };
 
