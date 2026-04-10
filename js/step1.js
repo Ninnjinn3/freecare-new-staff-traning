@@ -170,11 +170,6 @@ async function submitStep1(event) {
 
 // ◯☓結果画面表示
 function showResult(result) {
-    // AIのハルシネーション対策: 不足点があるのに○判定なら強制的に×にする
-    if (result.missing_points && result.missing_points.length > 0) {
-        result.judgement = '×';
-    }
-
     const circle = document.getElementById('result-circle');
     const isCorrect = result.judgement === '○';
 
