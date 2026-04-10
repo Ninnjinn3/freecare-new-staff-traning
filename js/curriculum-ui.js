@@ -216,6 +216,26 @@ function openLessonModal(taskId, subType) {
     if (reportQ2) reportQ2.value = '';
     if (reportQ3) reportQ3.value = '';
 
+    // 動画視聴ボタンのリセット
+    var btnVideoDone = document.getElementById('btn-video-done');
+    if (btnVideoDone) {
+        var user = Auth.getUser();
+        var progress = getCurriculumProgress(user.staff_id);
+        var isVideoDone = !!progress[taskId + '__動画'];
+        
+        if (isVideoDone) {
+            btnVideoDone.textContent = '✅ 視聴済み！';
+            btnVideoDone.style.background = '#4caf50';
+            btnVideoDone.style.cursor = 'default';
+            btnVideoDone.onclick = null;
+        } else {
+            btnVideoDone.textContent = '✅ 視聴完了';
+            btnVideoDone.style.background = '#4c5bb7';
+            btnVideoDone.style.cursor = 'pointer';
+            btnVideoDone.onclick = markVideoWatched;
+        }
+    }
+
     document.getElementById('lesson-modal').style.display = 'block';
     document.body.style.overflow = 'hidden';
 }
