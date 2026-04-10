@@ -6,6 +6,9 @@
 // 動画課題画面で現在選択されているSTEP
 let curriculumActiveStep = 1;
 
+// タイマー管理用
+let _videoCountdownInterval = null;
+
 // 現在開いているレッスンの情報
 let _currentLesson = null;
 let _currentTestAnswers = {};
@@ -182,6 +185,12 @@ function openLessonModal(taskId, subType) {
     _currentLesson = { task: task, subType: subType };
     _currentTestAnswers = {};
 
+    // タイマーの初期化（前回の残りをクリア）
+    if (_videoCountdownInterval) {
+        clearInterval(_videoCountdownInterval);
+        _videoCountdownInterval = null;
+    }
+
     document.getElementById('lesson-modal-title').textContent = task.title;
     document.getElementById('lesson-modal-step').textContent = '第' + task.step + '段階 — ' + subType;
 
@@ -238,9 +247,39 @@ function openLessonModal(taskId, subType) {
 
     document.getElementById('lesson-modal').style.display = 'block';
     document.body.style.overflow = 'hidden';
+
+    // 動画かつ未視聴の場合のみタイマー開始
+    if (subType === '動画') {
+        var progress = getCurriculumProgress(Auth.getUser()?.staff_id);
+        var isWatched = !!progress[task.id + '__動画'];
+        if (!isWatched && task.duration) {
+            startVideoTimer(task.duration);
+        } else {
+            // 視聴済み、または duration 設定なしの場合はボタンをリセット
+            var btnVideoDone = document.getElementById('btn-video-done');
+            if (btnVideoDone) {
+                if (isWatched) {
+                    btnVideoDone.textContent = '✅ 視聴済み！';
+                    btnVideoDone.style.background = '#4caf50';
+                    btnVideoDone.style.cursor = 'default';
+                    btnVideoDone.onclick = null;
+                } else {
+                    btnVideoDone.textContent = '✅ 視聴完了';
+                    btnVideoDone.style.background = '#4c5bb7';
+                    btnVideoDone.style.cursor = 'pointer';
+                    btnVideoDone.onclick = markVideoWatched;
+                }
+            }
+        }
+    }
 }
 
 function closeLessonModal() {
+    // タイマー強制停止
+    if (_videoCountdownInterval) {
+        clearInterval(_videoCountdownInterval);
+        _videoCountdownInterval = null;
+    }
     document.getElementById('lesson-modal').style.display = 'none';
     document.getElementById('lesson-video-iframe').src = ''; // stop video
     document.body.style.overflow = '';
@@ -258,6 +297,44 @@ function switchLessonTab(tabName) {
             btnEl.style.borderBottom = isActive ? '3px solid #4c5bb7' : '3px solid transparent';
         }
     });
+}
+
+// ============================================
+// 動画 — 視聴制限タイマー
+// ============================================
+function startVideoTimer(durationS) {
+    var btn = document.getElementById('btn-video-done');
+    if (!btn) return;
+
+    var remaining = durationS;
+    btn.disabled = true;
+    btn.style.opacity = '0.7';
+    btn.style.cursor = 'not-allowed';
+
+    var updateLabel = function() {
+        var m = Math.floor(remaining / 60);
+        var s = remaining % 60;
+        var timeStr = (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+        btn.textContent = '視聴完了まで あと ' + timeStr;
+    };
+
+    updateLabel();
+
+    _videoCountdownInterval = setInterval(function() {
+        remaining--;
+        if (remaining <= 0) {
+            clearInterval(_videoCountdownInterval);
+            _videoCountdownInterval = null;
+            btn.disabled = false;
+            btn.style.opacity = '1';
+            btn.style.cursor = 'pointer';
+            btn.style.background = '#4c5bb7';
+            btn.textContent = '✅ 視聴完了';
+            btn.onclick = markVideoWatched;
+        } else {
+            updateLabel();
+        }
+    }, 1000);
 }
 
 // ============================================
