@@ -260,7 +260,22 @@ const Monthly = {
                 const newData = await Monthly.calculate(currentTarget, force, this.currentStep);
                 if (newData && !newData.cached) {
                     this.renderEvaluation(newData.breakdown, newData.score, newData.passed, currentTarget, newData.improvement);
-                    showToast(`STEP ${this.currentStep} の最新評価を算出しました ✨`);
+                    
+                    // 自動昇格（プロモーション）の処理
+                    if (newData.promoted) {
+                        const user = Auth.getUser();
+                        user.current_step = newData.newStep;
+                        sessionStorage.setItem('fc_current_user', JSON.stringify(user));
+                        
+                        showToast(`おめでとうございます！STEP ${newData.newStep} へ進級しました！ 🎉`, 5000);
+                        setTimeout(() => {
+                           if (confirm('新しいステップに進みました。トップ画面に戻ってカリキュラムを確認しますか？')) {
+                               navigateTo('screen-curriculum');
+                           }
+                        }, 1500);
+                    } else {
+                        showToast(`STEP ${this.currentStep} の最新評価を算出しました ✨`);
+                    }
                 } else if (newData && !reportData) {
                     this.renderEvaluation(newData.breakdown, newData.score, newData.passed, currentTarget, newData.improvement);
                 }

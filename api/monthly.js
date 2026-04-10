@@ -108,9 +108,11 @@ export default async function handler(req, res) {
 
         // 6) 過去の評価取得 & 合格判定
         const step = evaluationStep;
+        
+        // ステップごとの「挑戦回数」を数えるため、同一ステップの過去履歴を取得
         const previousEvals = await supabaseSelect(
             SUPABASE_URL, SUPABASE_KEY, 'monthly_evaluations',
-            `staff_id=eq.${staff_id}&year_month=lt.${year_month}&order=year_month.desc&limit=12`
+            `staff_id=eq.${staff_id}&step=eq.${step}&year_month=lt.${year_month}&order=year_month.desc&limit=12`
         );
         const passed = checkPass(score, previousEvals.length + 1, previousEvals.map(e => e.score));
 
@@ -133,12 +135,27 @@ export default async function handler(req, res) {
             total_records: totalRecords,
             passed,
             hr_points: hrPoints
-        }, 'staff_id,year_month,step'); // ユニーク制約をSTEP付きで指定（要DB更新）
+        }, 'staff_id,year_month,step');
+
+        // 10) 自動ステップアップ処理
+        // 対象月が「最新の評価月」かつ「合格」かつ「現在のステップの評価」である場合のみ昇進
+        let promoted = false;
+        if (passed && step === parseInt(current_step)) {
+            const nextStep = Math.min(step + 1, 4); 
+            if (nextStep > step) {
+                await supabaseUpdate(SUPABASE_URL, SUPABASE_KEY, 'staff_master', `staff_id=eq.${staff_id}`, {
+                    current_step: nextStep
+                });
+                promoted = true;
+            }
+        }
 
         return res.status(200).json({
             score, breakdown, totalRecords, passCount, failCount,
             passed, level, hrPoints, actions, 
-            improvement: aiImprovement
+            improvement: aiImprovement,
+            promoted,
+            newStep: promoted ? (step + 1) : step
         });
 
     } catch (error) {
@@ -154,6 +171,19 @@ async function supabaseSelect(url, key, table, query) {
     });
     if (!resp.ok) return [];
     return await resp.json();
+}
+
+async function supabaseUpdate(url, key, table, query, updates) {
+    await fetch(`${url}/rest/v1/${table}?${query}`, {
+        method: 'PATCH',
+        headers: {
+            'apikey': key,
+            'Authorization': `Bearer ${key}`,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(updates)
+    });
 }
 
 async function supabaseUpsert(url, key, table, record, conflict = 'id') {
