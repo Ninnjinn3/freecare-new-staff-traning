@@ -593,8 +593,10 @@ async function loadHistory() {
             records = records.concat(step1.map(r => ({
                 ...r,
                 stepLabel: 'STEP1',
+                stepClass: 'step1',
                 displayDate: formatDateTime(r.created_at, r.date),
-                text: r.notice_text
+                previewText: r.notice_text,
+                detailHtml: `<div class="history-step-content">${escapeHtml(r.notice_text)}</div>`
             })));
         }
 
@@ -613,9 +615,9 @@ async function loadHistory() {
                 console.log('FC_DEBUG record:', r.id, 'cards count:', cards.length, 'first card:', cards[0]);
                 
                 let detailHtml = `
-                    <div style="margin-bottom: 12px; padding: 10px; background: #f8f9fa; border-radius: 6px;">
-                        <div style="font-weight: bold; color: var(--primary); font-size: 0.8rem; margin-bottom: 2px;">【変化の気づき】</div>
-                        <div style="color: #333;">${r.change_noticed || 'ー'}</div>
+                    <div class="hypo-top-card">
+                        <div class="hypo-label">変化の気づき</div>
+                        <div class="hypo-text">${escapeHtml(r.change_noticed || 'ー')}</div>
                     </div>
                 `;
                 const previewText = `変化: ${r.change_noticed || 'ー'}`;
@@ -623,34 +625,46 @@ async function loadHistory() {
                 if (cards.length > 0) {
                     cards.forEach((h, i) => {
                         detailHtml += `
-                            <div style="margin-bottom: 12px; border: 1px solid #eee; border-radius: 6px; overflow: hidden;">
-                                <div style="background: #eef2f7; padding: 6px 10px; font-weight: bold; font-size: 0.85rem; color: #444; border-bottom: 1px solid #eee;">
-                                    仮説 ${i + 1}: ${h.hypo || 'ー'}
-                                </div>
-                                <div style="padding: 10px;">
-                                    <div style="font-size: 0.75rem; color: #777; margin-bottom: 4px;">背景・根拠</div>
-                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #555; margin-bottom: 8px;">
-                                        <span>${h.why1 || 'ー'}</span>
-                                        <span style="color: #ccc;">→</span>
-                                        <span>${h.why2 || 'ー'}</span>
-                                        <span style="color: #ccc;">→</span>
-                                        <span>${h.why3 || 'ー'}</span>
+                            <div class="hypo-card">
+                                <div class="hypo-card-header">
+                                    <div class="hypo-title">
+                                        <span>🧠</span> 仮説 ${i + 1}: ${escapeHtml(h.hypo || 'ー')}
                                     </div>
-                                    <div style="background: #fff9db; padding: 8px; border-radius: 4px; border-left: 3px solid #fab005;">
-                                        <div style="font-weight: bold; font-size: 0.75rem; color: #856404; margin-bottom: 2px;">実施する支援</div>
-                                        <div style="font-size: 0.9rem; color: #333;">${h.support || 'なし'}</div>
+                                </div>
+                                <div class="hypo-card-body">
+                                    <div class="hypo-label">背景・根拠</div>
+                                    <div class="hypo-reasoning">
+                                        <div class="hypo-step"><span class="hypo-step-text">${escapeHtml(h.why1 || 'ー')}</span></div>
+                                        <div class="hypo-step"><span class="hypo-step-text">${escapeHtml(h.why2 || 'ー')}</span></div>
+                                        <div class="hypo-step"><span class="hypo-step-text">${escapeHtml(h.why3 || 'ー')}</span></div>
+                                    </div>
+                                    <div class="hypo-action-box">
+                                        <div class="hypo-action-title">実施する支援</div>
+                                        <div class="hypo-action-text">${escapeHtml(h.support || 'なし')}</div>
                                     </div>
                                 </div>
                             </div>
                         `;
                     });
                 } else {
-                    detailHtml += `<div style="color: #999; text-align: center; padding: 10px;">(仮説データなし)</div>`;
+                    detailHtml += `<div class="empty-state">(仮説データなし)</div>`;
                 }
+
+                // Append Reason and Expected Change
+                detailHtml += `
+                    <div class="hypo-top-card" style="margin-top: 20px; background: rgba(255, 150, 0, 0.05); border: 1px solid rgba(255, 150, 0, 0.1);">
+                        <div class="hypo-label" style="color: var(--accent-dark);">優先順位をつけた理由</div>
+                        <div class="hypo-text" style="font-size: 0.9rem; color: #333;">${escapeHtml(r.priority_reason || 'ー')}</div>
+                        
+                        <div class="hypo-label" style="color: var(--accent-dark); margin-top: 12px;">変化の予測</div>
+                        <div class="hypo-text" style="font-size: 0.9rem; color: #333;">${escapeHtml(r.expected_change || 'ー')}</div>
+                    </div>
+                `;
 
                 return {
                     ...r,
                     stepLabel: 'STEP2',
+                    stepClass: 'step2',
                     displayDate: formatDateTime(r.created_at, r.date),
                     previewText: previewText.trim(),
                     detailHtml: detailHtml.trim()
@@ -687,6 +701,7 @@ async function loadHistory() {
                 return {
                     ...r,
                     stepLabel: 'STEP3',
+                    stepClass: 'step3',
                     displayDate: formatDateTime(r.created_at, r.date),
                     previewText: previewText.trim(),
                     detailHtml: detailHtml.trim()
@@ -705,14 +720,14 @@ async function loadHistory() {
         }
 
         listEl.innerHTML = records.map(r => `
-            <div class="history-item" style="margin-bottom: 12px; background: white; border-radius: 8px; border-left: 4px solid var(--primary); box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: hidden;">
+            <div class="history-item ${r.stepClass || ''}" style="margin-bottom: 12px; background: white; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); overflow: hidden;">
               <div class="history-item-header" onclick="toggleHistoryItem(this)" style="display:block; padding: 12px; cursor: pointer;">
                 <div style="display:flex; justify-content:space-between; align-items: center; margin-bottom: 4px;">
-                  <strong style="font-size:0.95rem; color:var(--text);">${r.displayDate} <span style="font-size:0.8rem; font-weight:normal; color:#666;">[${r.stepLabel}] - ${r.target_name || ''}さん</span></strong>
+                  <strong style="font-size:0.95rem; color:var(--text);">${r.displayDate} <span style="font-size:0.8rem; font-weight:normal; color:#666;">[${r.stepLabel}] - ${escapeHtml(r.target_name || '')}さん</span></strong>
                   <span class="accordion-toggle" style="font-size: 0.75rem; color: #999;">▼</span>
                 </div>
                 <!-- プレビュー文 -->
-                <div class="history-preview" style="font-size: 0.8rem; color: #868e96; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 90%;">${(r.previewText || '').replace(/\n/g, ' ')}</div>
+                <div class="history-preview" style="font-size: 0.8rem; color: #868e96; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; max-width: 90%;">${escapeHtml((r.previewText || '').replace(/\n/g, ' '))}</div>
               </div>
               <!-- 詳細文（最初は非表示） -->
               <div class="history-body" style="display: none; padding: 0 12px 12px 12px; border-top: 1px solid #f5f5f5; margin-top: -4px; padding-top: 8px;">

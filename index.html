@@ -220,7 +220,10 @@
     <div class="screen-content dict-content">
       <div class="step-header sticky-header">
         <button class="back-btn" onclick="navigateTo('screen-home')">← 戻る</button>
-        <h2 class="step-title" style="margin-left: 20px;">介護用語辞典</h2>
+        <h2 class="step-title">📚 介護用語辞典</h2>
+        <div class="header-right">
+          <button class="nav-home-btn" onclick="navigateTo('screen-home')">🏠</button>
+        </div>
       </div>
 
       <div class="dict-search-container">
@@ -244,10 +247,12 @@
   <!-- ===== Screen 4: STEP1 気付き入力 ===== -->
   <section id="screen-step1" class="screen">
     <div class="screen-content step-content">
-      <div class="step-header">
-        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+      <div class="step-header sticky-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← 戻る</button>
         <h2 class="step-title">STEP1 気付き</h2>
-        <span class="step-month" id="step1-month"></span>
+        <div class="header-right">
+          <button class="nav-home-btn" onclick="navigateTo('screen-home')">🏠</button>
+        </div>
       </div>
 
       <!-- カリキュラム表示エリア -->
@@ -323,9 +328,12 @@
   <!-- ===== Screen 6: STEP2 仮説思考入力 ===== -->
   <section id="screen-step2" class="screen">
     <div class="screen-content step-content">
-      <div class="step-header">
-        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+      <div class="step-header sticky-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← 戻る</button>
         <h2 class="step-title">STEP2 仮説思考</h2>
+        <div class="header-right">
+          <button class="nav-home-btn" onclick="navigateTo('screen-home')">🏠</button>
+        </div>
       </div>
 
       <!-- カリキュラム表示エリア -->
@@ -374,9 +382,12 @@
   <!-- ===== Screen 7: STEP3 振り返り入力 ===== -->
   <section id="screen-step3" class="screen">
     <div class="screen-content step-content">
-      <div class="step-header">
-        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+      <div class="step-header sticky-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← 戻る</button>
         <h2 class="step-title">STEP3 振り返り</h2>
+        <div class="header-right">
+          <button class="nav-home-btn" onclick="navigateTo('screen-home')">🏠</button>
+        </div>
       </div>
 
       <!-- カリキュラム表示エリア -->
@@ -436,10 +447,12 @@
   <!-- ===== Screen 8: 月次評価 ===== -->
   <section id="screen-monthly" class="screen">
     <div class="screen-content">
-      <div class="step-header">
-        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+      <div class="step-header sticky-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← 戻る</button>
         <h2 class="step-title">月次評価</h2>
-        <button class="btn-link" onclick="repairPastRecords()" style="font-size:0.8rem; margin-left:auto; color:var(--text-muted);">🛠️ 記録を修復</button>
+        <div class="header-right">
+          <button class="nav-home-btn" onclick="navigateTo('screen-home')">🏠</button>
+        </div>
       </div>
 
       <!-- 月次選択ドロップダウン -->
@@ -499,7 +512,14 @@
   </section>
 
   <!-- ===== Screen 9: 記録履歴 ===== -->
+  <section id="screen-history" class="screen">
+    <div class="screen-content">
+      <div class="step-header sticky-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← 戻る</button>
         <h2 class="step-title">記録履歴 <span style="font-size: 0.7rem; color: #ccc;">(v202604101215)</span></h2>
+        <div class="header-right">
+          <button class="nav-home-btn" onclick="navigateTo('screen-home')">🏠</button>
+        </div>
       </div>
       <div class="history-filters">
         <select id="history-step-filter" onchange="loadHistory()">
@@ -519,9 +539,12 @@
   <!-- ===== Screen 10: 動画課題 ===== -->
   <section id="screen-video" class="screen">
     <div class="screen-content">
-      <div class="step-header">
-        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+      <div class="step-header sticky-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← 戻る</button>
         <h2 class="step-title">🎬 動画課題</h2>
+        <div class="header-right">
+          <button class="nav-home-btn" onclick="navigateTo('screen-home')">🏠</button>
+        </div>
       </div>
       <div class="video-tasks" id="video-tasks-list">
         <!-- 動画課題カードがここに描画 -->
@@ -532,9 +555,12 @@
   <!-- ===== Screen: STEP4 症例報告 ===== -->
   <section id="screen-step4" class="screen">
     <div class="screen-content step-content">
-      <div class="step-header">
-        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+      <div class="step-header sticky-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← 戻る</button>
         <h2 class="step-title">STEP4 症例報告</h2>
+        <div class="header-right">
+          <button class="nav-home-btn" onclick="navigateTo('screen-home')">🏠</button>
+        </div>
       </div>
 
       <!-- 前提条件未達の場合 -->
@@ -650,9 +676,12 @@
   <!-- ===== Screen: アセスメント新規追加 ===== -->
   <section id="screen-assessment-new" class="screen">
     <div class="screen-content step-content">
-      <div class="step-header">
-        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+      <div class="step-header sticky-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← 戻る</button>
         <h2 class="step-title">📝 フェイスシート・アセスメント登録</h2>
+        <div class="header-right">
+          <button class="nav-home-btn" onclick="navigateTo('screen-home')">🏠</button>
+        </div>
       </div>
       <form id="assessment-new-form" onsubmit="saveAssessment(event)">
 
@@ -810,9 +839,12 @@
   <!-- ===== Screen: 対象者一覧・編集 ===== -->
   <section id="screen-assessment-list" class="screen">
     <div class="screen-content step-content">
-      <div class="step-header">
-        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+      <div class="step-header sticky-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← 戻る</button>
         <h2 class="step-title">📂 介護対象者一覧</h2>
+        <div class="header-right">
+          <button class="nav-home-btn" onclick="navigateTo('screen-home')">🏠</button>
+        </div>
       </div>
       <button class="btn-primary" style="width:100%; margin-bottom:var(--space-md);"
         onclick="navigateTo('screen-assessment-new')">＋ 新規対象者を追加</button>
@@ -825,9 +857,12 @@
   <!-- ===== Screen: 対象者詳細・編集 ===== -->
   <section id="screen-assessment-edit" class="screen">
     <div class="screen-content step-content">
-      <div class="step-header">
-        <button class="back-btn" onclick="navigateTo('screen-assessment-list')">← 一覧へ</button>
+      <div class="step-header sticky-header">
+        <button class="back-btn" onclick="navigateTo('screen-assessment-list')">← 戻る</button>
         <h2 class="step-title">✏️ 対象者の編集</h2>
+        <div class="header-right">
+          <button class="nav-home-btn" onclick="navigateTo('screen-home')">🏠</button>
+        </div>
       </div>
       <form id="assessment-edit-form" onsubmit="updateAssessment(event)">
         <input type="hidden" id="edit-assess-id">
@@ -899,9 +934,12 @@
 
     <section id="screen-settings" class="screen">
     <div class="screen-content">
-      <div class="step-header">
-        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+      <div class="step-header sticky-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← 戻る</button>
         <h2 class="step-title">⚙️ 設定</h2>
+        <div class="header-right">
+          <button class="nav-home-btn" onclick="navigateTo('screen-home')">🏠</button>
+        </div>
       </div>
 
       <!-- ユーザープロファイルヘッダー -->
@@ -1082,9 +1120,12 @@
   <!-- ===== Screen: ヘルプ ===== -->
   <section id="screen-help" class="screen">
     <div class="screen-content">
-      <div class="step-header">
-        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+      <div class="step-header sticky-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← 戻る</button>
         <h2 class="step-title">❓ ヘルプ</h2>
+        <div class="header-right">
+          <button class="nav-home-btn" onclick="navigateTo('screen-home')">🏠</button>
+        </div>
       </div>
 
       <div class="help-guide">
@@ -1665,9 +1706,12 @@
   <!-- ===== Screen: AIサポーター ===== -->
   <section id="screen-ai-helper" class="screen">
     <div class="screen-content" style="display:flex; flex-direction:column; height:100%; padding:0;">
-      <div class="step-header" style="padding: var(--space-md) var(--space-lg); flex-shrink:0;">
-        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+      <div class="step-header sticky-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← 戻る</button>
         <h2 class="step-title">🤖 AIサポーター</h2>
+        <div class="header-right">
+          <button class="nav-home-btn" onclick="navigateTo('screen-home')">🏠</button>
+        </div>
       </div>
 
       <div class="chat-messages" id="help-chat-messages"
@@ -2019,9 +2063,12 @@
   <!-- 送信済み課題修正画面 -->
   <section id="screen-edit-list" class="screen">
     <div class="screen-content">
-      <div class="step-header">
-        <button class="back-btn" onclick="navigateTo('screen-home')">← ホーム</button>
+      <div class="step-header sticky-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← 戻る</button>
         <h2 class="step-title">送信済み課題修正</h2>
+        <div class="header-right">
+          <button class="nav-home-btn" onclick="navigateTo('screen-home')">🏠</button>
+        </div>
       </div>
 
       <div class="edit-category-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px;">
