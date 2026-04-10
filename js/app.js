@@ -612,18 +612,40 @@ async function loadHistory() {
                 const cards = Array.isArray(hypoData) ? hypoData : (Array.isArray(hypoData.cards) ? hypoData.cards : []);
                 console.log('FC_DEBUG record:', r.id, 'cards count:', cards.length, 'first card:', cards[0]);
                 
-                let detailText = `変化: ${r.change_noticed || 'ー'}`;
-                const previewText = detailText; // 閉じている時は「変化」のみ
+                let detailHtml = `
+                    <div style="margin-bottom: 12px; padding: 10px; background: #f8f9fa; border-radius: 6px;">
+                        <div style="font-weight: bold; color: var(--primary); font-size: 0.8rem; margin-bottom: 2px;">【変化の気づき】</div>
+                        <div style="color: #333;">${r.change_noticed || 'ー'}</div>
+                    </div>
+                `;
+                const previewText = `変化: ${r.change_noticed || 'ー'}`;
                 
                 if (cards.length > 0) {
                     cards.forEach((h, i) => {
-                        detailText += `\n\n【仮説${i + 1}】\n`;
-                        if (h.hypo) detailText += `仮説: ${h.hypo}\n`;
-                        detailText += `${h.why1 || 'ー'} -> ${h.why2 || 'ー'} -> ${h.why3 || 'ー'}\n`;
-                        detailText += `└ 支援: ${h.support || 'なし'}`;
+                        detailHtml += `
+                            <div style="margin-bottom: 12px; border: 1px solid #eee; border-radius: 6px; overflow: hidden;">
+                                <div style="background: #eef2f7; padding: 6px 10px; font-weight: bold; font-size: 0.85rem; color: #444; border-bottom: 1px solid #eee;">
+                                    仮説 ${i + 1}: ${h.hypo || 'ー'}
+                                </div>
+                                <div style="padding: 10px;">
+                                    <div style="font-size: 0.75rem; color: #777; margin-bottom: 4px;">背景・根拠</div>
+                                    <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: #555; margin-bottom: 8px;">
+                                        <span>${h.why1 || 'ー'}</span>
+                                        <span style="color: #ccc;">→</span>
+                                        <span>${h.why2 || 'ー'}</span>
+                                        <span style="color: #ccc;">→</span>
+                                        <span>${h.why3 || 'ー'}</span>
+                                    </div>
+                                    <div style="background: #fff9db; padding: 8px; border-radius: 4px; border-left: 3px solid #fab005;">
+                                        <div style="font-weight: bold; font-size: 0.75rem; color: #856404; margin-bottom: 2px;">実施する支援</div>
+                                        <div style="font-size: 0.9rem; color: #333;">${h.support || 'なし'}</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
                     });
                 } else {
-                    detailText += `\n\n(仮説データなし)`;
+                    detailHtml += `<div style="color: #999; text-align: center; padding: 10px;">(仮説データなし)</div>`;
                 }
 
                 return {
@@ -631,7 +653,7 @@ async function loadHistory() {
                     stepLabel: 'STEP2',
                     displayDate: formatDateTime(r.created_at, r.date),
                     previewText: previewText.trim(),
-                    detailText: detailText.trim()
+                    detailHtml: detailHtml.trim()
                 };
             }));
         }
@@ -639,24 +661,35 @@ async function loadHistory() {
         if (filter === 'all' || filter === 'step3') {
             const step3 = (await API.getStep3Records(user.staff_id, null)) || [];
             records = records.concat(step3.map(r => {
-                let detailText = '';
+                let detailHtml = '';
                 let previewText = '';
                 try {
                     const data = typeof r.reflection_json === 'string' ? JSON.parse(r.reflection_json) : (r.reflection_json || {});
                     previewText = `気づき: ${data.notice || 'ー'}`;
-                    detailText = previewText + `\n支援内容: ${data.support || 'ー'}\n`;
-                    detailText += `対象者の反応: ${data.reaction || 'ー'}\n`;
-                    detailText += `今後の判断: ${data.decision || r.decision || 'ー'}`;
+                    detailHtml = `
+                        <div style="margin-bottom: 12px; padding: 10px; background: #f8f9fa; border-radius: 6px; border-left: 3px solid #51cf66;">
+                            <div style="font-weight: bold; color: #2b8a3e; font-size: 0.8rem; margin-bottom: 2px;">【実施した支援と気づき】</div>
+                            <div style="font-size: 0.85rem; color: #777; margin-bottom: 4px;">支援内容</div>
+                            <div style="color: #333; margin-bottom: 8px;">${data.support || 'ー'}</div>
+                            <div style="font-size: 0.85rem; color: #777; margin-bottom: 4px;">対象者の反応・気づき</div>
+                            <div style="color: #333;">${data.notice || 'ー'}</div>
+                        </div>
+                        <div style="padding: 10px; background: #f1f3f5; border-radius: 6px;">
+                            <div style="font-weight: bold; color: #495057; font-size: 0.8rem; margin-bottom: 4px;">【今後の経過判断】</div>
+                            <div style="font-size: 0.9rem; color: #333;">${data.decision || r.decision || 'ー'}</div>
+                        </div>
+                    `;
                 } catch (e) {
-                    detailText = r.support_done || '振り返り';
-                    previewText = detailText;
+                    const fallback = r.support_done || '振り返り';
+                    previewText = fallback;
+                    detailHtml = `<div style="padding: 10px;">${fallback}</div>`;
                 }
                 return {
                     ...r,
                     stepLabel: 'STEP3',
                     displayDate: formatDateTime(r.created_at, r.date),
                     previewText: previewText.trim(),
-                    detailText: detailText.trim()
+                    detailHtml: detailHtml.trim()
                 };
             }));
         }
@@ -683,7 +716,7 @@ async function loadHistory() {
               </div>
               <!-- 詳細文（最初は非表示） -->
               <div class="history-body" style="display: none; padding: 0 12px 12px 12px; border-top: 1px solid #f5f5f5; margin-top: -4px; padding-top: 8px;">
-                <div class="history-text" style="font-size:0.9rem; line-height:1.6; color:#333; white-space: pre-wrap;">${r.detailText || ''}</div>
+                <div class="history-text" style="font-size:0.9rem; line-height:1.6; color:#333;">${r.detailHtml || ''}</div>
               </div>
             </div>
         `).join('');
