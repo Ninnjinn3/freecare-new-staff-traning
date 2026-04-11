@@ -120,7 +120,7 @@ export default async function handler(req, res) {
         const hrPoints = calculateHRPoints(step, score, previousEvals);
 
         // 8) 改善アクション生成 (AI側で既に生成されていても、全体サマリーとして使用)
-        const actions = generateActions(breakdown);
+        const actions = generateActions(breakdown, passed);
 
         // 9) monthly_evaluations に保存（upsert）
         await supabaseUpsert(SUPABASE_URL, SUPABASE_KEY, 'monthly_evaluations', {
@@ -440,7 +440,7 @@ function calculateHRPoints(step, score, previousEvals) {
 }
 
 // ===== 改善アクション生成 =====
-function generateActions(breakdown) {
+function generateActions(breakdown, passed) {
     const actions = [];
     breakdown.forEach(item => {
         const rate = item.score / item.max;
@@ -450,8 +450,13 @@ function generateActions(breakdown) {
             actions.push(`「${item.name}」をさらに伸ばしましょう（${item.score}/${item.max}点）！`);
         }
     });
+
     if (actions.length === 0) {
-        actions.push('すべての観点で良好な成績です。この調子で続けましょう！');
+        if (passed) {
+            actions.push('素晴らしい成果です！この調子でさらなる高みを目指しましょう。✨');
+        } else {
+            actions.push('あと一歩で合格です！個別フィードバックを参考に、再提出に挑戦してみましょう。💪');
+        }
     }
     return actions.slice(0, 3);
 }

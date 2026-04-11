@@ -36,6 +36,8 @@
       if (toggle) toggle.textContent = isExpanded ? '▲' : '▼';
     };
   </script>
+  <!-- 🎉 お祝い演出用ライブラリ -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 </head>
 
 <body>
@@ -44,8 +46,10 @@
   <section id="screen-role-select" class="screen active">
     <div class="screen-content role-select-content">
       <div class="logo-area">
-        <div class="logo-icon">🌿</div>
-        <h1 class="app-title">フリーケアプログラム</h1>
+        <div class="logo-main" style="margin-bottom: var(--space-md);">
+          <img src="https://freecare.co.jp/wp-content/themes/freecare/images/logo.png" alt="FreeCare" style="max-width: 250px; height: auto;">
+        </div>
+        <h1 class="app-title" style="display:none;">フリーケアプログラム</h1>
         <p class="app-subtitle">サービスの質向上委員会</p>
       </div>
       <div class="role-buttons">
@@ -73,7 +77,9 @@
     <div class="screen-content login-content">
       <button class="back-btn" onclick="navigateTo('screen-role-select')">← 戻る</button>
       <div class="login-header">
-        <div class="login-icon">🔐</div>
+        <div class="login-logo" style="margin-bottom: var(--space-md);">
+          <img src="https://freecare.co.jp/wp-content/themes/freecare/images/logo.png" alt="FreeCare" style="max-width: 180px; height: auto;">
+        </div>
         <h2 class="login-title">ログイン</h2>
         <p class="login-role-badge" id="login-role-badge"></p>
       </div>
@@ -102,12 +108,17 @@
   <section id="screen-home" class="screen">
     <div class="screen-content home-content">
       <!-- ヘッダー -->
-      <div class="home-header">
-        <div class="user-info">
-          <span class="user-name" id="home-user-name">山田花子</span>
-          <span class="user-step-badge" id="home-step-badge">STEP1</span>
+      <div class="home-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-lg);">
+        <div class="home-logo">
+          <img src="https://freecare.co.jp/wp-content/themes/freecare/images/logo.png" alt="FreeCare" style="max-width: 140px; height: auto;">
         </div>
-        <button class="icon-btn" onclick="handleLogout()" title="ログアウト">🚪</button>
+        <div style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
+          <div class="user-info" style="text-align: right;">
+            <div class="user-name" id="home-user-name" style="font-weight: 800;">山田花子</div>
+            <div class="user-step-badge" id="home-step-badge" style="font-size: 0.75rem; background: var(--primary); color: #fff; padding: 2px 8px; border-radius: 99px;">STEP1</div>
+          </div>
+          <button class="icon-btn" onclick="handleLogout()" title="ログアウト" style="background: var(--bg-secondary); border: 2px solid var(--border); border-radius: 50%; width: 45px; height: 45px; display: flex; align-items: center; justify-content: center;">🚪</button>
+        </div>
       </div>
 
       <!-- 対象者カード -->
@@ -136,24 +147,37 @@
 
 
       <!-- 期限アラート -->
-      <div class="card alert-card" id="deadline-alert">
-        <div class="alert-icon">⏰</div>
-        <div class="alert-text">
-          <span class="alert-title">今月分提出締め切り</span>
-          <span class="alert-deadline" id="home-deadline">3月10日 あと5日</span>
+      <div id="deadline-alert" style="cursor: default; pointer-events: none; display: flex; align-items: center; gap: 10px; margin-bottom: var(--space-md); padding: 0 10px;">
+        <div style="font-size: 1.5rem;">⏰</div>
+        <div>
+          <span style="font-size: 0.9rem; color: var(--text-secondary); font-weight: bold;">今月分提出締め切り:</span>
+          <span id="home-deadline" style="font-size: 1.1rem; font-weight: bold; color: var(--danger); margin-left: 8px;">3月10日 あと5日</span>
+        </div>
+      </div>
+
+      <!-- 📘 ルールブック (採点基準・使い方) -->
+      <div class="card clickable-card" onclick="navigateTo('screen-rulebook')" 
+           style="cursor: pointer; background: linear-gradient(135deg, #FF8B00, #FFC300); border: 4px solid #E67E00; transition: transform 0.2s, box-shadow 0.2s; margin-bottom: var(--space-md); text-align: center; padding: 1.5rem; color: #fff; box-shadow: 0 10px 0 #CC7000;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+          <span style="font-size: 2.2rem;">📘</span>
+          <div style="text-align: left;">
+            <div style="font-weight: 900; font-size: 1.35rem; color: #fff;">ルールブック</div>
+            <div style="font-size: 0.95rem; color: rgba(255,255,255,1); margin-top: 4px; font-weight: bold;">採点基準・使い方はこちら</div>
+          </div>
+          <span style="margin-left: auto; color: #fff; font-weight: 900; font-size: 1.8rem;">＞</span>
         </div>
       </div>
 
        <!-- 送信済み課題修正ボタン (旧: 進捗バー) -->
       <div class="card clickable-card" onclick="navigateTo('screen-edit-list')" 
-           style="cursor: pointer; background: #f0f7ff; border: 2px solid #cce3ff; transition: transform 0.2s, box-shadow 0.2s; margin-bottom: var(--space-md); text-align: center; padding: 1.2rem;">
-        <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
-          <span style="font-size: 1.5rem;">📝</span>
+           style="cursor: pointer; background: #FFF8F0; border: 4px solid #FF8B00; transition: transform 0.2s, box-shadow 0.2s; margin-bottom: var(--space-md); text-align: center; padding: 1.5rem; box-shadow: 0 8px 0 #FFB347;">
+        <div style="display: flex; align-items: center; justify-content: center; gap: 15px;">
+          <span style="font-size: 2.2rem;">📝</span>
           <div style="text-align: left;">
-            <div style="font-weight: 800; font-size: 1.1rem; color: #0056b3;">送信済み課題修正</div>
-            <div style="font-size: 0.8rem; color: #666; margin-top: 2px;">提出した内容の確認・修正はこちら</div>
+            <div style="font-weight: 900; font-size: 1.3rem; color: #E67E00;">送信済み課題修正</div>
+            <div style="font-size: 0.95rem; color: #5A4B3C; margin-top: 4px; font-weight: bold;">提出した内容の確認・修正</div>
           </div>
-          <span style="margin-left: auto; color: #0056b3; font-weight: bold;">＞</span>
+          <span style="margin-left: auto; color: #FF8B00; font-weight: 900; font-size: 1.8rem;">＞</span>
         </div>
       </div>
 
@@ -240,6 +264,185 @@
 
       <div class="dict-list" id="dict-list">
         <div class="empty-state">読み込み中...</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Screen: ルールブック ===== -->
+  <section id="screen-rulebook" class="screen">
+    <div class="screen-content rulebook-content">
+      <div class="step-header sticky-header">
+        <button class="back-btn" onclick="navigateTo('screen-home')">← 戻る</button>
+        <h2 class="step-title">📘 ルールブック</h2>
+        <div class="header-right">
+          <button class="nav-home-btn" onclick="navigateTo('screen-home')">🏠</button>
+        </div>
+      </div>
+
+      <div class="rulebook-tabs" style="display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding: 4px;">
+        <button class="rulebook-tab active" onclick="switchRulebookTab('grading', this)">採点基準</button>
+        <button class="rulebook-tab" onclick="switchRulebookTab('flow', this)">使い方の流れ</button>
+        <button class="rulebook-tab" onclick="switchRulebookTab('hr', this)">評価・ポイント</button>
+      </div>
+
+      <div id="rulebook-tab-grading" class="rulebook-tab-pane active">
+        <div class="rulebook-section">
+          <h3>✅ AI採点の6つの観点</h3>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">毎月の評価は、以下の6つの視点でAIがあなたの記録を分析し、100点満点で採点します。</p>
+          
+          <div class="criteria-list">
+            <div class="criteria-item">
+              <div class="criteria-header">
+                <span class="criteria-name">1. 気づいた変化の明確さ</span>
+                <span class="criteria-pts">15点</span>
+              </div>
+              <p>変化を具体的に、かつ事実に基づいて記録できているか</p>
+            </div>
+            <div class="criteria-item">
+              <div class="criteria-header">
+                <span class="criteria-name">2. 要因の多層的分析</span>
+                <span class="criteria-pts">20点</span>
+              </div>
+              <p>なぜなぜ分析を用いて、根本的な要因まで掘り下げられているか</p>
+            </div>
+            <div class="criteria-item">
+              <div class="criteria-header">
+                <span class="criteria-name">3. 要因の関連性と優先順位</span>
+                <span class="criteria-pts">15点</span>
+              </div>
+              <p>複数の要因から、今取り組むべき最も重要なものを選べているか</p>
+            </div>
+            <div class="criteria-item">
+              <div class="criteria-header">
+                <span class="criteria-name">4. 検証計画の論理性</span>
+                <span class="criteria-pts">15点</span>
+              </div>
+              <p>支援案が仮説に基づき、論理的に組み立てられているか</p>
+            </div>
+            <div class="criteria-item">
+              <div class="criteria-header">
+                <span class="criteria-name">5. 支援計画の実効性</span>
+                <span class="criteria-pts">20点</span>
+              </div>
+              <p>具体的で実行可能な支援案が作成され、反応を捉えられているか</p>
+            </div>
+            <div class="criteria-item">
+              <div class="criteria-header">
+                <span class="criteria-name">6. 振り返り・修正力</span>
+                <span class="criteria-pts">15点</span>
+              </div>
+              <p>結果を受けて分析し、次のアクションを正しく判断しているか</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="rulebook-section" style="margin-top: 20px;">
+          <h3>📊 到達レベルの目安</h3>
+          <div class="level-grid">
+            <div class="level-card level-3">
+              <div class="level-tag">上級</div>
+              <div class="level-range">71〜100点</div>
+              <p>プロの視点を持ち、独力で質の高いケアを実践できる</p>
+            </div>
+            <div class="level-card level-2">
+              <div class="level-tag">中級</div>
+              <div class="level-range">61〜70点</div>
+              <p>根拠に基づいたケアができている。さらなる深化を目指す</p>
+            </div>
+            <div class="level-card level-1">
+              <div class="level-tag">初級</div>
+              <div class="level-range">31〜60点</div>
+              <p>基礎を習得中。AIのアドバイスを参考に改善を繰り返す</p>
+            </div>
+            <div class="level-card level-0">
+              <div class="level-tag">新人</div>
+              <div class="level-range">0〜30点</div>
+              <p>まずは日々の「気付き」を具体的に書くことからスタート</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="rulebook-tab-flow" class="rulebook-tab-pane">
+        <div class="rulebook-section">
+          <h3>🚀 研修の進め方サイクル</h3>
+          <div class="flow-steps">
+            <div class="flow-step">
+              <div class="flow-num">1</div>
+              <div class="flow-body">
+                <h4>STEP1：気付きの入力</h4>
+                <p>日々の業務の中で感じた「利用者様の変化」を忘れないうちにアプリに入力しましょう。AIが「○/×」で即時フィードバックします。</p>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num">2</div>
+              <div class="flow-body">
+                <h4>STEP2：仮説思考（なぜなぜ分析）</h4>
+                <p>STEP1で入力した気付きに対して、「なぜそうなったのか？」を深掘りします。3段階の「なぜ」を繰り返して、本質的な原因を探ります。</p>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num">3</div>
+              <div class="flow-body">
+                <h4>STEP3：実践と振り返り</h4>
+                <p>導き出した仮説に基づき、実際に行った支援とその反応を記録します。最後は「今後の判断」を選び、1つのサイクルが完了します。</p>
+              </div>
+            </div>
+            <div class="flow-step">
+              <div class="flow-num">4</div>
+              <div class="flow-body">
+                <h4>月次評価と提出（毎月10日締切）</h4>
+                <p>月末までに溜まった記録がAIによって評価されます。80点以上でSTEPクリア！100点を目指して繰り返し提出することも可能です。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="rulebook-tab-hr" class="rulebook-tab-pane">
+        <div class="rulebook-section">
+          <h3>🎖️ 人事評価ポイントの仕組み</h3>
+          <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 15px;">研修の成果は、そのままあなたの人事評価ポイントに直結します。</p>
+          
+          <div class="point-table">
+            <div class="point-row">
+              <div class="point-target">STEP1 合格 (80点以上)</div>
+              <div class="point-val">+4 pts</div>
+            </div>
+            <div class="point-row gold">
+              <div class="point-target">STEP1 満点 (100点)</div>
+              <div class="point-val">+6 pts</div>
+            </div>
+            <div class="point-row">
+              <div class="point-target">STEP2 合格 (80点以上)</div>
+              <div class="point-val">+6 pts</div>
+            </div>
+            <div class="point-row gold">
+              <div class="point-target">STEP2 満点 (100点)</div>
+              <div class="point-val">+8 pts</div>
+            </div>
+            <div class="point-row">
+              <div class="point-target">STEP3 合格 (80点以上)</div>
+              <div class="point-val">+8 pts</div>
+            </div>
+            <div class="point-row gold">
+              <div class="point-target">STEP3 満点 (100点)</div>
+              <div class="point-val">+10 pts</div>
+            </div>
+            <div class="point-row diamond">
+              <div class="point-target">STEP4 到達</div>
+              <div class="point-val">+10 pts</div>
+            </div>
+          </div>
+
+          <div class="rulebook-alert" style="margin-top: 20px;">
+            <span class="alert-icon">⚠️</span>
+            <div class="alert-text">
+              <strong>滞在ペナルティにご注意</strong>
+              <p>同じSTEPに6ヶ月以上停留すると、6ヶ月ごとに人事評価ポイントが <span style="color: var(--danger); font-weight: bold;">-2pt</span> 減点されます。積極的にステップアップを目指しましょう！</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -1043,14 +1246,6 @@
             </div>
             <div class="settings-item-action"><span class="settings-item-chevron">▶</span></div>
           </div>
-          <div class="settings-item settings-item-clickable" onclick="showDeleteConfirm()">
-            <div class="settings-item-icon" style="color: #e74c3c; background: #fff1f0;">⚠️</div>
-            <div class="settings-item-label">
-              <span class="settings-item-title" style="color: #e74c3c;">アカウントの削除</span>
-              <span class="settings-item-desc">すべての学習データが消去されます</span>
-            </div>
-            <div class="settings-item-action"><span class="settings-item-chevron">▶</span></div>
-          </div>
         </div>
       </div>
 
@@ -1103,18 +1298,6 @@
       </div>
     </div>
 
-    <!-- 削除確認バナー -->
-    <div class="delete-confirm-banner" id="delete-confirm-banner">
-      <div class="delete-confirm-content">
-        <div class="delete-confirm-icon">⚠️</div>
-        <h3>本当に削除しますか？</h3>
-        <p>アカウントを削除すると、<strong>退職扱い</strong>となり、今後ログインできなくなります。<br>これまでの研修記録は管理者側で引き続き確認できます。</p>
-        <div class="delete-confirm-buttons">
-          <button class="btn-danger-full" onclick="executeDeleteAccount()">はい、削除します</button>
-          <button class="btn-cancel" onclick="hideDeleteConfirm()">いいえ、やめます</button>
-        </div>
-      </div>
-    </div>
   </section>
 
   <!-- ===== Screen: ヘルプ ===== -->
@@ -1410,19 +1593,6 @@
           </div>
         </div>
 
-        <div class="help-section">
-          <div class="admin-section-title" id="help-account-policy" style="color: var(--danger);">👤 アカウントの削除について</div>
-          <div class="help-item">
-            <div class="help-item-header" onclick="toggleHelp(this)">
-              <span>Q. 退職などによるアカウント削除について</span>
-              <span class="help-toggle">▲</span>
-            </div>
-            <div class="help-item-body">
-              <p>セキュリティおよび記録保持の観点から、ご自身でアカウントを削除することはできません。退職等の際は、施設の管理者へお申し出ください。<br><br>
-              アカウントを削除すると、退職扱いとなり、今後ログインできなくなります。これまでの研修記録は管理者側で引き続き確認できます。</p>
-            </div>
-          </div>
-        </div>
 
         <!-- Section 9: 専門用語の使い分け -->
         <h3 style="margin-top: var(--space-lg); font-size: 1.15rem; color: var(--primary); display: flex; align-items: center; gap: 10px; border-bottom: 2px solid var(--primary); padding-bottom: 8px;">
@@ -1656,7 +1826,7 @@
             <p style="font-size: 0.9rem; line-height: 1.6;">
                 不合格（×）は、あなたの介護スキルそのものを否定しているわけではありません。<br>
                 <strong>「あなたの素晴らしい気づきが、文章として十分に言語化できていないだけ」</strong>です。<br>
-                最初は誰でも×から始まります。AIの改善例をそのまま真似して書き直すことから始めてみましょう。それを繰り返すうちに、プロの視点が自然と身についてきます。
+                最初は誰でも×から始まります。AIの改善例をそのまま真似して書き直すことから始めてみましょう。それを繰り返すうちに、プロの視点が自然と身についてきます。AIはあなたの成長を一番近くで見守るパートナーです。
             </p>
           </div>
         </div>
@@ -1707,26 +1877,46 @@
   <section id="screen-ai-helper" class="screen">
     <div class="screen-content" style="display:flex; flex-direction:column; height:100%; padding:0;">
       <div class="step-header sticky-header">
-        <button class="back-btn" onclick="navigateTo('screen-home')">← 戻る</button>
+        <button class="back-btn" id="ai-helper-back-btn" onclick="InquiryManager.handleBack()">← 戻る</button>
         <h2 class="step-title">🤖 AIサポーター</h2>
         <div class="header-right">
           <button class="nav-home-btn" onclick="navigateTo('screen-home')">🏠</button>
         </div>
       </div>
 
-      <div class="chat-messages" id="help-chat-messages"
-        style="flex:1; overflow-y:auto; padding: var(--space-md) var(--space-lg);">
-        <div class="chat-msg chat-bot">
-          <span class="chat-avatar">🤖</span>
-          <div class="chat-bubble">こんにちは！フリーケアくんです😊<br>研修の記録の書き方、採点基準、STEPの進め方など、なんでも聞いてな！</div>
+      <!-- カテゴリ選択画面 -->
+      <div id="ai-helper-init" style="flex: 1; overflow-y: auto; padding: 20px;">
+        <p style="font-weight: bold; margin-bottom: 20px; color: var(--text-secondary); text-align: center;">お問い合わせのカテゴリを選択してください</p>
+        <div style="display: grid; gap: 12px; margin-bottom: 30px;">
+          <button class="category-btn" onclick="InquiryManager.selectCategory('アプリの使い方')">📱 アプリの使い方について</button>
+          <button class="category-btn" onclick="InquiryManager.selectCategory('採点基準')">⚖️ 採点基準を知りたい</button>
+          <button class="category-btn" onclick="InquiryManager.selectCategory('人事評価')">🎖️ 評価・ポイントの仕組み</button>
+          <button class="category-btn" onclick="InquiryManager.selectCategory('不具合報告')">⚠️ 不具合・バグを見つけた</button>
+          <button class="category-btn" onclick="InquiryManager.selectCategory('その他')">💭 その他のお問い合わせ</button>
         </div>
+        <p style="font-size: 0.8rem; color: var(--text-muted); text-align: center;">※不具合報告以外は、まずAIサポーターがお答えします</p>
       </div>
 
-      <div class="chat-input-area"
-        style="flex-shrink:0; padding: var(--space-md) var(--space-lg); border-top: 1px solid var(--border);">
-        <input type="text" id="help-chat-input" placeholder="例：第1段階の書き方を教えて"
-          onkeydown="if(event.key==='Enter')sendHelpChat()">
-        <button class="chat-send-btn" onclick="sendHelpChat()">送信</button>
+      <!-- チャット画面 -->
+      <div id="ai-helper-chat-container" style="display: none; flex: 1; flex-direction: column; height: 100%; overflow: hidden;">
+        <div class="chat-messages" id="help-chat-messages"
+          style="flex:1; overflow-y:auto; padding: var(--space-md) var(--space-lg);">
+          <div id="chat-welcome-msg"></div>
+        </div>
+
+        <div id="hq-contact-area" style="padding: 0 var(--space-lg) var(--space-md) var(--space-lg); display: none;">
+          <div class="hq-contact-card">
+              <p style="font-size: 0.85rem; color: #c53030; font-weight: bold; margin-bottom: 8px;">解決しませんでしたか？</p>
+              <button class="btn btn-primary btn-sm btn-full" onclick="InquiryManager.sendToHQ()" style="background: #e53e3e; border: none; box-shadow: 0 4px 0 #9b2c2c;">委員会グループLINEに送信する</button>
+          </div>
+        </div>
+
+        <div class="chat-input-area"
+          style="flex-shrink:0; padding: var(--space-md) var(--space-lg); border-top: 1px solid var(--border);">
+          <input type="text" id="help-chat-input" placeholder="メッセージを入力してください"
+            onkeydown="if(event.key==='Enter')sendHelpChat()">
+          <button class="chat-send-btn" onclick="sendHelpChat()">送信</button>
+        </div>
       </div>
     </div>
   </section>

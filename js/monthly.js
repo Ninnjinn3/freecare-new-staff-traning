@@ -371,6 +371,35 @@ const Monthly = {
             statusEl.style.color = passed ? 'var(--success)' : 'var(--danger)';
         }
 
+        // 🎉 合格時の演出
+        if (passed && typeof confetti === 'function') {
+            confetti({
+                particleCount: 150,
+                spread: 70,
+                origin: { y: 0.6 },
+                zIndex: 9999
+            });
+            // 満点（100点）の場合は更に追加の演出
+            if (totalScore >= 100) {
+                setTimeout(() => {
+                    confetti({
+                        particleCount: 100,
+                        angle: 60,
+                        spread: 55,
+                        origin: { x: 0 },
+                        zIndex: 9999
+                    });
+                    confetti({
+                        particleCount: 100,
+                        angle: 120,
+                        spread: 55,
+                        origin: { x: 1 },
+                        zIndex: 9999
+                    });
+                }, 250);
+            }
+        }
+
         if (!bRoot) return;
 
         let html = '<div class="evaluation-sheet">';
@@ -437,7 +466,11 @@ const Monthly = {
                     }
                 });
                 if (actions.length === 0) {
-                    actions.push('現在のパフォーマンスは非常に安定しています。この調子で継続しましょう！');
+                    if (passed) {
+                        actions.push('現在のパフォーマンスは非常に安定しています。この調子で継続しましょう！');
+                    } else {
+                        actions.push('全体的にあと一歩です。AIのフィードバックを参考に、次月はさらに高得点を目指しましょう！');
+                    }
                 }
 
                 actionsEl.innerHTML = actions.map(act => `

@@ -267,8 +267,14 @@ async function submitStep3(event) {
         if (!editingId) {
             document.getElementById('step3-form').reset();
             document.getElementById('step3-date').value = new Date().toISOString().split('T')[0];
+            // 判定結果画面を表示
+            showResult({
+                ...aiResult,
+                step: 3
+            });
+        } else {
+            navigateTo('screen-home');
         }
-        navigateTo('screen-home');
     } else {
         showToast('保存に失敗しました。');
     }

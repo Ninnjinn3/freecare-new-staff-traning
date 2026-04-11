@@ -102,6 +102,14 @@ async function navigateTo(screenId) {
         case 'screen-dictionary':
             Dictionary.init();
             break;
+        case 'screen-rulebook':
+            // ルールブックを開くときは最初のタブをデフォルトにする
+            const firstTab = document.querySelector('.rulebook-tab');
+            if (firstTab) switchRulebookTab('grading', firstTab);
+            break;
+        case 'screen-ai-helper':
+            InquiryManager.init();
+            break;
     }
 }
 
@@ -898,41 +906,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// ===== 設定画面 =====
-function showDeleteConfirm() {
-    document.getElementById('delete-confirm-banner').classList.add('show');
-}
-function hideDeleteConfirm() {
-    document.getElementById('delete-confirm-banner').classList.remove('show');
-}
-
-async function executeDeleteAccount() {
-    const user = Auth.getUser();
-    if (!user) return;
-
-    try {
-        const resp = await fetch('/api/users', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                action: 'delete',
-                staff_id: user.staff_id,
-                deleted_by: user.staff_id
-            })
-        });
-        const data = await resp.json();
-        if (resp.ok && data.success) {
-            showToast('アカウントが削除されました。お疲れ様でした。');
-            setTimeout(() => {
-                handleLogout();
-            }, 2000);
-        } else {
-            showToast(data.error || '削除に失敗しました');
-        }
-    } catch (e) {
-        showToast('削除に失敗しました: ' + e.message);
-    }
-}
 
 // 設定画面にユーザー情報をセット
 function initSettings() {
@@ -996,6 +969,11 @@ async function sendHelpChat() {
         const loadEl = document.getElementById(loadId);
         if (loadEl) {
             loadEl.querySelector('.chat-bubble').innerHTML = formatChatReply(reply);
+        }
+
+        // 不具合報告以外なら、回答後に「解決しない場合」のボタンを出す
+        if (InquiryManager.currentCategory !== '不具合報告') {
+            document.getElementById('hq-contact-area').style.display = 'block';
         }
     } catch (e) {
         const loadEl = document.getElementById(loadId);
@@ -1482,27 +1460,6 @@ function initSettings() {
     Settings.init();
 }
 
-// 削除確認の表示・非表示（既存のグローバル関数を調整）
-function showDeleteConfirm() {
-    const banner = document.getElementById('delete-confirm-banner');
-    if (banner) banner.classList.add('show');
-}
-function hideDeleteConfirm() {
-    const banner = document.getElementById('delete-confirm-banner');
-    if (banner) banner.classList.remove('show');
-}
-async function executeDeleteAccount() {
-    const user = Auth.getUser();
-    if (!user) return;
-    try {
-        const { error } = await window.fcSupabase.from('staff_master').update({ is_active: false, left_at: new Date().toISOString() }).eq('staff_id', user.staff_id);
-        if (error) throw error;
-        showToast('アカウントを削除しました');
-        handleLogout();
-    } catch (e) {
-        showToast('削除エラー: ' + e.message);
-    }
-}
 
 // アプリ起動時のテーマ適用
 (function () {
@@ -1829,3 +1786,197 @@ const Reminder = {
 document.addEventListener('DOMContentLoaded', () => {
     Settings.loadFontSize();
 });
+
+// ===== ルールブック制御 =====
+function switchRulebookTab(tabId, btn) {
+    // 全てのタブペインを非表示
+    document.querySelectorAll('.rulebook-tab-pane').forEach(pane => {
+        pane.classList.remove('active');
+    });
+    // 対象のタブペインを表示
+    const target = document.getElementById('rulebook-tab-' + tabId);
+    if (target) target.classList.add('active');
+
+    // 全てのタブボタンを非アクティブ
+    document.querySelectorAll('.rulebook-tab').forEach(t => {
+        t.classList.remove('active');
+    });
+    // クリックされたボタンをアクティブ
+    if (btn) btn.classList.add('active');
+}
+
+// ◯☓結果画面表示
+function showResult(result) {
+    const circle = document.getElementById('result-circle');
+    const isCorrect = result.judgement === '○';
+
+    if (circle) {
+        circle.textContent = result.judgement;
+        circle.className = 'result-circle ' + (isCorrect ? 'is-correct' : 'is-incorrect');
+    }
+
+    const commentEl = document.getElementById('result-comment');
+    if (commentEl) commentEl.textContent = result.short_comment;
+
+    // Good points
+    const goodSection = document.getElementById('result-good');
+    const goodList = document.getElementById('result-good-list');
+    if (goodSection && goodList) {
+        goodList.innerHTML = '';
+        if (result.good_points && result.good_points.length > 0) {
+            goodSection.hidden = false;
+            result.good_points.forEach(p => {
+                const li = document.createElement('li');
+                li.textContent = p;
+                goodList.appendChild(li);
+            });
+        } else {
+            goodSection.hidden = true;
+        }
+    }
+
+    // Missing points
+    const missingSection = document.getElementById('result-missing');
+    const missingList = document.getElementById('result-missing-list');
+    if (missingSection && missingList) {
+        missingList.innerHTML = '';
+        missingSection.hidden = false;
+        if (result.missing_points && result.missing_points.length > 0) {
+            result.missing_points.forEach(p => {
+                const li = document.createElement('li');
+                li.textContent = p;
+                missingList.appendChild(li);
+            });
+        } else if (!isCorrect) {
+            const li = document.createElement('li');
+            li.textContent = '現状の文章では具体的な状況が読み取れませんでした。';
+            missingList.appendChild(li);
+        } else {
+            missingSection.hidden = true; // ○の場合は隠す
+        }
+    }
+
+    // Improvement example
+    const improveSection = document.getElementById('result-improve');
+    const improveText = document.getElementById('result-improve-text');
+    if (improveSection && improveText) {
+        if (!isCorrect) {
+            improveSection.hidden = false;
+            improveText.innerHTML = result.improvement_example ? result.improvement_example.replace(/\n/g, '<br>') : '（情報が十分でないため改善例を作成できませんでした。「いつ」「どこで」「誰が」「何を」もう少し足して再提出してみましょう）';
+        } else {
+            improveSection.hidden = true; // ○の場合は隠す
+        }
+    }
+
+    // 🎉 合格時のミニ演出
+    if (isCorrect && typeof confetti === 'function') {
+        confetti({
+            particleCount: 50,
+            spread: 60,
+            origin: { y: 0.7 },
+            zIndex: 9999
+        });
+    }
+
+    navigateTo('screen-result');
+}
+
+// ===== 問い合わせ管理 =====
+const InquiryManager = {
+    currentCategory: '',
+    
+    init() {
+        this.currentCategory = '';
+        const initView = document.getElementById('ai-helper-init');
+        const chatView = document.getElementById('ai-helper-chat-container');
+        const contactArea = document.getElementById('hq-contact-area');
+        const messages = document.getElementById('help-chat-messages');
+        const backBtn = document.getElementById('ai-helper-back-btn');
+
+        if (initView) initView.style.display = 'block';
+        if (chatView) chatView.style.display = 'none';
+        if (contactArea) contactArea.style.display = 'none';
+        if (messages) messages.innerHTML = '<div id="chat-welcome-msg"></div>';
+        if (backBtn) backBtn.textContent = '← 戻る';
+        
+        chatHistory = []; // 変数はグローバルに存在
+    },
+
+    selectCategory(cat) {
+        this.currentCategory = cat;
+        document.getElementById('ai-helper-init').style.display = 'none';
+        document.getElementById('ai-helper-chat-container').style.display = 'flex';
+        document.getElementById('ai-helper-back-btn').textContent = '← カテゴリ選択';
+        
+        const welcome = document.getElementById('chat-welcome-msg');
+        if (cat === '不具合報告') {
+            welcome.innerHTML = `
+                <div class="chat-msg chat-bot">
+                    <span class="chat-avatar">🤖</span>
+                    <div class="chat-bubble">不具合のご報告ですね。申し訳ありません。🙇‍♂️<br>具体的な状況（どの画面で何が起きたか）を入力して「送信」してください。</div>
+                </div>`;
+            document.getElementById('hq-contact-area').style.display = 'block';
+        } else {
+            welcome.innerHTML = `
+                <div class="chat-msg chat-bot">
+                    <span class="chat-avatar">🤖</span>
+                    <div class="chat-bubble">「${cat}」についてですね！承知しました😊<br>聞きたいことを入力してな！</div>
+                </div>`;
+        }
+    },
+
+    handleBack() {
+        if (document.getElementById('ai-helper-chat-container').style.display === 'flex') {
+            this.init();
+        } else {
+            navigateTo('screen-home');
+        }
+    },
+
+    async sendToHQ() {
+        const user = Auth.getUser();
+        if (!user) return;
+        
+        // チャット履歴からメッセージを取得（直近のユーザー発信）
+        const userMessages = chatHistory.filter(c => c.role === 'user');
+        const lastMsg = userMessages.length > 0 ? userMessages[userMessages.length - 1].text : '(本文なし)';
+
+        if (lastMsg === '(本文なし)') {
+            showToast('メッセージを入力してから送信してください');
+            return;
+        }
+
+        if (!confirm('この内容を運営本部（委員会）に送信してもよろしいですか？')) return;
+
+        try {
+            const resp = await fetch('/api/contact', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    staff_id: user.staff_id,
+                    staff_name: user.name,
+                    category: this.currentCategory,
+                    message: lastMsg
+                })
+            });
+
+            if (resp.ok) {
+                showToast('委員会に送信しました 📤');
+                const container = document.getElementById('help-chat-messages');
+                container.innerHTML += `
+                    <div class="chat-msg chat-bot">
+                        <span class="chat-avatar">🤖</span>
+                        <div class="chat-bubble">運営本部に送信したで！お返事まで少し待っててな。</div>
+                    </div>`;
+                container.scrollTop = container.scrollHeight;
+                document.getElementById('hq-contact-area').style.display = 'none';
+            } else {
+                const err = await resp.json();
+                throw new Error(err.error || '送信失敗');
+            }
+        } catch (e) {
+            console.error('Send to HQ failed:', e);
+            showToast('送信に失敗しました：' + e.message);
+        }
+    }
+};
