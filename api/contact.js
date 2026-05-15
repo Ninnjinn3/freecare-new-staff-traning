@@ -7,6 +7,18 @@ export default async function handler(req, res) {
     if (req.method === 'OPTIONS') return res.status(200).end();
     if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
+    // LINE Webhookハンドラー（ID調査用）
+    if (req.body && req.body.events && req.body.events.length > 0) {
+        const event = req.body.events[0];
+        const source = event.source;
+        const targetId = source.groupId || source.roomId || source.userId;
+        console.log('--- LINE Webhook Received ---');
+        console.log('Target ID:', targetId);
+        console.log('Type:', source.type);
+        console.log('---------------------------');
+        return res.status(200).json({ targetId });
+    }
+
     const { staff_id, staff_name, category, message } = req.body;
     const CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
     const GROUP_ID = process.env.LINE_GROUP_ID;
