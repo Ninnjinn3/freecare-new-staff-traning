@@ -755,7 +755,64 @@
         <p class="empty-state">記録がありません</p>
       </div>
     </div>
+  </section>  <!-- ===== Screen: AIサポート・問い合わせ ===== -->
+  <section id="screen-ai-helper" class="screen">
+    <div class="screen-content ai-helper-content" style="display: flex; flex-direction: column; height: 100vh; max-height: 100vh; padding-bottom: 0;">
+      <div class="step-header sticky-header">
+        <button class="back-btn" id="ai-helper-back-btn" onclick="InquiryManager.handleBack()">← 戻る</button>
+        <h2 class="step-title">🤖 AIサポート・問い合わせ</h2>
+        <div class="header-right">
+          <button class="nav-home-btn" onclick="navigateTo('screen-home')">🏠</button>
+        </div>
+      </div>
+
+      <!-- 初期画面：カテゴリ選択 -->
+      <div id="ai-helper-init" style="padding: 20px;">
+        <p style="text-align: center; color: var(--text-secondary); margin-bottom: 25px; font-weight: bold;">
+          どのようなことでお困りですか？<br>カテゴリを選んでな！
+        </p>
+        <div class="category-grid" style="display: grid; grid-template-columns: 1fr; gap: 15px;">
+          <button class="category-btn" onclick="InquiryManager.selectCategory('アプリの使い方')">
+            <span style="font-size: 1.5rem; margin-right: 10px;">📱</span> アプリの使い方
+          </button>
+          <button class="category-btn" onclick="InquiryManager.selectCategory('採点基準')">
+            <span style="font-size: 1.5rem; margin-right: 10px;">📊</span> 採点基準について
+          </button>
+          <button class="category-btn" onclick="InquiryManager.selectCategory('評価・ポイント')">
+            <span style="font-size: 1.5rem; margin-right: 10px;">🎖️</span> 評価・ポイント
+          </button>
+          <button class="category-btn" onclick="InquiryManager.selectCategory('不具合報告')">
+            <span style="font-size: 1.5rem; margin-right: 10px;">🐛</span> 不具合報告（本部直通）
+          </button>
+          <button class="category-btn" onclick="InquiryManager.selectCategory('その他')">
+            <span style="font-size: 1.5rem; margin-right: 10px;">❓</span> その他
+          </button>
+        </div>
+      </div>
+
+      <!-- チャット画面 -->
+      <div id="ai-helper-chat-container" style="display: none; flex: 1; flex-direction: column; overflow: hidden;">
+        <div id="help-chat-messages" class="chat-messages" style="flex: 1; overflow-y: auto; padding: 20px;">
+          <div id="chat-welcome-msg"></div>
+        </div>
+
+        <div id="hq-contact-area" class="hq-contact-card" style="display: none; margin: 10px 20px;">
+          <p style="font-size: 0.85rem; color: #e53e3e; font-weight: bold; margin-bottom: 10px;">解決しませんでしたか？</p>
+          <button class="btn btn-danger btn-full" onclick="InquiryManager.sendToHQ()" style="background: #e53e3e; color: #fff; border: none; padding: 10px; border-radius: 8px; font-weight: bold;">
+            🚩 委員会グループLINEに送信する
+          </button>
+        </div>
+
+        <div class="chat-input-wrapper" style="padding: 15px 20px 25px; background: var(--surface); border-top: 1px solid var(--border);">
+          <div class="chat-input-area">
+            <input type="text" id="help-chat-input" placeholder="質問を入力してください..." onkeydown="if(event.key==='Enter') sendHelpChat()">
+            <button class="chat-send-btn" onclick="sendHelpChat()">送信</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </section>
+
 
   <!-- ===== Screen 10: 動画課題 ===== -->
   <section id="screen-video" class="screen">
