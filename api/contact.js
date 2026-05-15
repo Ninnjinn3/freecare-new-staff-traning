@@ -8,30 +8,37 @@ export default async function handler(req, res) {
     if (req.method !== 'POST') return res.status(405).json({ error: 'POST only' });
 
     const { staff_id, staff_name, category, message } = req.body;
-    const LINE_NOTIFY_TOKEN = process.env.LINE_NOTIFY_TOKEN;
+    const CHANNEL_ACCESS_TOKEN = process.env.LINE_CHANNEL_ACCESS_TOKEN;
+    const GROUP_ID = process.env.LINE_GROUP_ID;
 
-    if (!LINE_NOTIFY_TOKEN) {
-        console.error('LINE_NOTIFY_TOKEN is not configured');
-        return res.status(500).json({ error: '通知設定が完了していません' });
+    if (!CHANNEL_ACCESS_TOKEN || !GROUP_ID) {
+        console.error('LINE configuration is missing');
+        return res.status(500).json({ error: 'LINE通知の設定（トークンまたはグループID）が完了していません' });
     }
 
     try {
-        const lineMessage = `\n【問い合わせ】\nカテゴリ: ${category}\nスタッフ: ${staff_name} (${staff_id})\n内容: ${message}`;
+        const lineMessage = `【問い合わせ】\nカテゴリ: ${category}\nスタッフ: ${staff_name} (${staff_id})\n内容: ${message}`;
         
-        const response = await fetch('https://notify-api.line.me/api/notify', {
+        const response = await fetch('https://api.line.me/v2/bot/message/push', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'Authorization': `Bearer ${LINE_NOTIFY_TOKEN}`
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${CHANNEL_ACCESS_TOKEN}`
             },
-            body: new URLSearchParams({
-                message: lineMessage
+            body: JSON.stringify({
+                to: GROUP_ID,
+                messages: [
+                    {
+                        type: 'text',
+                        text: lineMessage
+                    }
+                ]
             })
         });
 
         if (!response.ok) {
-            const err = await response.text();
-            throw new Error(`LINE Notify API Error: ${response.status} ${err}`);
+            const err = await response.json();
+            throw new Error(`LINE Messaging API Error: ${response.status} ${JSON.stringify(err)}`);
         }
 
         return res.status(200).json({ success: true });
