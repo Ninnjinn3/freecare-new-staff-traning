@@ -95,8 +95,10 @@ STEP4：症例報告
     contents.push({ role: 'user', parts: [{ text: message }] });
 
     try {
-        const model = 'gemini-pro';
-        const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+        const model = 'gemini-1.5-flash-latest';
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+        console.log('Using Gemini Model:', model);
+        console.log('API Key Length:', GEMINI_API_KEY ? GEMINI_API_KEY.length : 0);
 
         const response = await fetch(url, {
             method: 'POST',
