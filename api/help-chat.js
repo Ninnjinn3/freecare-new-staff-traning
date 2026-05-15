@@ -79,7 +79,7 @@ STEP4：症例報告
 【スタッフレベル評価基準】
 〜100点：上級 / 〜70点：中級 / 〜60点：初級 / 30点以下：新人
 
-回答は簡潔に、箇条書きや絵文字を交えて、やさしく丁寧な日本語で行ってください。
+回答は、箇条書きや絵文字を交えて、スタッフが安心して研修を進められるよう、分かりやすく詳しく丁寧な日本語で行ってください。
 `;
 
     const contents = [
@@ -121,10 +121,16 @@ STEP4：症例報告
             throw new Error(`Gemini API エラー: ${response.status} (${errText})`);
         }
 
-        const json = await response.json();
-        const reply = json.candidates?.[0]?.content?.parts?.[0]?.text || '申し訳ありません、回答を生成できませんでした。';
+    // 回答の全パーツを結合（途切れ防止）
+    const parts = json.candidates?.[0]?.content?.parts;
+    let reply = "";
+    if (parts && parts.length > 0) {
+        reply = parts.map(p => p.text).join('');
+    } else {
+        reply = '申し訳ありません、回答を生成できませんでした。';
+    }
 
-        return res.status(200).json({ reply });
+    return res.status(200).json({ reply });
 
     } catch (error) {
         console.error('Help chat error:', error);

@@ -1010,11 +1010,12 @@ function escapeHtml(str) {
 }
 
 function formatChatReply(text) {
+    if (!text) return "";
     return text
-        .replace(/\n/g, '<br>')
+        .replace(/^[*-] (.*?)$/gm, '• $1')
+        .replace(/^(\d+)\. (.*?)$/gm, '$1. $2')
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/^[*-] (.*?)(?=<br>|$)/gm, '• $1')
-        .replace(/^(\d+)\. (.*?)(?=<br>|$)/gm, '$1. $2');
+        .replace(/\n/g, '<br>');
 }
 
 // ===== 介護対象者 2モード切替 =====
