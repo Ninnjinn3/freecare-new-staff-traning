@@ -8,7 +8,7 @@ console.log('System initialized at 2026-04-09 15:00');
 
 // ===== 通知ヘルパー =====
 const NotificationHelper = {
-    send: function(title, body, icon = 'https://freecare.co.jp/wp-content/themes/freecare/images/logo.png') {
+    send: function(title, body, icon = 'https://drive.google.com/uc?id=12KhSyJdvnWKQqDghfkyIVklAEmvU7Zit') {
         const isEnabled = localStorage.getItem('fc_notifications_enabled') === 'true';
         if (!isEnabled || !("Notification" in window)) return;
 
@@ -25,33 +25,18 @@ const NotificationHelper = {
 };
 
 // ===== 画面遷移 =====
-async function navigateTo(screenId) {
+async function navigateTo(screenId, pushHistory = true) {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     const target = document.getElementById(screenId);
     if (target) {
         target.classList.add('active');
         window.scrollTo(0, 0);
 
-        // 運営本部(exec) または 管理者(admin) の場合、モード切り替えスイッチを表示
-        const user = Auth.getUser();
-        const switcher = document.getElementById('exec-mode-switcher');
-        if (switcher) {
-            const isExec = user && (user.role === 'exec' || user.staff_id === 'FC003');
-            const isAdmin = user && (user.role === 'admin' || Auth.DUAL_ACCESS_ADMINS.includes(user.staff_id));
-            
-            if ((isExec || isAdmin) && screenId !== 'screen-role-select' && screenId !== 'screen-login') {
-                switcher.style.display = 'flex';
-                // 本部ボタンの表示制御（運営本部のみ表示）
-                const execBtn = switcher.querySelector('button[title="運営本部画面"]');
-                if (execBtn) execBtn.style.display = isExec ? 'inline-block' : 'none';
-                
-                // 管理者ボタンの表示制御（管理者・運営本部が利用可能）
-                const adminBtn = switcher.querySelector('button[title="管理者画面"]');
-                if (adminBtn) adminBtn.style.display = (isExec || isAdmin) ? 'inline-block' : 'none';
-            } else {
-                switcher.style.display = 'none';
-            }
+        if (pushHistory) {
+            history.pushState({ screenId: screenId }, '', '#' + screenId);
         }
+
+
     }
 
     // 画面ごとの初期化
@@ -84,7 +69,18 @@ async function navigateTo(screenId) {
             loadVideoTasks();
             break;
         case 'screen-admin':
-            await initAdmin();
+            {
+                const u = Auth.getUser();
+                const isExec = u && (u.role === 'exec' || u.staff_id === 'FC003');
+                const isAdmin = u && (u.role === 'admin' || Auth.DUAL_ACCESS_ADMINS.includes(u.staff_id));
+                if (isExec || isAdmin) {
+                    await initAdmin();
+                } else {
+                    if (typeof showToast === 'function') showToast('⛔ 権限が付与されていません。');
+                    navigateTo('screen-home');
+                    return;
+                }
+            }
             break;
         case 'screen-exec':
             await Exec.load();
@@ -206,8 +202,7 @@ function togglePasswordVisibility() {
 function handleLogout() {
     Auth.logout();
     document.getElementById('login-form').reset();
-    const switcher = document.getElementById('exec-mode-switcher');
-    if (switcher) switcher.style.display = 'none';
+
     navigateTo('screen-role-select');
 }
 
@@ -468,25 +463,37 @@ function updateDeadlineAlert() {
     const alertCard = document.getElementById('deadline-alert');
     const titleEl = document.getElementById('deadline-alert-title');
 
+    if (cycle.isBreakPeriod) {
+        if (titleEl) titleEl.textContent = '☕ 休憩期間';
+        if (deadlineEl) {
+            deadlineEl.innerHTML = '<span style="color: #4c5bb7; font-weight: bold;">現在は提出期間外（休憩）です。</span><br><span style="font-size: 0.85rem; color: #666;">次のサイクルは26日から開始されます。</span>';
+        }
+        if (alertCard) alertCard.classList.remove('alert-urgent');
+        return;
+    }
+
     if (titleEl) {
         titleEl.textContent = `${cycle.cycleMonth}月分 提出期限`;
     }
 
-    // 提出期間中かどうか（翌月10日まで）
+    // 提出期間中かどうか（11日まで）
     if (!cycle.isPastDeadline) {
         const spaces = '&nbsp;'.repeat(6);
-        deadlineEl.innerHTML = `${cycle.deadlineStr}${spaces}<span style="margin-left: 12px; font-weight: bold; color: #d9534f;">あと${cycle.daysLeft}日</span>`;
-        alertCard.classList.toggle('alert-urgent', cycle.daysLeft <= 3);
-    } else {
-        // 期限を過ぎている場合はフェーズに応じた表示（評価期間またはフィードバック期間）
-        // 11日〜17日は評価期間、それ以降はフィードバック期間とする
-        const currentDay = new Date().getDate();
-        if (currentDay >= 11 && currentDay <= 17) {
-            deadlineEl.textContent = '評価期間中（公開をお待ちください）';
-        } else {
-            deadlineEl.textContent = 'フィードバック公開中';
+        if (deadlineEl) {
+            deadlineEl.innerHTML = `${cycle.deadlineStr}${spaces}<span style="margin-left: 12px; font-weight: bold; color: #d9534f;">あと${cycle.daysLeft}日</span>`;
         }
-        alertCard.classList.remove('alert-urgent');
+        if (alertCard) alertCard.classList.toggle('alert-urgent', cycle.daysLeft <= 3);
+    } else {
+        // 期限を過ぎている場合はフェーズに応じた表示
+        const currentDay = new Date().getDate();
+        if (deadlineEl) {
+            if (currentDay >= 11 && currentDay <= 17) {
+                deadlineEl.textContent = '評価期間中（公開をお待ちください）';
+            } else {
+                deadlineEl.textContent = 'フィードバック公開中';
+            }
+        }
+        if (alertCard) alertCard.classList.remove('alert-urgent');
     }
 }
 
@@ -942,6 +949,15 @@ async function sendHelpChat() {
             <div class="chat-bubble">${escapeHtml(msg)}</div>
             <span class="chat-avatar">👤</span>
         </div>`;
+    container.scrollTop = container.scrollHeight;
+
+    chatHistory.push({ role: 'user', text: msg });
+
+    // 不具合報告の場合は直接本部に送信
+    if (InquiryManager.currentCategory === '不具合報告') {
+        InquiryManager.performSendToHQ(msg);
+        return;
+    }
 
     // ローディング
     const loadId = 'chat-loading-' + Date.now();
@@ -953,7 +969,6 @@ async function sendHelpChat() {
     container.scrollTop = container.scrollHeight;
 
     const historyToSend = chatHistory.slice(-10);
-    chatHistory.push({ role: 'user', text: msg });
 
     try {
         const resp = await fetch('/api/help-chat', {
@@ -971,10 +986,9 @@ async function sendHelpChat() {
             loadEl.querySelector('.chat-bubble').innerHTML = formatChatReply(reply);
         }
 
-        // 不具合報告以外なら、回答後に「解決しない場合」のボタンを出す
-        if (InquiryManager.currentCategory !== '不具合報告') {
-            document.getElementById('hq-contact-area').style.display = 'block';
-        }
+        // 回答後に「解決しない場合」のボタンを出す
+        document.getElementById('hq-contact-area').style.display = 'block';
+        
     } catch (e) {
         const loadEl = document.getElementById(loadId);
         if (loadEl) {
@@ -1856,15 +1870,18 @@ function showResult(result) {
         }
     }
 
-    // Improvement example
+    // Improvement example (添削)
     const improveSection = document.getElementById('result-improve');
     const improveText = document.getElementById('result-improve-text');
     if (improveSection && improveText) {
-        if (!isCorrect) {
+        if (result.improvement_example) {
             improveSection.hidden = false;
-            improveText.innerHTML = result.improvement_example ? result.improvement_example.replace(/\n/g, '<br>') : '（情報が十分でないため改善例を作成できませんでした。「いつ」「どこで」「誰が」「何を」もう少し足して再提出してみましょう）';
+            improveText.innerHTML = result.improvement_example.replace(/\n/g, '<br>');
+        } else if (!isCorrect) {
+            improveSection.hidden = false;
+            improveText.innerHTML = '（情報が十分でないため添削案を作成できませんでした。「いつ」「どこで」「誰が」「何を」もう少し足して再提出してみましょう）';
         } else {
-            improveSection.hidden = true; // ○の場合は隠す
+            improveSection.hidden = true;
         }
     }
 
@@ -1934,10 +1951,6 @@ const InquiryManager = {
     },
 
     async sendToHQ() {
-        const user = Auth.getUser();
-        if (!user) return;
-        
-        // チャット履歴からメッセージを取得（直近のユーザー発信）
         const userMessages = chatHistory.filter(c => c.role === 'user');
         const lastMsg = userMessages.length > 0 ? userMessages[userMessages.length - 1].text : '(本文なし)';
 
@@ -1947,7 +1960,13 @@ const InquiryManager = {
         }
 
         if (!confirm('この内容を運営本部（委員会）に送信してもよろしいですか？')) return;
+        await this.performSendToHQ(lastMsg);
+    },
 
+    async performSendToHQ(message) {
+        const user = Auth.getUser();
+        if (!user) return;
+        
         try {
             const resp = await fetch('/api/contact', {
                 method: 'POST',
@@ -1956,7 +1975,7 @@ const InquiryManager = {
                     staff_id: user.staff_id,
                     staff_name: user.name,
                     category: this.currentCategory,
-                    message: lastMsg
+                    message: message
                 })
             });
 

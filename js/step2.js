@@ -44,7 +44,13 @@ const Step2 = {
             const monthEl = document.getElementById('step2-month');
             if (monthEl) monthEl.textContent = `${cycle.yearMonth} サイクル`;
 
-            if (cycle.isPastDeadline) {
+            if (cycle.isBreakPeriod) {
+                if(submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = '現在は休憩期間（提出不可）です';
+                    submitBtn.style.opacity = '0.5';
+                }
+            } else if (cycle.isPastDeadline) {
                 if(submitBtn) {
                     submitBtn.disabled = true;
                     submitBtn.textContent = '提出期限を過ぎています';

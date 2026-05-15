@@ -21,7 +21,9 @@ export default async function handler(req, res) {
         let staffQuery = `is_active=eq.true&staff_id=not.ilike.FC*&order=created_at.desc`;
         if (facility_id) staffQuery += `&facility_id=eq.${facility_id}`;
 
-        const staffList = await sbSelect(SUPABASE_URL, SUPABASE_KEY, 'staff_master', staffQuery);
+        const allStaff = await sbSelect(SUPABASE_URL, SUPABASE_KEY, 'staff_master', staffQuery);
+        // 管理者(admin)と運営本部(exec)は研修対象から除外
+        const staffList = allStaff.filter(s => s.role !== 'admin' && s.role !== 'exec');
 
         if (!staffList.length) {
             return res.status(200).json({ staffProgress: [], alerts: [], summary: defaultSummary() });

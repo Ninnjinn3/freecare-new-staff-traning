@@ -85,13 +85,13 @@ STEP4：症例報告
     const contents = [];
     if (history && history.length > 0) {
         history.forEach(h => {
-            contents.push({ role: h.role === 'assistant' ? 'model' : 'user', parts: [{ text: h.text }] });
+            contents.push({ role: h.role === 'model' ? 'model' : 'user', parts: [{ text: h.text }] });
         });
     }
     contents.push({ role: 'user', parts: [{ text: message }] });
 
     try {
-        const model = 'gemini-2.5-flash-lite';
+        const model = 'gemini-1.5-flash';
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
 
         const response = await fetch(url, {

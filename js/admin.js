@@ -151,12 +151,12 @@ window.Admin = {
     // ===== スタッフ管理 =====
 
     // スタッフ一覧取得
-    async loadStaffList() {
+    async loadStaffList(mode = 'all') {
         const user = Auth.getUser();
         const facilityId = user?.role === 'exec' ? '' : (user?.facility_id || 'F001');
         const showInactive = document.getElementById('show-inactive-staff')?.checked || false;
 
-        const list = document.getElementById('staff-manage-list');
+        const list = document.getElementById('staff-manage-list-container');
         if (list) list.innerHTML = '<p class="empty-state">読み込み中...</p>';
 
         try {
@@ -172,7 +172,7 @@ window.Admin = {
 
             if (resp.ok) {
                 const data = await resp.json();
-                this.renderStaffManageList(data.staff || []);
+                this.renderStaffManageList(data.staff || [], mode);
                 return;
             }
         } catch (e) {
@@ -182,8 +182,8 @@ window.Admin = {
         if (list) list.innerHTML = '<p class="empty-state">取得に失敗しました</p>';
     },
 
-    renderStaffManageList(staffList) {
-        const list = document.getElementById('staff-manage-list');
+    renderStaffManageList(staffList, mode = 'all') {
+        const list = document.getElementById('staff-manage-list-container');
         if (!list) return;
 
         if (staffList.length === 0) {
@@ -193,33 +193,74 @@ window.Admin = {
 
         const roleLabels = { staff: '研修', admin: '管理者', exec: '本部' };
 
-        list.innerHTML = staffList.map(s => {
-            const isInactive = !s.is_active;
-            const roleLabel = roleLabels[s.role] || s.role;
+        if (mode === 'login') {
+            // ログイン率・活動状況モード
+            list.style.display = 'block';
+            list.innerHTML = `
+                <div style="background: white; border-radius: 12px; overflow: hidden; border: 1px solid #eee;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                        <thead style="background: #f8fafc; border-bottom: 1px solid #eee;">
+                            <tr>
+                                <th style="padding: 12px; text-align: left;">氏名</th>
+                                <th style="padding: 12px; text-align: center;">役割</th>
+                                <th style="padding: 12px; text-align: center;">記録件数</th>
+                                <th style="padding: 12px; text-align: center;">最終活動日</th>
+                                <th style="padding: 12px; text-align: center;">ステータス</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${staffList.map(s => {
+                                const lastActive = s.last_record_date || '未活動';
+                                const isActive = s.total_records > 0;
+                                return `
+                                <tr style="border-bottom: 1px solid #f1f5f9;">
+                                    <td style="padding: 12px;"><strong>${s.name}</strong><br><span style="font-size: 0.75rem; color: #666;">ID: ${s.staff_id}</span></td>
+                                    <td style="padding: 12px; text-align: center;"><span class="step-badge step-${s.current_step || 0}">${roleLabels[s.role] || s.role}</span></td>
+                                    <td style="padding: 12px; text-align: center;">${s.total_records || 0}件</td>
+                                    <td style="padding: 12px; text-align: center;">${lastActive}</td>
+                                    <td style="padding: 12px; text-align: center;">
+                                        <span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: ${isActive ? '#10b981' : '#cbd5e1'}; margin-right: 5px;"></span>
+                                        ${isActive ? '活動中' : '待機中'}
+                                    </td>
+                                </tr>`;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>`;
+        } else {
+            // 通常のスタッフ管理モード
+            list.style.display = 'grid';
+            list.innerHTML = staffList.map(s => {
+                const isInactive = !s.is_active;
+                const roleLabel = roleLabels[s.role] || s.role;
 
-            return `
-            <div class="staff-manage-card ${isInactive ? 'staff-inactive' : ''}">
-                <div class="staff-card-header">
-                    <span class="staff-name">${isInactive ? '🔴 ' : '🟢 '}${s.name}</span>
-                    <span class="step-badge step-${s.current_step || 0}">${roleLabel}</span>
-                </div>
-                <div class="staff-manage-info">
-                    <span>ID: ${s.staff_id}</span>
-                    <span>${s.work_type === 'day' ? '日勤' : s.work_type === 'night' ? '夜勤' : '宿直'}</span>
-                    ${s.current_step ? `<span>STEP${s.current_step}</span>` : ''}
-                    ${s.left_date ? `<span class="left-date">退職: ${s.left_date}</span>` : ''}
-                </div>
-                ${!isInactive ? `
-                <div style="display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px;">
-                    <button style="background:var(--primary); color:white; border:none; padding:4px 8px; border-radius:4px; font-size:0.8rem; cursor:pointer;" onclick="Admin.viewStaffProgress('${s.staff_id}')">
-                        進捗を見る
-                    </button>
-                    <button class="btn-danger-sm" onclick="Admin.confirmDelete('${s.staff_id}', '${s.name}')">
-                        退職処理
-                    </button>
-                </div>` : ''}
-            </div>`;
-        }).join('');
+                return `
+                <div class="staff-manage-card ${isInactive ? 'staff-inactive' : ''}" style="background: #fff; border-radius: 12px; padding: 16px; border: 1px solid #eee; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                    <div class="staff-card-header" style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                        <div>
+                            <div class="staff-name" style="font-weight: bold; font-size: 1.1rem; margin-bottom: 4px;">${isInactive ? '🔴 ' : '🟢 '}${s.name}</div>
+                            <div style="font-size: 0.8rem; color: #666;">ID: ${s.staff_id}</div>
+                        </div>
+                        <span class="step-badge step-${s.current_step || 0}">${roleLabel}</span>
+                    </div>
+                    <div class="staff-manage-info" style="font-size: 0.85rem; color: #444; display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px;">
+                        <span>🏢 ${s.work_type === 'day' ? '日勤' : s.work_type === 'night' ? '夜勤' : '宿直'}</span>
+                        ${s.current_step ? `<span>📚 STEP${s.current_step}</span>` : ''}
+                        <span>📅 登録: ${s.created_at ? new Date(s.created_at).toLocaleDateString() : '不明'}</span>
+                        ${s.left_date ? `<span class="left-date" style="color: #e53e3e;">🚫 退職: ${s.left_date}</span>` : ''}
+                    </div>
+                    ${!isInactive ? `
+                    <div style="display: flex; gap: 8px; justify-content: flex-end; border-top: 1px solid #f8fafc; padding-top: 12px;">
+                        <button style="background: #f1f5f9; color: #475569; border: none; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer; font-weight: 500;" onclick="Admin.viewStaffProgress('${s.staff_id}')">
+                            進捗詳細
+                        </button>
+                        <button class="btn-danger-sm" style="background: #fef2f2; color: #b91c1c; border: 1px solid #fee2e2; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; cursor: pointer;" onclick="Admin.confirmDelete('${s.staff_id}', '${s.name}')">
+                            退職処理
+                        </button>
+                    </div>` : ''}
+                </div>`;
+            }).join('');
+        }
     },
 
     // スタッフの進捗を見る

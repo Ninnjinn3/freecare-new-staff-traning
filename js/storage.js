@@ -68,32 +68,38 @@ const DB = {
         let cycleYear = d.getFullYear();
         let cycleMonth = d.getMonth(); // 0-indexed
         
-        // 12日〜翌月11日を1つのサイクルとするルール
-        // 例: 3/12 〜 4/11 は「3月分」
-        if (d.getDate() <= 11) {
-            // 1日〜11日の場合は、前月のサイクルに属する
-            const prev = new Date(d);
-            prev.setMonth(d.getMonth() - 1);
-            cycleYear = prev.getFullYear();
-            cycleMonth = prev.getMonth();
+        // 提出期間: 26日〜翌月11日
+        // 休憩期間: 12日〜25日
+        
+        // サイクル判定
+        // 26日〜末日の場合は、翌月のサイクルとする
+        if (d.getDate() >= 26) {
+            const next = new Date(d);
+            next.setMonth(d.getMonth() + 1);
+            cycleYear = next.getFullYear();
+            cycleMonth = next.getMonth();
         }
         
         const targetYearMonth = `${cycleYear}-${String(cycleMonth + 1).padStart(2, '0')}`;
         
         // --- 対象期間の算出 ---
-        // 開始日: 当月12日
-        const startDate = new Date(cycleYear, cycleMonth, 12);
-        // 終了日: 翌月11日
-        const endDate = new Date(cycleYear, cycleMonth + 1, 11);
+        // 開始日: 前月26日
+        const startDate = new Date(cycleYear, cycleMonth - 1, 26);
+        // 終了日: 当月11日
+        const endDate = new Date(cycleYear, cycleMonth, 11);
         
-        // 提出期限は M+1月の11日 23:59:59
-        const deadlineDate = new Date(cycleYear, cycleMonth + 1, 11, 23, 59, 59);
+        // 提出期限は サイクル月の11日 23:59:59
+        const deadlineDate = new Date(cycleYear, cycleMonth, 11, 23, 59, 59);
         
         // 今日の日付（refDate）から見て、期限が過ぎているか判定
         const today = new Date(refDate);
         const diffMs = deadlineDate - today;
         const daysLeft = Math.ceil(diffMs / (1000 * 60 * 60 * 24));
         const isPastDeadline = diffMs < 0;
+
+        // 休憩期間判定 (12日〜25日)
+        const day = today.getDate();
+        const isBreakPeriod = day >= 12 && day <= 25;
         
         // ラベル作成
         const rangeStr = `${startDate.getMonth() + 1}/${startDate.getDate()}〜${endDate.getMonth() + 1}/${endDate.getDate()}`;
@@ -110,7 +116,8 @@ const DB = {
             deadlineDate,
             daysLeft: Math.max(0, daysLeft),
             deadlineStr: `${endDate.getMonth() + 1}月${endDate.getDate()}日`,
-            isPastDeadline
+            isPastDeadline,
+            isBreakPeriod
         };
     },
 

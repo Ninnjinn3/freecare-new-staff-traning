@@ -128,15 +128,7 @@
       <!-- ヘッダー -->
       <div class="home-header" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: var(--space-lg);">
         <div class="home-logo">
-          <svg width="120" height="40" viewBox="0 0 240 80" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="35" cy="40" r="30" fill="#58CC02"/>
-            <path d="M35 20C30 20 25 25 25 32C25 38 30 42 35 42C40 42 45 38 45 32C45 25 40 20 35 20Z" fill="white"/>
-            <path d="M35 48C28 48 20 52 20 62H50C50 52 42 48 35 48Z" fill="white"/>
-            <circle cx="50" cy="30" r="8" fill="white"/>
-            <path d="M50 40C46 40 42 42 42 47V50H58V47C58 42 54 40 50 40Z" fill="white"/>
-            <text x="75" y="45" font-family="Arial, sans-serif" font-weight="900" font-size="28" fill="#666">FreeCare</text>
-            <text x="75" y="65" font-family="Arial, sans-serif" font-weight="700" font-size="12" fill="#888" letter-spacing="4">フリーケア</text>
-          </svg>
+          <img src="https://drive.google.com/uc?id=12KhSyJdvnWKQqDghfkyIVklAEmvU7Zit" alt="FreeCare" style="height: 45px; object-fit: contain;">
         </div>
         <div style="display: flex; align-items: center; gap: 12px; margin-left: auto;">
           <div class="user-info" style="text-align: right;">
@@ -535,7 +527,7 @@
           <ul id="result-missing-list"></ul>
         </div>
         <div class="result-section" id="result-improve" hidden>
-          <h4>💡 改善例</h4>
+          <h4>✨ 添削（100点の手本）</h4>
           <p id="result-improve-text"></p>
         </div>
         <div class="result-section" id="result-knowledge" hidden>
@@ -1696,6 +1688,9 @@
             <span>3. 敬称・対人関係に関する表現</span>
             <span class="help-toggle">▼</span>
           </div>
+          <div class="admin-sidebar-logo" style="padding: 15px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.1); border-radius: 12px; margin: 10px;">
+          <img src="https://drive.google.com/uc?id=12KhSyJdvnWKQqDghfkyIVklAEmvU7Zit" alt="FreeCare" style="height: 40px; filter: brightness(0) invert(1);">
+        </div>
           <div class="help-item-body" hidden>
             <div class="glossary-list">
                 <div class="glossary-pair">
@@ -1751,15 +1746,12 @@
           </div>
           <div class="help-item-body" hidden>
             <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px;">差別的な響きや、介護者の決定的な主観を避けます。</p>
-            <div class="glossary-list">
-                <div class="glossary-pair">
-                    <div class="glossary-bad">ボケている、痴呆（ちほう）</div>
-                    <div class="glossary-good">認知症状がある、見当識に混乱が見られる</div>
-                </div>
-                <div class="glossary-pair">
-                    <div class="glossary-bad">寝たきり</div>
-                    <div class="glossary-good">常時臥床されている、全介助の状態</div>
-                </div>
+                  <div style="background:#fff;border-radius:12px;padding:16px;border:1px solid #e8eaf6;box-shadow:0 3px 8px rgba(79,70,229,0.06); cursor:pointer;" onclick="Admin.switchPage('staff', 'all')">
+              <div style="font-size:0.8rem;color:#777;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;">
+                <span>👤 登録スタッフ</span>
+                <span style="font-size:1.1rem;">👥</span>
+              </div>
+              <div style="font-size:1.8rem;font-weight:bold;color:#4c5bb7;line-height:1.2;" id="widget-staff-count">--</div>               </div>
                 <div class="glossary-pair">
                     <div class="glossary-bad">気が短い、わがまま</div>
                     <div class="glossary-good">短気な傾向、自己中心的な発言が見られる</div>
@@ -1967,14 +1959,14 @@
           <div class="admin-nav-item active" id="nav-dashboard" onclick="Admin.switchPage('dashboard')">
             <span>🏠</span> <span>ダッシュボード</span>
           </div>
-          <div class="admin-nav-item" id="nav-staff" onclick="Admin.switchPage('staff')">
+          <div class="admin-nav-item" id="nav-staff" onclick="Admin.switchPage('staff', 'all')">
             <span>👤</span> <span>スタッフ管理</span>
           </div>
           <div class="admin-nav-item" id="nav-targets" onclick="Admin.switchPage('targets')">
             <span>👥</span> <span>介護対象者管理</span>
           </div>
           <div class="admin-nav-item" id="nav-curriculum" onclick="Admin.switchPage('curriculum')">
-            <span style="font-size: 1.2rem; margin-right: 12px;">📚</span> <span>段階管理（カリキュラム）</span>
+            <span style="font-size: 1.2rem; margin-right: 12px;">📚</span> <span>カリキュラム</span>
           </div>
           <div class="admin-nav-item" id="nav-system-content" onclick="Admin.switchPage('system-content')">
             <span>📄</span> <span>システム管理</span>
@@ -2322,15 +2314,7 @@
     </div>
   </section>
 
-  <!-- 運営本部用 モード切り替えスイッチ -->
-  <div id="exec-mode-switcher" class="exec-mode-switcher" style="display:none; position:fixed; bottom:20px; left:50%; transform:translateX(-50%); 
-       background:rgba(255,255,255,0.95); border:1px solid var(--border); border-radius:30px; padding:6px 15px; 
-       box-shadow:0 10px 25px rgba(0,0,0,0.15); z-index:9999; backdrop-filter:blur(8px); gap:12px; align-items:center;">
-    <span style="font-size:0.75rem; color:#666; font-weight:bold; margin-right:-4px;">モード:</span>
-    <button onclick="navigateTo('screen-home')" style="border:none; background:none; font-size:1.1rem; cursor:pointer;" title="新人研修利用者画面">👤</button>
-    <button onclick="navigateTo('screen-admin')" style="border:none; background:none; font-size:1.1rem; cursor:pointer;" title="管理者画面">👔</button>
-    <button onclick="navigateTo('screen-exec')" style="border:none; background:none; font-size:1.1rem; cursor:pointer;" title="運営本部画面">🏢</button>
-  </div>
+
 
   <!-- Scripts -->
   <!-- Chart.js -->
