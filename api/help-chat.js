@@ -109,10 +109,11 @@ STEP4：症例報告
 
         if (!response.ok) {
             const errText = await response.text();
+            console.error('Gemini API Error Detail:', errText); // Vercelのログで詳細が見れるようにする
             if (response.status === 429) {
                 return res.status(200).json({ reply: 'ただいまAIへのアクセスが集中しており、お返事できない状態です。約1分おいてから再度お話ししましょう🙇‍♂️' });
             }
-            throw new Error(`Gemini API エラー: ${response.status}`);
+            throw new Error(`Gemini API エラー: ${response.status} (${errText})`);
         }
 
         const json = await response.json();
