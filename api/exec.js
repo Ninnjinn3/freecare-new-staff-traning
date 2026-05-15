@@ -1,4 +1,4 @@
-﻿/* ============================================
+/* ============================================
    api/exec.js — 運営本部ダッシュボード用API
    全拠点KPI・合格率・STEP分布
    ============================================ */
@@ -110,7 +110,7 @@ export default async function handler(req, res) {
         // 事業所スコア偏差（各拠点の平均スコアの標準偏差計算）
         const validFacilityScores = facilityStats.map(f => f.avgScore).filter(s => s > 0);
         let scoreDeviation = 0;
-        if (validFacilityScores.length > 0) {
+        if (validFacilityScores.length > 1) { // 2拠点以上ないと標準偏差は出せない
             const mean = validFacilityScores.reduce((a, b) => a + b, 0) / validFacilityScores.length;
             const variance = validFacilityScores.reduce((a, b) => a + Math.pow(b - mean, 2), 0) / validFacilityScores.length;
             scoreDeviation = Math.round(Math.sqrt(variance));

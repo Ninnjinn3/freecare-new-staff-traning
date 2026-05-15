@@ -95,7 +95,16 @@ STEP4：症例報告
     contents.push({ role: 'user', parts: [{ text: message }] });
 
     try {
-        const model = 'gemini-1.5-flash-latest';
+        // デバッグ用：利用可能なモデル一覧をログに出す
+        try {
+            const listResp = await fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${GEMINI_API_KEY}`);
+            const listJson = await listResp.json();
+            console.log('--- Available Gemini Models ---');
+            console.log(JSON.stringify(listJson));
+            console.log('-------------------------------');
+        } catch(e) { console.error('ListModels failed', e); }
+
+        const model = 'gemini-1.5-flash';
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
         console.log('Using Gemini Model:', model);
         console.log('API Key Length:', GEMINI_API_KEY ? GEMINI_API_KEY.length : 0);
