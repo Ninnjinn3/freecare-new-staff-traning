@@ -274,10 +274,7 @@ async function submitStep3(event) {
             document.getElementById('step3-form').reset();
             document.getElementById('step3-date').value = new Date().toISOString().split('T')[0];
             // 判定結果画面を表示
-            showResult({
-                ...aiResult,
-                step: 3
-            });
+            navigateTo('screen-home');
         } else {
             navigateTo('screen-home');
         }

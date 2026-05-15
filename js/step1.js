@@ -165,10 +165,7 @@ async function submitStep1(event) {
             document.getElementById('step1-form').reset();
             document.getElementById('step1-char-count').textContent = '0';
             // 判定結果画面を表示
-            showResult({
-                ...aiResult,
-                step: 1
-            });
+            navigateTo('screen-home');
         } else {
             navigateTo('screen-home');
         }

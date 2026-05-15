@@ -995,7 +995,14 @@ async function sendHelpChat() {
             loadEl.querySelector('.chat-bubble').textContent = '通信エラーが発生しました。もう一度お試しください。';
         }
     }
-    container.scrollTop = container.scrollHeight;
+    
+    // スクロール処理を確実にする（描画完了を待つ）
+    setTimeout(() => {
+        container.scrollTo({
+            top: container.scrollHeight,
+            behavior: 'smooth'
+        });
+    }, 100);
 }
 
 function escapeHtml(str) {
@@ -1006,7 +1013,8 @@ function formatChatReply(text) {
     return text
         .replace(/\n/g, '<br>')
         .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/- (.*?)(?=<br>|$)/g, '• $1');
+        .replace(/^[*-] (.*?)(?=<br>|$)/gm, '• $1')
+        .replace(/^(\d+)\. (.*?)(?=<br>|$)/gm, '$1. $2');
 }
 
 // ===== 介護対象者 2モード切替 =====
@@ -1940,6 +1948,11 @@ const InquiryManager = {
                     <div class="chat-bubble">「${cat}」についてですね！承知しました😊<br>聞きたいことを入力してな！</div>
                 </div>`;
         }
+
+        setTimeout(() => {
+            const container = document.getElementById('help-chat-messages');
+            container.scrollTop = container.scrollHeight;
+        }, 100);
     },
 
     handleBack() {
