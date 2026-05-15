@@ -25,18 +25,54 @@ const API = {
     async login(staffId, password) {
         const email = `${staffId}@freecare.local`;
 
-        // 1) Supabase Auth でサインインを試行
-        const { data: authData, error: authError } = await this.getSupabase().auth.signInWithPassword({ email, password });
-        
-        if (!authError) {
-            // Auth成功：staff_masterから詳細情報を取得
-            const { data: staff, error: staffError } = await this.getSupabase()
+        try {
+            // 1) Supabase Auth でサインインを試行
+            const { data: authData, error: authError } = await this.getSupabase().auth.signInWithPassword({ email, password });
+            
+            if (!authError) {
+                // Auth成功：staff_masterから詳細情報を取得
+                const { data: staff, error: staffError } = await this.getSupabase()
+                    .from('staff_master')
+                    .select('*')
+                    .eq('staff_id', staffId)
+                    .single();
+
+                if (staff) {
+                    const selectedRole = Auth.getSelectedRole();
+                    // 運営本部ボタンからのログインを1xxx以外はブロック
+                    if (selectedRole === 'exec' && !staffId.startsWith('1') && staffId !== 'FC003') {
+                        return { success: false, error: '権限が付与されておりません' };
+                    }
+
+                    // IDの1桁目が1またはFC003なら運営本部扱い
+                    if (staffId.startsWith('1') || staffId === 'FC003') staff.role = 'exec';
+                    // 特定のIDまたはDB上の管理者は管理者扱い
+                    else if (Auth.DUAL_ACCESS_ADMINS.includes(staffId) || staff.role === 'admin') staff.role = 'admin';
+                    
+                    Auth.currentUser = staff;
+                    sessionStorage.setItem('fc_current_user', JSON.stringify(staff));
+                    return { success: true, user: staff };
+                }
+            }
+
+            // 2) Auth失敗または不完全な場合：staff_masterを直接チェック（フォールバック）
+            // Supabase Authのレートリミットや未確認メール対策として実装
+            const { data: staffFromDb, error: dbError } = await this.getSupabase()
                 .from('staff_master')
                 .select('*')
                 .eq('staff_id', staffId)
-                .single();
+                .eq('password', password)
+                .maybeSingle();
 
-            if (staff) {
+            if (dbError) {
+                // 接続エラー（DNSエラーやタイムアウト）の場合は、例外を投げて上位の catch (app.js) でローカル認証へ飛ばす
+                console.error('Supabase DB error:', dbError);
+                if (dbError.message && (dbError.message.includes('fetch') || dbError.message.includes('Network'))) {
+                    throw new Error('Supabase connection failed');
+                }
+            }
+
+            if (staffFromDb) {
                 const selectedRole = Auth.getSelectedRole();
                 // 運営本部ボタンからのログインを1xxx以外はブロック
                 if (selectedRole === 'exec' && !staffId.startsWith('1') && staffId !== 'FC003') {
@@ -44,43 +80,29 @@ const API = {
                 }
 
                 // IDの1桁目が1またはFC003なら運営本部扱い
-                if (staffId.startsWith('1') || staffId === 'FC003') staff.role = 'exec';
+                if (staffId.startsWith('1') || staffId === 'FC003') staffFromDb.role = 'exec';
                 // 特定のIDまたはDB上の管理者は管理者扱い
-                else if (Auth.DUAL_ACCESS_ADMINS.includes(staffId) || staff.role === 'admin') staff.role = 'admin';
-                
-                Auth.currentUser = staff;
-                sessionStorage.setItem('fc_current_user', JSON.stringify(staff));
-                return { success: true, user: staff };
-            }
-        }
+                else if (Auth.DUAL_ACCESS_ADMINS.includes(staffId) || staffFromDb.role === 'admin') staffFromDb.role = 'admin';
 
-        // 2) Auth失敗または不完全な場合：staff_masterを直接チェック（フォールバック）
-        // Supabase Authのレートリミットや未確認メール対策として実装
-        const { data: staffFromDb, error: dbError } = await this.getSupabase()
-            .from('staff_master')
-            .select('*')
-            .eq('staff_id', staffId)
-            .eq('password', password)
-            .maybeSingle();
-
-        if (staffFromDb) {
-            const selectedRole = Auth.getSelectedRole();
-            // 運営本部ボタンからのログインを1xxx以外はブロック
-            if (selectedRole === 'exec' && !staffId.startsWith('1') && staffId !== 'FC003') {
-                return { success: false, error: '権限が付与されておりません' };
+                Auth.currentUser = staffFromDb;
+                sessionStorage.setItem('fc_current_user', JSON.stringify(staffFromDb));
+                return { success: true, user: staffFromDb };
             }
 
-            // IDの1桁目が1またはFC003なら運営本部扱い
-            if (staffId.startsWith('1') || staffId === 'FC003') staffFromDb.role = 'exec';
-            // 特定のIDまたはDB上の管理者は管理者扱い
-            else if (Auth.DUAL_ACCESS_ADMINS.includes(staffId) || staffFromDb.role === 'admin') staffFromDb.role = 'admin';
+            // デモ用IDかつパスワードが一致する場合の救済処置
+            // (Supabaseが死んでいても、localStorageにあるか、固定値で通す)
+            const isDemoId = staffId.startsWith('FC');
+            if (isDemoId && password === 'demo1234') {
+                throw new Error('Demo login fallback');
+            }
 
-            Auth.currentUser = staffFromDb;
-            sessionStorage.setItem('fc_current_user', JSON.stringify(staffFromDb));
-            return { success: true, user: staffFromDb };
+            return { success: false, error: 'IDまたはパスワードが正しくありません' };
+
+        } catch (err) {
+            console.warn('API login process error, falling back:', err);
+            // 接続エラーやデモ用救済の場合は、上位に投げてAuth.login(ローカル)を実行させる
+            throw err;
         }
-
-        return { success: false, error: 'IDまたはパスワードが正しくありません' };
     },
 
     async logout() {
