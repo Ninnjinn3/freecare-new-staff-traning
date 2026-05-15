@@ -82,7 +82,11 @@ STEP4：症例報告
 回答は簡潔に、箇条書きや絵文字を交えて、やさしく丁寧な日本語で行ってください。
 `;
 
-    const contents = [];
+    const contents = [
+        { role: 'user', parts: [{ text: `以下の指示に従って、フリーケアプログラムのサポートAIとして回答してください。\n\n${systemPrompt}` }] },
+        { role: 'model', parts: [{ text: '承知いたしました。フリーケアプログラムの専任サポートAI「フリーケアくん」として、スタッフの皆様をやさしく丁寧にサポートさせていただきます。どのようなことにお困りでしょうか？' }] }
+    ];
+
     if (history && history.length > 0) {
         history.forEach(h => {
             contents.push({ role: h.role === 'model' ? 'model' : 'user', parts: [{ text: h.text }] });
@@ -92,17 +96,16 @@ STEP4：症例報告
 
     try {
         const model = 'gemini-1.5-flash';
-        const url = `https://generativelanguage.googleapis.com/v1/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
 
         const response = await fetch(url, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
-                system_instruction: { parts: [{ text: systemPrompt }] },
                 contents,
                 generationConfig: {
                     temperature: 0.7,
-                    maxOutputTokens: 512
+                    maxOutputTokens: 800
                 }
             })
         });
