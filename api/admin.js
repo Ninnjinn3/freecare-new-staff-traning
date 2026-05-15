@@ -18,7 +18,7 @@ export default async function handler(req, res) {
 
     try {
         // 1) 該当拠点のスタッフ一覧
-        let staffQuery = `is_active=eq.true&order=created_at.desc`;
+        let staffQuery = `is_active=eq.true&staff_id=not.ilike.FC*&order=created_at.desc`;
         if (facility_id) staffQuery += `&facility_id=eq.${facility_id}`;
 
         const staffList = await sbSelect(SUPABASE_URL, SUPABASE_KEY, 'staff_master', staffQuery);

@@ -1277,12 +1277,14 @@ window.Admin = {
     },
 
     getDeptName(staffId, facilityId) {
-        if (facilityId) {
+        if (facilityId && !String(facilityId).startsWith('FC')) {
             const f = this.facilities.find(f => f.id === String(facilityId));
             if (f) return f.name;
         }
         if (!staffId) return 'その他';
         const s = String(staffId);
+        if (s.startsWith('FC')) return 'デモ用';
+        if (s.startsWith('1')) return '運営本部';
         if (s.startsWith('2')) return 'グループホーム';
         if (s.startsWith('3')) return '訪問看護（精神）';
         if (s.startsWith('4')) return '三国';
