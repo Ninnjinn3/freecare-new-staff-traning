@@ -567,12 +567,13 @@ function navigateStep(stepNum) {
     if (!user) return;
 
     const currentStep = user.current_step || 1;
+    const isPowerUser = user.role === 'admin' || user.role === 'exec';
 
-    // ⚠️ 一時的にロック解除中（確認後に戻す）
-    // if (stepNum > currentStep) {
-    //     showToast('前のSTEPをクリアしてください 🔒');
-    //     return;
-    // }
+    // 研修生（一般スタッフ）のみロックを適用
+    if (!isPowerUser && stepNum > currentStep) {
+        showToast(`まずは STEP ${currentStep} をクリアしてください 🔒`);
+        return;
+    }
 
     const screens = { 1: 'screen-step1', 2: 'screen-step2', 3: 'screen-step3', 4: 'screen-step4' };
     if (screens[stepNum]) {
